@@ -7,8 +7,11 @@
 While matching is a mainstay in causal inference for observational studies, the speed of many matching algorithms scale poorly with the number of observations.  As the sizes of observational studies are allowed to grow larger and larger, the computational task of matching becomes more and more cumbersome.  Big_match will break down the matching task by strata of manageable size, and parallelize the matching task across strata.  To do this, we will need to support:
 
 (1) Stratification by user-defined variables or prognostic score quantiles
+
 (2) Visual diagnostics for assessing the useability of strata
+
 (3) Parallelization of matching across strata
+
 (4) Production of a complete, matched dataset across strata.
 
 ## User Notes
