@@ -2,35 +2,117 @@
 title: "Big_match - Testing and Demo"
 author: "Rachael 'Rocky' Aikens, Voight Lab"
 date: "August 24, 2018"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 This R markdown document is used for testing and demoing the current functionality of bigmatch.  We'll use the sample data from the MatchIt package for basic testing.
 
-```{r}
+```{r, warning=FALSE, message = FALSE}
 library(MatchIt)
+library(ggplot2)
+library(ggpubr)
+library(dplyr)
+
 data("lalonde")
+source('big_match.R')
 
 # adding a binary outcome
 lalonde$outcome <- lalonde$re78 > 15000
 lalonde$re78 <- NULL
 ```
 
+\pagebreak
+
+# Stratify
+
+## Manual Stratify
+
+These functions are not yet implemented.
 
 ```{r}
 # manual stratification with a continuous variable - should fail
-m.strat <- manual_stratify(lalonde, "treat", "outcome", covariates = c("black", "hispan", "age"))
+m.strat <- manual_stratify(lalonde, "treat", "outcome", 
+                           covariates = c("black", "hispan", "age"))
 
 # allowable manual stratification
-m.strat <- manual_stratify(lalonde, "treat", "outcome", covariates = c("black", "hispan", "nodegree"))
+m.strat <- manual_stratify(lalonde, "treat", "outcome", 
+                           covariates = c("black", "hispan", "nodegree"))
 ```
 
+\pagebreak
+
+## Auto Stratify
+
+### Testing Errors and Warnings
+
+First, testing error handling. These should fail and/or give warnings.
+
+```{r, eval=FALSE}
+# auto stratification with missing arguements
+# throws error
+a.strat <- auto_stratify(lalonde, "treat", "outcome")
+```
+
+```{r, eval = FALSE}
+# auto stratification with covariates and prog scores specified, and prog_scores invalid
+# throws warning that both covariates and prog scores were specified
+# throws error that prog_scores length is invalid
+a.strat <- auto_stratify(lalonde, "treat", "outcome", c("age", "educ"), prog_scores = 1:4)
+```
+
+### Testing Functionality with Valid Inputs
+
+These should give valid results.
 
 ```{r}
+# auto stratification with pre-specified prognostic score
+myprogscore <- runif(n = dim(lalonde)[1])
+a.strat1 <- auto_stratify(data = lalonde, "treat", "outcome",
+                          prog_scores = myprogscore, size = 100)
+
 # auto stratification
-a.strat <- auto_stratify(lalonde, "treat", "outcome", covariates = c("age", "educ", "hispan", "nodegree", "black"), size = 100)
+a.strat2 <- auto_stratify(lalonde, "treat", "outcome", 
+                          covariates = c("age", "educ", "hispan", "nodegree", "black"), 
+                          size = 100)
 
 # auto stratification with a non-continuous prognostic score
-a.strat <- auto_stratify(lalonde, "treat", "outcome", covariates = c("hispan", "nodegree", "black"), size = 100 )
+a.strat3 <- auto_stratify(lalonde, "treat", "outcome", 
+                          covariates = c("hispan", "nodegree", "black"), size = 100 )
+```
+
+Basic visualization of our prognostic score strata, with outcome
+
+```{r, include=FALSE}
+basic_viz <- function(auto_strata){
+  plotdata <- auto_strata$data
+  plotdata$prog_scores <- auto_strata$prog_scores
+  
+  plot_summary <- plotdata %>% 
+    group_by(stratum) %>% 
+    summarize(prog_mean = mean(prog_scores))
+  
+  a <- ggplot(data = plot_summary, aes(x = stratum, y = prog_mean)) + geom_col()
+  b <- ggplot(plotdata, aes(x = prog_scores, group = as.factor(stratum), 
+                            fill = as.factor(stratum))) + geom_histogram()
+  
+  return(ggarrange(a,b, ncol = 2, widths = c(1, 1.5))) }
+```
+
+Below are plots of prognostic score by strata.  The plot on the left shows the average prognostic score by stratum, the plot on the right gives a histogram of the prognostic scores of all samples, colored by stratum.
+
+```{r, warning=FALSE, fig.height=2}
+# uniformly generated prognostic score. Nicely continuous from 0 to 1
+basic_viz(a.strat1)
+
+# prognostic score generated from some continuous and some distcrete variables. 
+# Fairly continuous
+basic_viz(a.strat2)
+
+# prognostic score generated from only a few discrete variables.  
+# Since prog_score only takes on a few different values, 
+# strata quantiles are less evenly distributed from 0 to 1
+basic_viz(a.strat3)
 ```
 
