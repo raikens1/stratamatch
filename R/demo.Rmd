@@ -1,0 +1,36 @@
+---
+title: "Big_match - Testing and Demo"
+author: "Rachael 'Rocky' Aikens, Voight Lab"
+date: "August 24, 2018"
+output: html_document
+---
+
+This R markdown document is used for testing and demoing the current functionality of bigmatch.  We'll use the sample data from the MatchIt package for basic testing.
+
+```{r}
+library(MatchIt)
+data("lalonde")
+
+# adding a binary outcome
+lalonde$outcome <- lalonde$re78 > 15000
+lalonde$re78 <- NULL
+```
+
+
+```{r}
+# manual stratification with a continuous variable - should fail
+m.strat <- manual_stratify(lalonde, "treat", "outcome", covariates = c("black", "hispan", "age"))
+
+# allowable manual stratification
+m.strat <- manual_stratify(lalonde, "treat", "outcome", covariates = c("black", "hispan", "nodegree"))
+```
+
+
+```{r}
+# auto stratification
+a.strat <- auto_stratify(lalonde, "treat", "outcome", covariates = c("age", "educ", "hispan", "nodegree", "black"), size = 100)
+
+# auto stratification with a non-continuous prognostic score
+a.strat <- auto_stratify(lalonde, "treat", "outcome", covariates = c("hispan", "nodegree", "black"), size = 100 )
+```
+
