@@ -31,7 +31,7 @@ manual_stratify <- function(data, treat, outcome, covariates){
   
   result$strata_table <- grouped_table %>% summarize(stratum = first(stratum),
                                                      size = n())
-
+  class(result) <- "strata"
   return(result)
 }
 
