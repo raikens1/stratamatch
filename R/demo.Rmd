@@ -29,16 +29,25 @@ lalonde$re78 <- NULL
 
 ## Manual Stratify
 
-These functions are not yet implemented.
+### Testing errors and warnings
 
-```{r}
+This call should return an error because "educ" is a continuous variable.
+
+```{r, eval = FALSE}
 # manual stratification with a continuous variable - should fail
 m.strat <- manual_stratify(lalonde, "treat", "outcome", 
-                           covariates = c("black", "hispan", "age"))
+                           covariates = c("black", "hispan", "educ", "nodegree"))
+```
 
+### Testing Functionality with Valid Inputs
+
+This call should return six strata (since black and hispanic seem to be mutually exclusive categories in this dataset).
+
+```{r}
 # allowable manual stratification
 m.strat <- manual_stratify(lalonde, "treat", "outcome", 
                            covariates = c("black", "hispan", "nodegree"))
+m.strat$strata_table
 ```
 
 \pagebreak

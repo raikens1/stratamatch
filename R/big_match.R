@@ -1,5 +1,4 @@
-require("binr")
-
+require("dplyr")
 
 #' @title Manually creates strata for matching
 #' @description Creates \code{strata} object, given a set of covariates to stratify on
@@ -11,16 +10,47 @@ require("binr")
 
 manual_stratify <- function(data, treat, outcome, covariates){
   
+  result <- list(data = NULL, prog_scores = NULL, prog_model = NULL, strata_table = NULL)
+  
   # Check that all covariates are discrete
+  for (i in 1:length(covariates)){
+    warn_if_continuous(data[,covariates[i]], covariates[i])
+  }
   
-  # Interact covariates, generating names for each strata
+  # helper function to extract group labels from dplyr
+  get_next_integer = function(){
+    i = 0
+    function(u,v){ i <<- i+1 }
+  }
+  get_integer = get_next_integer()
   
-  # If necessary, eliminate empty strata
+  # Interact covariates
+  grouped_table <- group_by_at(data, covariates) %>% mutate(stratum = get_integer())
   
-  # Add strata labels and strata names; eliminate interaction columns
+  result$data <- grouped_table %>% ungroup()
   
-  # return strata object
-  return(0)
+  result$strata_table <- grouped_table %>% summarize(stratum = first(stratum),
+                                                     size = n())
+
+  return(result)
+}
+
+#' @title Throws an error if a column is continuous
+#' @description checks if there is a large number of unique values in the input column.
+#' @param colum vector or factor column from a data frame
+#' @param name name of the input column
+#' @return Does not return anything
+
+warn_if_continuous <- function(column, name){
+  if (is.factor(column)){
+    return() # assume all factors are discrete
+  } else {
+    values <- length(unique(column))
+    if (values > min(c(15, 0.05*length(column)))){
+      stop(paste("There are ", values, " distinct values for ", name,". Is it continuous?", sep = ""))
+    }
+    return()
+  }
 }
 
 #' @title Automatically creates strata for matching
@@ -33,7 +63,7 @@ manual_stratify <- function(data, treat, outcome, covariates){
 
 auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores = NULL, size = 2000){
   
-  result <- list(data = NULL, prog_scores = NULL, prog_model = NULL)
+  result <- list(data = NULL, prog_scores = NULL, prog_model = NULL, strata_table = NULL)
   
   # check inputs
   
@@ -77,7 +107,7 @@ auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores =
 #' @param treat string giving the name of column designating treatment assignment
 #' @param outcome string giving the name of column with outcome information
 #' @param covariates a vector of the columns to be used as covariates building prognostic score model
-#' @return Returns a \code{strata} object
+#' @return Returns a \code{glm} object
 
 build_prog_model <- function(data, treat, outcome, covariates){
   formula_str <- paste(outcome, paste(covariates, collapse ="+"), sep = "~")
