@@ -1,5 +1,9 @@
 require("dplyr")
 
+#----------------------------------------------------------
+### MANUAL STRATIFY
+#----------------------------------------------------------
+
 #' @title Manually creates strata for matching
 #' @description Creates \code{strata} object, given a set of covariates to stratify on
 #' @param data data frame with observations as rows, features as columns
@@ -52,6 +56,10 @@ warn_if_continuous <- function(column, name){
     return()
   }
 }
+
+#----------------------------------------------------------
+### AUTO STRATIFY
+#----------------------------------------------------------
 
 #' @title Automatically creates strata for matching
 #' @description Creates \code{strata} object, given covariates for a linear model, or pre-calculated prognostic scores

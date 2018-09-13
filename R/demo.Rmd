@@ -17,6 +17,7 @@ library(dplyr)
 
 data("lalonde")
 source('big_match.R')
+source('class_functions.R')
 
 # adding a binary outcome
 lalonde$outcome <- lalonde$re78 > 15000
@@ -111,7 +112,7 @@ basic_viz <- function(auto_strata){
 
 Below are plots of prognostic score by strata.  The plot on the left shows the average prognostic score by stratum, the plot on the right gives a histogram of the prognostic scores of all samples, colored by stratum.
 
-```{r, warning=FALSE, fig.height=2}
+```{r, warning=FALSE}
 # uniformly generated prognostic score. Nicely continuous from 0 to 1
 basic_viz(a.strat1)
 
@@ -123,5 +124,23 @@ basic_viz(a.strat2)
 # Since prog_score only takes on a few different values, 
 # strata quantiles are less evenly distributed from 0 to 1
 basic_viz(a.strat3)
+```
+
+
+
+
+# Plots
+
+```{r}
+plot(m.strat)
+a <- plot(a.strat1)
+b <- plot(a.strat2)
+c <- plot(a.strat3)
+
+ggarrange(a, b, c, ncol = 3, 
+          labels = c("Uniform prog. scores", 
+                     "Continouos prog. scores", 
+                     "Discrete prog. scores"),
+           font.label = list(size = 8))
 ```
 
