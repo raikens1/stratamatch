@@ -16,7 +16,8 @@ require("ggrepel")
 
 manual_stratify <- function(data, treat, outcome, covariates){
   
-  result <- list(data = NULL, prog_scores = NULL, prog_model = NULL, strata_table = NULL)
+  result <- structure(list(data = NULL, strata_table = NULL),
+                      class = c("manual_strata" , "strata"))
   
   # Check that all covariates are discrete
   for (i in 1:length(covariates)){
@@ -37,13 +38,12 @@ manual_stratify <- function(data, treat, outcome, covariates){
   
   result$strata_table <- grouped_table %>% summarize(stratum = first(stratum),
                                                      size = n())
-  class(result) <- "strata"
   return(result)
 }
 
 #' @title Throws an error if a column is continuous
 #' @description checks if there is a large number of unique values in the input column.
-#' @param colum vector or factor column from a data frame
+#' @param column vector or factor column from a data frame
 #' @param name name of the input column
 #' @return Does not return anything
 
@@ -73,7 +73,8 @@ warn_if_continuous <- function(column, name){
 
 auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores = NULL, size = 2000){
   
-  result <- list(data = NULL, prog_scores = NULL, prog_model = NULL, strata_table = NULL)
+  result <- structure(list(data = NULL, prog_scores = NULL, prog_model = NULL),
+                      class = c("auto_strata", "strata"))
   
   # check inputs
   
@@ -89,6 +90,7 @@ auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores =
     if (length(prog_scores) != dim(data)[1]){
       stop("prog_scores must be the same length as the data")
     } 
+    
   } else {
     # if prog_scores are not specified, build them
     
@@ -106,7 +108,6 @@ auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores =
   # package and resturn result
   result$data = data
   result$prog_scores = prog_scores
-  class(result) <- "strata"
   
   return(result)
 }
