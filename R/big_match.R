@@ -1,6 +1,7 @@
 require("dplyr")
 require("ggplot2")
 require("ggrepel")
+require("RColorBrewer")
 
 #----------------------------------------------------------
 ### MANUAL STRATIFY

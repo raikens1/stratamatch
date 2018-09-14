@@ -35,9 +35,12 @@ lalonde$re78 <- NULL
 This call should return an error because "educ" is a continuous variable.
 
 ```{r, eval = FALSE}
-# manual stratification with a continuous variable - should fail
+# manual stratification with a continuous variable 
 m.strat <- manual_stratify(lalonde, "treat", "outcome", 
                            covariates = c("black", "hispan", "educ", "nodegree"))
+
+# Error in warn_if_continuous(data[, covariates[i]], covariates[i]) : 
+#   There are 19 distinct values for educ. Is it continuous?
 ```
 
 ### Testing Functionality with Valid Inputs
@@ -61,15 +64,19 @@ First, testing error handling. These should fail and/or give warnings.
 
 ```{r, eval=FALSE}
 # auto stratification with missing arguements
-# throws error
 a.strat <- auto_stratify(lalonde, "treat", "outcome")
+
+# Error in auto_stratify(lalonde, "treat", "outcome") : 
+#   At least one of covariates and prog_scores should be specified.
 ```
 
 ```{r, eval = FALSE}
 # auto stratification with covariates and prog scores specified, and prog_scores invalid
-# throws warning that both covariates and prog scores were specified
-# throws error that prog_scores length is invalid
 a.strat <- auto_stratify(lalonde, "treat", "outcome", c("age", "educ"), prog_scores = 1:4)
+
+# covariates and prog_scores are both specified. Using prog_scores; ignoring covariates.
+# Error in auto_stratify(lalonde, "treat", "outcome", c("age", "educ"), :
+#   prog_scores must be the same length as the data
 ```
 
 ### Testing Functionality with Valid Inputs
@@ -92,54 +99,103 @@ a.strat3 <- auto_stratify(lalonde, "treat", "outcome",
                           covariates = c("hispan", "nodegree", "black"), size = 100 )
 ```
 
-Basic visualization of our prognostic score strata, with outcome
+\pagebreak
 
-```{r, include=FALSE}
-basic_viz <- function(auto_strata){
-  plotdata <- auto_strata$data
-  plotdata$prog_scores <- auto_strata$prog_scores
-  
-  plot_summary <- plotdata %>% 
-    group_by(stratum) %>% 
-    summarize(prog_mean = mean(prog_scores))
-  
-  a <- ggplot(data = plot_summary, aes(x = stratum, y = prog_mean)) + geom_col()
-  b <- ggplot(plotdata, aes(x = prog_scores, group = as.factor(stratum), 
-                            fill = as.factor(stratum))) + geom_histogram()
-  
-  return(ggarrange(a,b, ncol = 2, widths = c(1, 1.5))) }
+# Diagnostics
+
+Most of this is implemented with the generic functions `print`, `summary`, and `plot`.
+
+## Print
+
+```{r}
+print(m.strat)
+
+print(a.strat1)
+print(a.strat2)
 ```
 
-Below are plots of prognostic score by strata.  The plot on the left shows the average prognostic score by stratum, the plot on the right gives a histogram of the prognostic scores of all samples, colored by stratum.
+\pagebreak
 
-```{r, warning=FALSE}
-# uniformly generated prognostic score. Nicely continuous from 0 to 1
-basic_viz(a.strat1)
+## Summary
 
-# prognostic score generated from some continuous and some distcrete variables. 
-# Fairly continuous
-basic_viz(a.strat2)
+```{r}
+# TODO: implement summary methods
+summary(m.strat)
 
-# prognostic score generated from only a few discrete variables.  
-# Since prog_score only takes on a few different values, 
-# strata quantiles are less evenly distributed from 0 to 1
-basic_viz(a.strat3)
+summary(a.strat1)
+summary(a.strat2)
+```
+
+\pagebreak
+
+## Plot
+
+There are three types of plots: `"scatter"`, `"residual"`, and `"hist"`. Any other plot options for a strata object will throw an error.
+
+```{r, eval = FALSE}
+plot(m.strat, type = "QQ") 
+# Error in plot.strata(m.strat, type = "QQ") : 
+#   Not a recognized plot type.
 ```
 
 
-
-
-# Plots
+### Auto and Manual Stratify : Size-Balance Scatterplot 
 
 Below are the basic size $\times$ control fraction scatterplots for (A) manual stratification by `black`, `hispan` and `nodegree`, (B) auto-stratification with a uniform random prognostic score, (C) auto-stratification with a prognostic score that is relatively continuous, and (D) auto-stratification with a prognostic score that is discontinuous (built solely from discrete variables with few distinct values).  As you can see, this sample data contains a relatively small number of examples to begin with, so most strata are quite small. 
 
 ```{r, fig.height = 6.5}
-a <- plot(m.strat)
+a <- plot(m.strat) # equivalently: plot(m.strat, type = "scatter")
 b <- plot(a.strat1)
 c <- plot(a.strat2)
-d <- plot(a.strat3)
+d <- plot(a.strat3) 
 
 ggarrange(a, b, c, d, ncol = 2, nrow = 2,
           labels = "AUTO")
 ```
 
+### Auto Stratify: Prognostic Score Residual Plot
+
+This function is only meant for auto-stratified data.  Running it on a `manual_strata` object will throw an error.
+
+```{r, eval = FALSE}
+plot(m.strat, type = "residual") 
+# Error in plot.strata(m.strat, type = "residual") : 
+#   Prognostic score residual plots are only valid for auto-stratified data.
+```
+
+```{r}
+# TODO: implement this plot
+plot(a.strat1, type = "residual")
+plot(a.strat2, type = "residual")
+```
+
+### Auto Stratify: Prognostic Score Histograms 
+
+This function is only meant for auto-stratified data.  Running it on a `manual_strata` object will throw an error.
+
+```{r, eval = FALSE}
+plot(m.strat, type = "hist")
+
+# Error in plot.strata(m.strat, type = "hist"):
+#  Prognostic score histograms are only valid for auto-stratified data.
+```
+
+
+```{r, fig.height=6.5}
+# uniformly generated prognostic score. Nicely continuous from 0 to 1
+a <- plot(a.strat1, type = "hist")
+
+# prognostic score generated from some continuous and some distcrete variables. 
+# Fairly continuous
+b <- plot(a.strat2, type = "hist")
+
+# prognostic score generated from only a few discrete variables.  
+# Since prog_score only takes on a few different values, 
+# strata quantiles are less evenly distributed from 0 to 1
+c <- plot(a.strat3, type = "hist")
+
+ggarrange(a, b, c, ncol = 1, nrow = 3, labels = "AUTO")
+```
+
+
+# Matching

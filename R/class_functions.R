@@ -14,6 +14,30 @@ is.strata <- function(object) {
 }
 
 #----------------------------------------------------------
+### PRINT METHODS
+#----------------------------------------------------------
+
+print.auto_strata <- function(strata) {
+  writeLines("auto_strata object from package big_match.\n")
+  if(!is.null(strata$prog_model)){
+    writeLines("Prognostic Score Model:")
+    print(strata$prog_model)
+  } else {
+    writeLines("Prognostic scores prespecified.")
+  }
+  writeLines("\nStrata summary:")
+  print(summarize_means(strata))
+}
+
+print.manual_strata <- function(strata) {
+  writeLines("manual_strata object from package big_match.\n")
+  writeLines("Strata Definition Table:")
+  print(strata$strata_table)
+  writeLines("\nStrata summary:")
+  print(summarize_means(strata))
+}
+
+#----------------------------------------------------------
 ### PLOT METHODS
 #----------------------------------------------------------
 
@@ -35,20 +59,17 @@ summarize_means <- function(strata){
   return(merge(means, counts, by = "stratum"))
 }
 
-#' @title Plot function for \code{strata} object
+#' @title Helper plot function for \code{strata} object with type = "scatter"
 #' @description Produces a scatterplot of stratum size by control proportion.
 #' @param strata a \code{strata} object 
 #' @return Returns the scatterplot
 
-plot.strata <- function(strata){
+scatter_plot_helper <- function(plot_data){
   # set parameters
   CONTROL_MIN = 0.2
   CONTROL_MAX = 0.8
   SIZE_MIN = 75
   SIZE_MAX = 4000
-  
-  # extract strata size and control proportion
-  plot_data <- summarize_means(strata)
   
   # identify strata that are too large/small/imbalanced
   problem_strata <- plot_data %>%
@@ -70,7 +91,69 @@ plot.strata <- function(strata){
     geom_vline(xintercept= SIZE_MIN, colour = "firebrick") +
     geom_hline(yintercept= CONTROL_MAX, colour = "firebrick") +
     geom_hline(yintercept= CONTROL_MIN, colour = "firebrick") +
+    geom_hline(yintercept= 0.5, colour = "black", linetype = 2) + 
     theme(legend.position = "none") + 
     geom_label_repel(data = problem_strata, aes(stratum_size, 1-treat_mean,
                                      label = stratum), size = 2.5, color = "firebrick")
+}
+
+#' @title Helper plot function for \code{strata} object with type = "hist"
+#' @description Produces a column plot of prognostic score means across strata 
+#' and a histogram of prognostic score, colored by strata
+#' @param auto_strata an \code{auto_strata} object 
+#' @return Returns an arrangement of the column plot and histogram.
+
+hist_plot_helper <- function(auto_strata){
+  plotdata <- auto_strata$data
+  plotdata$prog_scores <- auto_strata$prog_scores
+  
+  plot_summary <- plotdata %>% 
+    group_by(stratum) %>% 
+    summarize(prog_mean = mean(prog_scores))
+  
+  a <- ggplot(data = plot_summary, aes(x = stratum, y = prog_mean, fill = as.factor(stratum))) + 
+    geom_col() +
+    labs(y = "Mean Prognistic Score", x = "Stratum") +
+    theme(legend.position = "none") +
+    scale_fill_brewer(palette = "Blues")
+  
+  b <- ggplot(plotdata, aes(x = prog_scores, group = as.factor(stratum), 
+                            fill = as.factor(stratum))) +
+    geom_histogram() + 
+    labs(y = "Prognostic Score", "Number of Observations") +
+    scale_fill_brewer(name = "Stratum", palette = "Blues") 
+  
+  return(ggarrange(a,b, ncol = 2, widths = c(1, 1.5)))}
+
+#' @title Helper plot function for \code{strata} object with type = "residual"
+#' @description Produces residual plot for the prognostic scores
+#' @param auto_strata an \code{auto_strata} object 
+#' @return Returns the residual plot
+
+residual_plot_helper <- function(auto_strata){
+  # TODO: Implement
+  return(plot(1))
+}
+
+plot.strata <- function(strata, type = "scatter"){
+  if (type == "scatter"){
+    scatter_plot_helper(summarize_means(strata))
+  }
+  else if (type == "hist"){
+    if (!("auto_strata" %in% class(strata))){
+      stop("Prognostic score histograms are only valid for auto-stratified data.")
+    } else {
+      hist_plot_helper(strata)
+    }
+  }
+  else if (type == "residual"){
+    if (!("auto_strata" %in% class(strata))){
+      stop("Prognostic score residual plots are only valid for auto-stratified data.")
+    } else {
+      residual_plot_helper(strata)
+    }
+  }
+   else {
+     stop("Not a recognized plot type.")
+   }
 }
