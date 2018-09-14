@@ -131,16 +131,15 @@ basic_viz(a.strat3)
 
 # Plots
 
-```{r}
-plot(m.strat)
-a <- plot(a.strat1)
-b <- plot(a.strat2)
-c <- plot(a.strat3)
+Below are the basic size $\times$ control fraction scatterplots for (A) manual stratification by `black`, `hispan` and `nodegree`, (B) auto-stratification with a uniform random prognostic score, (C) auto-stratification with a prognostic score that is relatively continuous, and (D) auto-stratification with a prognostic score that is discontinuous (built solely from discrete variables with few distinct values).  As you can see, this sample data contains a relatively small number of examples to begin with, so most strata are quite small. 
 
-ggarrange(a, b, c, ncol = 3, 
-          labels = c("Uniform prog. scores", 
-                     "Continouos prog. scores", 
-                     "Discrete prog. scores"),
-           font.label = list(size = 8))
+```{r, fig.height = 6.5}
+a <- plot(m.strat)
+b <- plot(a.strat1)
+c <- plot(a.strat2)
+d <- plot(a.strat3)
+
+ggarrange(a, b, c, d, ncol = 2, nrow = 2,
+          labels = "AUTO")
 ```
 

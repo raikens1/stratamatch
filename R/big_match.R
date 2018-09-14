@@ -1,4 +1,6 @@
 require("dplyr")
+require("ggplot2")
+require("ggrepel")
 
 #----------------------------------------------------------
 ### MANUAL STRATIFY
