@@ -155,17 +155,20 @@ ggarrange(a, b, c, d, ncol = 2, nrow = 2,
 
 ### Auto Stratify: Prognostic Score Residual Plot
 
-This function is only meant for auto-stratified data.  Running it on a `manual_strata` object will throw an error.
+This function is only meant for auto-stratified data for which prognostic scores were not prespecified.  Running it on a `manual_strata` object or an `auto_strata` object where prognostic scores were prespecified will throw an error.
 
 ```{r, eval = FALSE}
 plot(m.strat, type = "residual") 
 # Error in plot.strata(m.strat, type = "residual") : 
 #   Prognostic score residual plots are only valid for auto-stratified data.
+
+plot(a.strat1, type = "residual")
+# Error in plot.strata(a.strat1, type = "residual"):
+#  Cannot make prognostic score residual plots. Prognostic model is unknown.
 ```
 
 ```{r}
 # TODO: implement this plot
-plot(a.strat1, type = "residual")
 plot(a.strat2, type = "residual")
 ```
 

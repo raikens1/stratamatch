@@ -126,9 +126,9 @@ hist_plot_helper <- function(auto_strata){
   return(ggarrange(a,b, ncol = 2, widths = c(1, 1.5)))}
 
 #' @title Helper plot function for \code{strata} object with type = "residual"
-#' @description Produces residual plot for the prognostic scores
+#' @description Produces partial residual plots for the prognostic scores
 #' @param auto_strata an \code{auto_strata} object 
-#' @return Returns the residual plot
+#' @return Returns the (partial) residual plot(s)
 
 residual_plot_helper <- function(auto_strata){
   # TODO: Implement
@@ -150,7 +150,11 @@ plot.strata <- function(strata, type = "scatter"){
     if (!("auto_strata" %in% class(strata))){
       stop("Prognostic score residual plots are only valid for auto-stratified data.")
     } else {
-      residual_plot_helper(strata)
+      if (is.null(strata$prog_model)){
+        stop("Cannot make prognostic score residual plots. Prognostic model is unknown.")
+      } else{
+        residual_plot_helper(strata)
+      }
     }
   }
    else {
