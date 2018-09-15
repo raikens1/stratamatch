@@ -10,12 +10,10 @@ require("RColorBrewer")
 #' @title Manually creates strata for matching
 #' @description Creates \code{strata} object, given a set of covariates to stratify on
 #' @param data data frame with observations as rows, features as columns
-#' @param treat string giving the name of column designating treatment assignment
-#' @param outcome string giving the name of column with outcome information
 #' @param covariates a vector of the columns to be used as covariates for stratification
 #' @return Returns a \code{strata} object
 
-manual_stratify <- function(data, treat, outcome, covariates){
+manual_stratify <- function(data, covariates){
   
   result <- structure(list(data = NULL, strata_table = NULL),
                       class = c("manual_strata" , "strata"))
@@ -74,7 +72,8 @@ warn_if_continuous <- function(column, name){
 
 auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores = NULL, size = 2000){
   
-  result <- structure(list(data = NULL, prog_scores = NULL, prog_model = NULL),
+  result <- structure(list(data = NULL, prog_scores = NULL, prog_model = NULL,
+                           treat = treat, outcome = outcome, covariates = covariates),
                       class = c("auto_strata", "strata"))
   
   # check inputs
