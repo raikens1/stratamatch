@@ -41,6 +41,12 @@ m.strat <- manual_stratify(lalonde,
 
 # Error in warn_if_continuous(data[, covariates[i]], covariates[i]) : 
 #   There are 19 distinct values for educ. Is it continuous?
+
+# manual stratification with a continuous variable, force = TRUE 
+m.strat <- manual_stratify(lalonde, 
+                           covariates = c("black", "hispan", "educ", "nodegree"), force = TRUE)
+
+# There are 19 distinct values for educ. Is it continuous?
 ```
 
 ### Testing Functionality with Valid Inputs

@@ -11,16 +11,17 @@ require("RColorBrewer")
 #' @description Creates \code{strata} object, given a set of covariates to stratify on
 #' @param data data frame with observations as rows, features as columns
 #' @param covariates a vector of the columns to be used as covariates for stratification
+#' @param force a boolean. If true, run even if a variable appears continuous.
 #' @return Returns a \code{strata} object
 
-manual_stratify <- function(data, covariates){
+manual_stratify <- function(data, covariates, force = FALSE){
   
   result <- structure(list(data = NULL, strata_table = NULL),
                       class = c("manual_strata" , "strata"))
   
   # Check that all covariates are discrete
   for (i in 1:length(covariates)){
-    warn_if_continuous(data[,covariates[i]], covariates[i])
+    warn_if_continuous(data[,covariates[i]], covariates[i], force)
   }
   
   # helper function to extract group labels from dplyr
@@ -44,15 +45,20 @@ manual_stratify <- function(data, covariates){
 #' @description checks if there is a large number of unique values in the input column.
 #' @param column vector or factor column from a data frame
 #' @param name name of the input column
+#' @param force, a boolean. If true, warn but do not stop
 #' @return Does not return anything
 
-warn_if_continuous <- function(column, name){
+warn_if_continuous <- function(column, name, force){
   if (is.factor(column)){
     return() # assume all factors are discrete
   } else {
     values <- length(unique(column))
     if (values > min(c(15, 0.05*length(column)))){
-      stop(paste("There are ", values, " distinct values for ", name,". Is it continuous?", sep = ""))
+      if ( force == FALSE ){
+        stop(paste("There are ", values, " distinct values for ", name,". Is it continuous?", sep = ""))
+      } else {
+        warning(paste("There are ", values, " distinct values for ", name,". Is it continuous?", sep = ""))
+      }
     }
     return()
   }
@@ -70,7 +76,7 @@ warn_if_continuous <- function(column, name){
 #' @param covariates a vector of the columns to be used as covariates building prognostic score model
 #' @return Returns a \code{strata} object
 
-auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores = NULL, size = 2000){
+auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores = NULL, size = 2000, held_sample = "controls", held_size = NULL){
   
   result <- structure(list(data = NULL, prog_scores = NULL, prog_model = NULL,
                            treat = treat, outcome = outcome, covariates = covariates),
@@ -94,7 +100,7 @@ auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores =
   } else {
     # if prog_scores are not specified, build them
     
-    prog_model <- build_prog_model(data, treat, outcome, covariates)
+    prog_model <- build_prog_model(data, treat, outcome, covariates, held_sample, held_size)
     prog_scores <- predict(prog_model, lalonde, type = "response")
     
     result$prog_model <- prog_model
@@ -118,14 +124,20 @@ auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores =
 #' @param treat string giving the name of column designating treatment assignment
 #' @param outcome string giving the name of column with outcome information
 #' @param covariates a vector of the columns to be used as covariates building prognostic score model
+#' @param held_sample, a string defining which sample to use to build the prognostic model.
+#' @param held_size, an integer giving the desired size of the hold-out sample
 #' @return Returns a \code{glm} object
-
-build_prog_model <- function(data, treat, outcome, covariates){
+# TODO (raikens): implement other options for "held_sample"
+build_prog_model <- function(data, treat, outcome, covariates, held_sample, held_size){
   formula_str <- paste(outcome, paste(covariates, collapse ="+"), sep = "~")
   
-  # fit model on controls only
-  data0 <- subset(data, treat == 0)
-  
+  if (held_sample == "controls"){
+    # fit model on controls only
+    data0 <- subset(data, treat == 0)
+  }
+  else {
+    stop("Not a valid option for held_sample.")
+  }
   model <- glm(formula(formula_str), data = data0, family = "binomial")
   
   return(model)
