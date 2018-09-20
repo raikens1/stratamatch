@@ -22,6 +22,9 @@ source('class_functions.R')
 # adding a binary outcome
 lalonde$outcome <- lalonde$re78 > 15000
 lalonde$re78 <- NULL
+
+# changing name of treat column to "treated" to demonstrate that any name will suffice
+names(lalonde)[names(lalonde) == "treat"] <- "treated"
 ```
 
 \pagebreak
@@ -36,14 +39,14 @@ This call should return an error because "educ" is a continuous variable.
 
 ```{r, eval = FALSE}
 # manual stratification with a continuous variable 
-m.strat <- manual_stratify(lalonde, 
+m.strat <- manual_stratify(lalonde, treat = "treat",
                            covariates = c("black", "hispan", "educ", "nodegree"))
 
 # Error in warn_if_continuous(data[, covariates[i]], covariates[i]) : 
 #   There are 19 distinct values for educ. Is it continuous?
 
 # manual stratification with a continuous variable, force = TRUE 
-m.strat <- manual_stratify(lalonde, 
+m.strat <- manual_stratify(lalonde, treat = "treat",
                            covariates = c("black", "hispan", "educ", "nodegree"), force = TRUE)
 
 # There are 19 distinct values for educ. Is it continuous?
@@ -55,9 +58,8 @@ This call should return six strata (since black and hispanic seem to be mutually
 
 ```{r}
 # allowable manual stratification
-m.strat <- manual_stratify(lalonde, 
+m.strat <- manual_stratify(lalonde, treat = "treated",
                            covariates = c("black", "hispan", "nodegree"))
-m.strat$strata_table
 ```
 
 \pagebreak
@@ -92,16 +94,16 @@ These should give valid results.
 ```{r}
 # auto stratification with pre-specified prognostic score
 myprogscore <- runif(n = dim(lalonde)[1])
-a.strat1 <- auto_stratify(data = lalonde, "treat", "outcome",
+a.strat1 <- auto_stratify(data = lalonde, "treated", "outcome",
                           prog_scores = myprogscore, size = 100)
 
 # auto stratification
-a.strat2 <- auto_stratify(lalonde, "treat", "outcome", 
+a.strat2 <- auto_stratify(lalonde, "treated", "outcome", 
                           covariates = c("age", "educ", "hispan", "nodegree", "black"), 
                           size = 100)
 
 # auto stratification with a non-continuous prognostic score
-a.strat3 <- auto_stratify(lalonde, "treat", "outcome", 
+a.strat3 <- auto_stratify(lalonde, "treated", "outcome", 
                           covariates = c("hispan", "nodegree", "black"), size = 100 )
 ```
 

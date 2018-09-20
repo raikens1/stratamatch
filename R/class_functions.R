@@ -19,22 +19,24 @@ is.strata <- function(object) {
 
 print.auto_strata <- function(strata) {
   writeLines("auto_strata object from package big_match.\n")
+  writeLines("Function call:")
+  print(strata$call)
   if(!is.null(strata$prog_model)){
-    writeLines("Prognostic Score Model:")
-    print(strata$prog_model)
+    writeLines("\nPrognostic Score Model:")
+    print(strata$prog_model) # TODO: print formula rather than model
   } else {
-    writeLines("Prognostic scores prespecified.")
+    writeLines("\nPrognostic Scores prespecified.")
   }
-  writeLines("\nStrata summary:")
-  print(summarize_means(strata))
+  writeLines("\nStrata Sizes:")
+  print(strata$n_table)
 }
 
 print.manual_strata <- function(strata) {
   writeLines("manual_strata object from package big_match.\n")
-  writeLines("Strata Definition Table:")
-  print(strata$strata_table)
-  writeLines("\nStrata summary:")
-  print(summarize_means(strata))
+  writeLines("Function call:")
+  print(strata$call)
+  writeLines("\nStrata Sizes:")
+  print(strata$n_table)
 }
 
 #----------------------------------------------------------
@@ -46,13 +48,15 @@ print.manual_strata <- function(strata) {
 #' @param strata a \code{strata} object 
 #' @return Returns a summary dataframe with means of numeric variables and total count per stratum
 
-summarize_means <- function(strata){
-  means <- strata$data %>% 
+summarize_means <- function(data, treat){
+  names(data)[names(data) == treat] <- "treat"
+  
+  means <- data %>% 
     group_by(stratum) %>%
     summarize_if(.predicate = function(x) is.numeric(x),
                   .funs = funs(mean="mean")) 
   
-  counts <- strata$data %>% 
+  counts <- data %>% 
     group_by(stratum) %>%
     summarize(stratum_size = n())
   
@@ -137,7 +141,7 @@ residual_plot_helper <- function(auto_strata){
 
 plot.strata <- function(strata, type = "scatter"){
   if (type == "scatter"){
-    scatter_plot_helper(summarize_means(strata))
+    scatter_plot_helper(summarize_means(strata$data, strata$treat))
   }
   else if (type == "hist"){
     if (!("auto_strata" %in% class(strata))){

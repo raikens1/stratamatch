@@ -4,6 +4,27 @@ require("ggrepel")
 require("RColorBrewer")
 
 #----------------------------------------------------------
+### GENERAL HELPER FUNCTIONS
+#----------------------------------------------------------
+
+#' @title Produce table of Treated and Control by strata
+#' @description Given a dataframe with strata assigned, tally the number of treated and control samples
+#' @param data data frame with observations as rows, features as columns
+#' @param treat string name of treatment column
+#' @return Returns a 3 by [numer of strata] dataframe
+
+make_n_table <- function(data, treat){
+  names(data)[names(data) == treat] <- "treat"
+  df <- data %>%
+    group_by(stratum) %>%
+    summarise(Treated = sum(treat), Control = sum(1-treat), stratum_size = n())
+  
+  colnames(df)<- c("Stratum", "Treat", "Control", "Total")
+ 
+  return(df)
+}
+
+#----------------------------------------------------------
 ### MANUAL STRATIFY
 #----------------------------------------------------------
 
@@ -14,9 +35,10 @@ require("RColorBrewer")
 #' @param force a boolean. If true, run even if a variable appears continuous.
 #' @return Returns a \code{strata} object
 
-manual_stratify <- function(data, covariates, force = FALSE){
+manual_stratify <- function(data, treat, covariates, force = FALSE){
   
-  result <- structure(list(data = NULL, strata_table = NULL),
+  result <- structure(list(data = NULL, treat = treat, strata_table = NULL, 
+                           call = match.call(), n_table = NULL),
                       class = c("manual_strata" , "strata"))
   
   # Check that all covariates are discrete
@@ -38,6 +60,8 @@ manual_stratify <- function(data, covariates, force = FALSE){
   
   result$strata_table <- grouped_table %>% summarize(stratum = first(stratum),
                                                      size = n())
+  result$n_table <- make_n_table(result$data, treat)
+  
   return(result)
 }
 
@@ -79,7 +103,8 @@ warn_if_continuous <- function(column, name, force){
 auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores = NULL, size = 2000, held_sample = "controls", held_size = NULL){
   
   result <- structure(list(data = NULL, prog_scores = NULL, prog_model = NULL,
-                           treat = treat, outcome = outcome, covariates = covariates),
+                           treat = treat, outcome = outcome, covariates = covariates, 
+                           call = match.call(), n_table = NULL),
                       class = c("auto_strata", "strata"))
   
   # check inputs
@@ -114,6 +139,7 @@ auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores =
   # package and resturn result
   result$data = data
   result$prog_scores = prog_scores
+  result$n_table  = make_n_table(data, treat)
   
   return(result)
 }
@@ -133,7 +159,7 @@ build_prog_model <- function(data, treat, outcome, covariates, held_sample, held
   
   if (held_sample == "controls"){
     # fit model on controls only
-    data0 <- subset(data, treat == 0)
+    data0 <- subset(data, data[[treat]] == 0)
   }
   else {
     stop("Not a valid option for held_sample.")
