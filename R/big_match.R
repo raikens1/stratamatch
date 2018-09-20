@@ -11,17 +11,49 @@ require("RColorBrewer")
 #' @description Given a dataframe with strata assigned, tally the number of treated and control samples
 #' @param data data frame with observations as rows, features as columns
 #' @param treat string name of treatment column
-#' @return Returns a 3 by [numer of strata] dataframe
+#' @return Returns a 3 by [numer of strata] dataframe with Treat, Control, Total, Control Proportion, and Potential Issues
 
-make_n_table <- function(data, treat){
+make_issue_table <- function(data, treat){
   names(data)[names(data) == treat] <- "treat"
   df <- data %>%
     group_by(stratum) %>%
-    summarise(Treated = sum(treat), Control = sum(1-treat), stratum_size = n())
+    summarise(Treated = sum(treat), Control = sum(1-treat), Total = n()) %>%
+    mutate(Control_Proportion = Control/Total)
   
-  colnames(df)<- c("Stratum", "Treat", "Control", "Total")
+  colnames(df)<- c("Stratum", "Treat", "Control", "Total", "Control_Proportion")
+  
+  df$Potential_Issues <- apply(df, 1, get_issues)
  
   return(df)
+}
+
+
+#' @title Helper for make_issue_table to return issues string
+#' @description Given a row which summarizes the Treat, Control, Total, and 
+#' Control_Proportion of a stratum, return a string of potential issues with the stratum
+#' @param row a row of the data.frame produced in make_issue_table
+#' @return Returns a string of potential issues ("none" if everything is fine)
+
+get_issues <- function(row){
+  
+  # set parameters
+  CONTROL_MIN = 0.2
+  CONTROL_MAX = 0.8
+  SIZE_MIN = 75
+  SIZE_MAX = 4000
+  
+  issues <- c(
+    if (row[4] > SIZE_MAX) "Too many samples",
+    if (row[4] < SIZE_MIN) "Too few samples",
+    if (row[5] > CONTROL_MAX) "Not enough treated samples",
+    if (row[5] < CONTROL_MIN) "Not enough control samples"
+  )
+  
+  if(is.null(issues)){
+    issues <- c("none")
+  }
+  
+  return(paste(issues, collapse = "; "))
 }
 
 #----------------------------------------------------------
@@ -37,8 +69,9 @@ make_n_table <- function(data, treat){
 
 manual_stratify <- function(data, treat, covariates, force = FALSE){
   
-  result <- structure(list(data = NULL, treat = treat, strata_table = NULL, 
-                           call = match.call(), n_table = NULL),
+  result <- structure(list(data = NULL, treat = treat, covariates = covariates, 
+                           strata_table = NULL, 
+                           call = match.call(), issue_table = NULL),
                       class = c("manual_strata" , "strata"))
   
   # Check that all covariates are discrete
@@ -60,7 +93,7 @@ manual_stratify <- function(data, treat, covariates, force = FALSE){
   
   result$strata_table <- grouped_table %>% summarize(stratum = first(stratum),
                                                      size = n())
-  result$n_table <- make_n_table(result$data, treat)
+  result$issue_table <- make_issue_table(result$data, treat)
   
   return(result)
 }
@@ -102,9 +135,9 @@ warn_if_continuous <- function(column, name, force){
 
 auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores = NULL, size = 2000, held_sample = "controls", held_size = NULL){
   
-  result <- structure(list(data = NULL, prog_scores = NULL, prog_model = NULL,
+  result <- structure(list(data = NULL, prog_scores = NULL, prog_model = NULL, discarded = NULL,
                            treat = treat, outcome = outcome, covariates = covariates, 
-                           call = match.call(), n_table = NULL),
+                           call = match.call(), issue_table = NULL),
                       class = c("auto_strata", "strata"))
   
   # check inputs
@@ -139,7 +172,7 @@ auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores =
   # package and resturn result
   result$data = data
   result$prog_scores = prog_scores
-  result$n_table  = make_n_table(data, treat)
+  result$issue_table  = make_issue_table(data, treat)
   
   return(result)
 }

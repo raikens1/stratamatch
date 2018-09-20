@@ -151,7 +151,7 @@ plot(m.strat, type = "QQ")
 
 Below are the basic size $\times$ control fraction scatterplots for (A) manual stratification by `black`, `hispan` and `nodegree`, (B) auto-stratification with a uniform random prognostic score, (C) auto-stratification with a prognostic score that is relatively continuous, and (D) auto-stratification with a prognostic score that is discontinuous (built solely from discrete variables with few distinct values).  As you can see, this sample data contains a relatively small number of examples to begin with, so most strata are quite small. 
 
-```{r, fig.height = 6.5}
+```{r, fig.height = 6.25}
 a <- plot(m.strat) # equivalently: plot(m.strat, type = "scatter")
 b <- plot(a.strat1)
 c <- plot(a.strat2)

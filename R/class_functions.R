@@ -28,7 +28,7 @@ print.auto_strata <- function(strata) {
     writeLines("\nPrognostic Scores prespecified.")
   }
   writeLines("\nStrata Sizes:")
-  print(strata$n_table)
+  print(strata$issue_table)
 }
 
 print.manual_strata <- function(strata) {
@@ -36,39 +36,37 @@ print.manual_strata <- function(strata) {
   writeLines("Function call:")
   print(strata$call)
   writeLines("\nStrata Sizes:")
-  print(strata$n_table)
+  print(strata$issue_table)
+}
+
+#----------------------------------------------------------
+### SUMMARY METHODS
+#----------------------------------------------------------
+
+summary.strata <- function(strata){
+  strata_summary <- structure(list(call = strata$call, issue_table = strata$issue_table, 
+                                   summary_before = NULL, summary_after = NULL, summary_by_strata = NULL,
+                                   balance_improvement = NULL),
+                 class = "summary.strata")
+  
+  return(0)
+}
+
+print.summary.strata <- function(strata_summary){
+  print(strata_summary)
 }
 
 #----------------------------------------------------------
 ### PLOT METHODS
 #----------------------------------------------------------
 
-#' @title Summarize means across strata
-#' @description Summarize means of each covariate across strata in a \code{strata} object.
-#' @param strata a \code{strata} object 
-#' @return Returns a summary dataframe with means of numeric variables and total count per stratum
-
-summarize_means <- function(data, treat){
-  names(data)[names(data) == treat] <- "treat"
-  
-  means <- data %>% 
-    group_by(stratum) %>%
-    summarize_if(.predicate = function(x) is.numeric(x),
-                  .funs = funs(mean="mean")) 
-  
-  counts <- data %>% 
-    group_by(stratum) %>%
-    summarize(stratum_size = n())
-  
-  return(merge(means, counts, by = "stratum"))
-}
-
 #' @title Helper plot function for \code{strata} object with type = "scatter"
 #' @description Produces a scatterplot of stratum size by control proportion.
 #' @param strata a \code{strata} object 
 #' @return Returns the scatterplot
 
-scatter_plot_helper <- function(plot_data){
+scatter_plot_helper <- function(issue_table){
+  
   # set parameters
   CONTROL_MIN = 0.2
   CONTROL_MAX = 0.8
@@ -76,13 +74,11 @@ scatter_plot_helper <- function(plot_data){
   SIZE_MAX = 4000
   
   # identify strata that are too large/small/imbalanced
-  problem_strata <- plot_data %>%
-    filter(stratum_size > 4000 | stratum_size < 75 | 
-             treat_mean < 0.2 | treat_mean > 0.8)
+  problem_strata <- issue_table %>% filter(Potential_Issues != "none")
   
-  xmax <- max(plot_data$stratum_size, 4250)
+  xmax <- max(issue_table$Total, SIZE_MAX*1.05)
   
-  ggplot(plot_data, aes(x = stratum_size, y = 1-treat_mean)) + 
+  ggplot(issue_table, aes(x = Total, y = Control_Proportion)) + 
     geom_point() +
     labs(x = "Stratum Size", 
          y = "Fraction Control Observations") +
@@ -97,8 +93,8 @@ scatter_plot_helper <- function(plot_data){
     geom_hline(yintercept= CONTROL_MIN, colour = "firebrick") +
     geom_hline(yintercept= 0.5, colour = "black", linetype = 2) + 
     theme(legend.position = "none") + 
-    geom_label_repel(data = problem_strata, aes(stratum_size, 1-treat_mean,
-                                     label = stratum), size = 2.5, color = "firebrick")
+    geom_label_repel(data = problem_strata, aes(Total, Control_Proportion,
+                                     label = Stratum), size = 2.5, color = "firebrick")
 }
 
 #' @title Helper plot function for \code{strata} object with type = "hist"
@@ -141,7 +137,7 @@ residual_plot_helper <- function(auto_strata){
 
 plot.strata <- function(strata, type = "scatter"){
   if (type == "scatter"){
-    scatter_plot_helper(summarize_means(strata$data, strata$treat))
+    scatter_plot_helper(strata$issue_table)
   }
   else if (type == "hist"){
     if (!("auto_strata" %in% class(strata))){
