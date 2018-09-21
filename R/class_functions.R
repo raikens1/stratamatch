@@ -1,4 +1,3 @@
-
 #----------------------------------------------------------
 ### INHERITANCE
 #----------------------------------------------------------
@@ -45,15 +44,37 @@ print.manual_strata <- function(strata) {
 
 summary.strata <- function(strata){
   strata_summary <- structure(list(call = strata$call, issue_table = strata$issue_table, 
-                                   summary_before = NULL, summary_after = NULL, summary_by_strata = NULL,
-                                   balance_improvement = NULL),
+                                   sum_before = NULL),
                  class = "summary.strata")
   
-  return(0)
+  strata_summary$sum_before <- summarize_balance(strata$data, strata$treat)
+  
+  return(strata_summary)
 }
 
-print.summary.strata <- function(strata_summary){
-  print(strata_summary)
+#' @title Calculate balance measures over a dataframe
+#' @description Calculate Mean over Treat and Control, and difference in Means
+#' @param data, a \code{data.frame} from a \code{strata} object
+#' @param treat, a string giving the name of the treatment assignment column in the dataframe
+#' @return Returns a data.frame of balance measures
+
+summarize_balance <- function(data, treat){
+  
+  # remove strata and outcome columns?
+  
+  names(data)[names(data) == treat] <- "treat"
+  
+  #TODO: rownames for data frames will be deprecated soon, which means this will have to change.
+  result <- data %>% 
+    group_by(treat) %>% 
+    summarize_all(mean) %>%
+    t()
+  
+  colnames(result) <- c("Treat_Mean", "Contol_Mean")
+  
+  # TODO: Finish this.  May want to split into a treat dataframe and a control data frame
+  
+  return(result)
 }
 
 #----------------------------------------------------------
