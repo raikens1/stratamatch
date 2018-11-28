@@ -17,7 +17,7 @@ make_issue_table <- function(data, treat){
   names(data)[names(data) == treat] <- "treat"
   df <- data %>%
     group_by(stratum) %>%
-    summarise(Treated = sum(treat), Control = sum(1-treat), Total = n()) %>%
+    dplyr::summarize(Treated = sum(treat), Control = sum(1-treat), Total = n()) %>%
     mutate(Control_Proportion = Control/Total)
   
   colnames(df)<- c("Stratum", "Treat", "Control", "Total", "Control_Proportion")
@@ -35,6 +35,7 @@ make_issue_table <- function(data, treat){
 #' @return Returns a string of potential issues ("none" if everything is fine)
 
 get_issues <- function(row){
+  row <- as.numeric(row[4:5])
   
   # set parameters
   CONTROL_MIN = 0.2
@@ -43,10 +44,10 @@ get_issues <- function(row){
   SIZE_MAX = 4000
   
   issues <- c(
-    if (row[4] > SIZE_MAX) "Too many samples",
-    if (row[4] < SIZE_MIN) "Too few samples",
-    if (row[5] > CONTROL_MAX) "Not enough treated samples",
-    if (row[5] < CONTROL_MIN) "Not enough control samples"
+    if (row[1] > SIZE_MAX) "Too many samples",
+    if (row[1] < SIZE_MIN) "Too few samples",
+    if (row[2] > CONTROL_MAX) "Not enough treated samples",
+    if (row[2] < CONTROL_MIN) "Not enough control samples"
   )
   
   if(is.null(issues)){
@@ -74,9 +75,11 @@ manual_stratify <- function(data, treat, covariates, force = FALSE){
                            call = match.call(), issue_table = NULL),
                       class = c("manual_strata" , "strata"))
   
+  n <- dim(data)[1]
+  
   # Check that all covariates are discrete
   for (i in 1:length(covariates)){
-    warn_if_continuous(data[,covariates[i]], covariates[i], force)
+    warn_if_continuous(data[,covariates[i]], covariates[i], force, n)
   }
   
   # helper function to extract group labels from dplyr
@@ -91,8 +94,9 @@ manual_stratify <- function(data, treat, covariates, force = FALSE){
   
   result$data <- grouped_table %>% ungroup()
   
-  result$strata_table <- grouped_table %>% summarize(stratum = first(stratum),
+  result$strata_table <- grouped_table %>% dplyr::summarize(stratum = first(stratum),
                                                      size = n())
+  
   result$issue_table <- make_issue_table(result$data, treat)
   
   return(result)
@@ -105,12 +109,12 @@ manual_stratify <- function(data, treat, covariates, force = FALSE){
 #' @param force, a boolean. If true, warn but do not stop
 #' @return Does not return anything
 
-warn_if_continuous <- function(column, name, force){
+warn_if_continuous <- function(column, name, force, n){
   if (is.factor(column)){
     return() # assume all factors are discrete
   } else {
     values <- length(unique(column))
-    if (values > min(c(15, 0.05*length(column)))){
+    if (values > min(c(15, 0.05*n))){
       if ( force == FALSE ){
         stop(paste("There are ", values, " distinct values for ", name,". Is it continuous?", sep = ""))
       } else {
@@ -131,9 +135,12 @@ warn_if_continuous <- function(column, name, force){
 #' @param treat string giving the name of column designating treatment assignment
 #' @param outcome string giving the name of column with outcome information
 #' @param covariates a vector of the columns to be used as covariates building prognostic score model
+#' @param size numeric, desired size of strata
+#' @param held_sample string giving the type of held out sample desired (currently supports only "control")
+#' @param held_size numeric, desired size of held out sample
 #' @return Returns a \code{strata} object
 
-auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores = NULL, size = 2000, held_sample = "controls", held_size = NULL){
+auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores = NULL, size = 2500, held_sample = "controls", held_size = NULL){
   
   result <- structure(list(data = NULL, prog_scores = NULL, prog_model = NULL, discarded = NULL,
                            treat = treat, outcome = outcome, covariates = covariates, 
@@ -157,9 +164,8 @@ auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores =
     
   } else {
     # if prog_scores are not specified, build them
-    
     prog_model <- build_prog_model(data, treat, outcome, covariates, held_sample, held_size)
-    prog_scores <- predict(prog_model, lalonde, type = "response")
+    prog_scores <- predict(prog_model, data, type = "response")
     
     result$prog_model <- prog_model
     
@@ -167,7 +173,8 @@ auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores =
   
   # Create strata from prognostic score quantiles
   n_bins <- ceiling(dim(data)[1]/size)
-  data$stratum <- ntile(prog_scores, n_bins)
+  #data$stratum <- ntile(prog_scores, n_bins)
+  data$stratum <- cut2(prog_scores, g = n_bins)
   
   # package and resturn result
   result$data = data
@@ -192,11 +199,13 @@ build_prog_model <- function(data, treat, outcome, covariates, held_sample, held
   
   if (held_sample == "controls"){
     # fit model on controls only
-    data0 <- subset(data, data[[treat]] == 0)
+    data0 <- data[(data[,treat] == 0),]
   }
   else {
     stop("Not a valid option for held_sample.")
   }
+  
+  print(paste("Fitting prognostic model:", formula_str))
   model <- glm(formula(formula_str), data = data0, family = "binomial")
   
   return(model)

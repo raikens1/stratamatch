@@ -1,0 +1,318 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r setup, warning=FALSE, message = FALSE}
+knitr::opts_chunk$set(cache=TRUE, 
+                      warning = FALSE, 
+                      message = FALSE)
+require(MatchIt)
+require(ggplot2)
+require(ggpubr)
+require(dplyr)
+require(haven)
+
+source('R/big_match.R')
+source('R/class_functions.R')
+```
+
+```{r}
+dat <- read_sas("sample_data/justincohort_june2017.sas7bdat")
+
+datInc <- dat[dat$totalct > 1 & dat$arteryCt < 3, ]
+datInc$treat <- ifelse(datInc$arteryCt > 1, 1, 0)
+```
+
+```{r}
+#' @title Create Prognostic Score
+#' @description generates prognostic score by multiple methods
+#' @param dta data.frame with all covariates, treatment, and outcome
+#' @param factorVar character vector with names of covariates
+#' @param treatmentVar character vector with name of treatment variable
+#' @param outcomeVar character vector with name of outcome variable
+#' @param psVar character vector with names of covariates for prognostic score
+#' @return Returns \code{TRUE} if its argument has class "strata" among its classes and
+#' \code{FALSE} otherwise.
+create_progscore <- function(dta, factorVar, treatmentVar, outcomeVar, psVar){
+  
+  ### test this function:
+  #dta = datInc
+  #dta$jID <- NULL
+  #factorVar = c("hosp_state", "totalct", "race")
+  #treatmentVar = c("treat")
+  #outcomeVar = c("dead")
+  #psVar = c("totalct", "hosp_state", "AMI_7", "COPD_7", "ISCHEMICHEART_7", "STROKE_TIA_7", "ATRIAL_FIB_7", "CHRONICKIDNEY_7", "DIABETES_7", "ALZH_DEMEN_7", "Male", "race")
+  
+  # create id number for each record, rename treat and outcome cols
+  dta$jID <- seq.int(nrow(dta))
+  dta$treat <- as.factor(apply(dta[,treatmentVar], 1, paste0))
+  dta$outcome <- as.factor(apply(dta[,outcomeVar], 1, paste0))
+  
+  set.seed(0321)
+  
+  ### FOR FUTURE REFERENCE: cannot have vars that have none in control group -- in this case totalct==8 has no one in control group
+  # extract a sample of 10% of controls
+  dtaBurn <- dta %>%
+    group_by_(factorVar) %>%
+    filter(treat == 0) %>%
+    sample_frac(0.1)
+  
+  ### ran into problem of not having totalct 8+ in this burn dataset -- assume because more ct = more likely to have treat of arteryct greater than 1 -- make hosp_state, totalct, race as factors
+  burnTable <- lapply(dtaBurn[names(dtaBurn) %in% psVar], function(x) table(x, useNA = "ifany"))
+  ### NEED TO NOTE: IF 0 IN ANY FACTOR LEVEL -- NEED TO REMOVE OR RESAMPLE
+  ### IN THIS SAMPLE TEST NEED TO REMOVE VIRGIN ISLANDS FROM hosp_state
+  
+  # create prognostic score model from extracted sample 
+  dtaBurnMod <- dtaBurn[, c("outcome", psVar)]
+  ProgScoreModel <- glm(outcome ~ ., family = binomial(), data = dtaBurnMod)
+  
+  ## datAnalysis is leftover set that wasn't burned -- NOTE IN THIS EXAMPLE NEED TO REMOVE hosp_state=="Virgin Islands"
+  ### 06/27/18 Virgin Islands just for this case -- need a more generic way
+  dtaAnalysis <- dta[!dta$jID %in% dtaBurn$jID & dta$hosp_state!="Virgin Islands", ]
+  ### 07/31/17 still have to figure out the stratified sample thing, but for now just cut the 2 that are in Virgin Island
+
+  system.time(dtaAnalysis$progscore <- predict(ProgScoreModel, newdata = dtaAnalysis, type = "response"))
+  ### thought this was fixed by making factors -- it isn't, still need to stratify sample -- 06/27/18 fixed above by removing Virgin Island
+  ### Error in model.frame.default(Terms, newdata, na.action = na.action, xlev = object$xlevels) : 
+  ###  factor totalct has new levels 8, 9, 10
+  ### something we have to look out for -- how to make sure all levels of a factor are in the burned dataset
+  ### also ask about how to do quantiles
+  hist(dtaAnalysis$progscore)
+
+  ### use this for now, not sure if best, but don't hold up for that
+  require(Hmisc)
+  cuts = floor(length(rownames(dtaAnalysis)) / 2500)
+  dtaAnalysis$binName <- as.numeric(cut2(dtaAnalysis$progscore, g=cuts))
+  
+  ### outputs
+  ### 06/27/18 i have breaks = 300 here, but probably need something generic
+  hist(dtaAnalysis$binName, breaks = 300)
+  print(burnTable)
+  assign("dtaAnalysis", dtaAnalysis, envir = globalenv())
+}
+```
+
+```{r}
+## example function call
+system.time(create_progscore(datInc, factorVar = c("hosp_state", "totalct", "race"), treatmentVar = c("treat"), outcomeVar = c("dead"), psVar = c("totalct", "hosp_state", "AMI_7", "COPD_7", "ISCHEMICHEART_7", "STROKE_TIA_7", "ATRIAL_FIB_7", "CHRONICKIDNEY_7", "DIABETES_7", "ALZH_DEMEN_7", "Male", "race")))
+
+### 06/27/18 just to look at bin breakdown -- added as output in create_progscore function above
+hist(dtaAnalysis$binName, breaks = 300)
+### 06/27/18 some groups are up to 6000 instead of the specified 2500 -- probably because of edge, think about splitting
+```
+
+```{r}
+##### Function #2: stratification figures
+cluster_match_figs <- function(dta, strataVar, treatmentVar){
+  require(dplyr)
+  require(ggplot2)
+  
+  dta$strata <- as.factor(apply(dta[, strataVar], 1, paste, collapse = ":"))
+  stratalist <- unique(dta$strata)
+  dta$strataNum <- as.numeric(dta$strata)
+  dta$treatment <- as.factor(apply(dta[,treatmentVar], 1, paste0))
+
+  # histogram of subset sizes -- create list of subset sizes? -- hist(table(strataVar)) I think works?
+  subsetSizeHist <- hist(table(dta$strata), breaks = "Freedman-Diaconis", main = "Histogram of Strata Subset Sizes", xlab = "Subset Size")
+  
+  # scatterplot of subset size x numControl/numTotal
+    for(j in levels(dta$strata)) {
+     dta$subsetSize[dta$strata==j] <- table(dta$strata==j)[2]
+     dta$NumControl[dta$strata==j] <- table(dta$treatment[dta$strata==j])[1]
+     dta$NumTreat[dta$strata==j] <- table(dta$treatment[dta$strata==j])[2]
+     dta$NumTotal[dta$strata==j] <- rowSums(cbind(dta$NumControl[dta$strata==j],dta$NumTreat[dta$strata==j]), na.rm = TRUE)
+     dta$ControlRatio[dta$strata==j] <- (dta$NumControl[dta$strata==j]/dta$NumTotal[dta$strata==j])
+    }
+  
+ plot(dta$subsetSize, dta$ControlRatio, ylim = c(0, 1.0), xlab = "Subset Size", ylab = "Control Ratio" )
+ abline(h=0.5, lty=2, col="gray")
+ abline(h=c(1.0, 0.0), lty=1, col="red")
+ text(x=max(dta$subsetSize), y=1.0, adj = c(1,0), "All Control")
+ text(x=max(dta$subsetSize), y=0.0, adj = c(1,0), "All Treatment")
+
+  # table of subsetName/Code, size, numControl/numTotal, Warnings -- is there an order that would make most sense?? 04/14/17
+ subsetTab <- unique(dta[, c("strataNum","strata", "subsetSize", "ControlRatio")])
+ subsetTab$Warnings <- "--"
+ subsetTab$Warnings <- ifelse(subsetTab$subsetSize < 10, "Too Small", subsetTab$Warnings)
+ subsetTab$Warnings <- ifelse(subsetTab$subsetSize > 2000, "Too Large", subsetTab$Warnings)
+ subsetTab$Warnings <- ifelse(subsetTab$ControlRatio==1.0, "All Control", subsetTab$Warnings)
+ subsetTab$Warnings <- ifelse(subsetTab$ControlRatio==0.0, "All Treatment", subsetTab$Warnings)
+ subsetTab$Warnings <- ifelse(is.na(subsetTab$ControlRatio) | is.na(subsetTab$subsetSize), "Missing Values", subsetTab$Warnings)
+  
+ #strata freq plot shows size of strata plus treatment:control ratio -- want only top 30 and bottom 30 by subset size
+  subsetTop30 <- subsetTab %>% group_by(strataNum) %>% tally(subsetSize) %>% top_n(30)
+  dtaTop30 <- inner_join(dta, subsetTop30 %>% select(strataNum))  ### this works
+  
+#  dtaTop30 <- dta[dta$strataNum %in% subsetTop30$strataNum, ]   ###06/25/17 not working here Error: Length of logical index vector must be 1 or 1, got: 1000000
+  Top30StrataPlot <- ggplot(data = dtaTop30, aes(x = reorder(strataNum, -subsetSize), fill = as.factor(unlist(treatment)))) + geom_bar() + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(fill=paste(treatmentVar), x="Strata", y="Subset Size") + ggtitle("Top 30 Subset Sizes")
+  
+  subsetBot30 <- subsetTab %>% group_by(strataNum) %>% tally(subsetSize) %>% top_n(-30)
+  dtaBot30 <- inner_join(dta, subsetBot30 %>% select(strataNum))  ### this works
+  Bot30StrataPlot <- ggplot(data = dtaBot30, aes(x = reorder(strataNum, subsetSize), fill = as.factor(unlist(treatment)))) + geom_bar() + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(fill=paste(treatmentVar), x="Strata", y="Subset Size") + ggtitle("Bottom 30 Subset Sizes")
+    ### what happens here is if there are any tied for Bottom 30, displays all that are tied...so here there are 63 subsets with size 1
+  
+  #print(stratalist)
+  #par(mfrow=c(3,1))  # i think this will make 3 rows of plots? -- tried on ART data at bottom of code...didn't work, need to figure another way
+  assign("subsetSizeHist", subsetSizeHist, envir = globalenv())
+  print(subsetTab) # want this returned as a dataframe -- got it below, do i still want to print this in console?
+  assign("subsetTab", subsetTab, envir = globalenv())
+  print(Top30StrataPlot)
+  assign("Top30StrataPlot", Top30StrataPlot, envir = globalenv())
+  print(Bot30StrataPlot)
+  assign("Bot30StrataPlot", Bot30StrataPlot, envir = globalenv())
+
+}
+
+## example function call
+system.time(exampleFigs <- cluster_match_figs(dtaAnalysis, c("binName"), c("treat")))
+
+
+##### Function 3: R2Slurm/bigmatch
+##### for this mkdata function -- need to be logged into Sherlock before running #####
+
+mkdata = function(dta, dir, strataVar, treatmentVar, predictorVar) {
+
+  ###for testing
+# dta = datAnalysisDead
+#strataVar = c("binName")
+#treatmentVar = c("treat")
+#predictorVar = c("totalct", "hosp_state", "AMI_7", "COPD_7", "ISCHEMICHEART_7", "STROKE_TIA_7", "ATRIAL_FIB_7", "CHRONICKIDNEY_7", "DIABETES_7", "ALZH_DEMEN_7", "Male", "race")
+#rm(dta, strataVar, treatmentVar, predictorVar)
+
+  
+##Create directory Temp locally
+sysdir = paste0("'", paste0(dir, "'"))
+
+##Create directory in Sherlock
+system(paste("mkdir", sysdir)) #this works
+
+dta$strata <- apply(dta[, strataVar], 1, paste, collapse = ":")   ### for when using strataVar dta$strata <- as.factor(apply(dta[, strataVar], 1, paste, collapse = ":")) -- leave how is for binName
+  stratalist <- unique(dta$strata)
+  dta$strataNum <- as.numeric(dta$strata)
+#  dta$treatment <- dta[, treatmentVar]            ####this was causing data_slurm.csv to be huge -- maybe don't need it at all?
+#datmod <- dta[, c("treatment", predictorVar)]
+
+datmod <- dta[, c(treatmentVar, predictorVar)]
+
+##Write data into Temp
+## this is the full dataset
+write.csv(dta, paste0(dir,"data_slurm.csv"), row.names=FALSE)
+
+## this is the dataset with only the outcome and predictor vars
+write.csv(datmod, paste0(dir, "data_slurm_mod.csv"), row.names=FALSE)
+
+##Create .sbatch file and save in /Temp -- this file is sent to SLURM to distribute jobs
+### change mail-type back to FAIL only after you make sure this works 05/18/17
+### 06/28/18 need to change --mail-user= section so I don't get everyones emails
+fileconn = file(paste0(dir, "ex.sbatch"))
+writeLines(c("#!/bin/bash",
+             "#SBATCH -J job_%a",
+             "#SBATCH -o out_%a",
+             "#SBATCH -e err_%a",
+             "#SBATCH --mail-type=ALL",
+             "#SBATCH --mail-user=jhylee@stanford.edu",
+             "#SBATCH -n 1",
+             "#SBATCH -N 1",
+             "#SBATCH -t 0-0:30",
+             "",
+             ### may need to check on versions for R -- as of 06/27/18 R/3.4.0
+             "module load R/3.4.0",
+             ### the ${SLURM_ARRAY_TASK_ID} part is necessary to call in the correct strata number
+             "R --vanilla < script1.R --args ${SLURM_ARRAY_TASK_ID}"
+             ), fileconn)
+close(fileconn)
+
+##Make script1.R -- this is where the matching happens
+fileconn = file(paste0(dir,"script1.R"))
+writeLines(c("#Enable command line arguments",
+             "args = commandArgs(TRUE)",
+             "j = as.numeric(args[1])",
+             "",
+             "#Read in data frame",
+             
+             ### 06/27/18 df is full dataset; datmod is dataset w/ only outcome and predictor variables
+             "df = read.csv('~/TempTest/data_slurm.csv')",
+             "datmod = read.csv('~/TempTest/data_slurm_mod.csv')",
+             "",
+             "#Subset to what we want",
+             "df2 = df[df$strataNum==j, ]",
+             "",
+             "#Perform optmatch on the subset",
+             "require(optmatch)",
+             "datsubmod <- df[df$strataNum==j, colnames(datmod)]", 
+             "names(datsubmod)[1] <- 'treatment'",   ### 06/28/17 I think this should work -- this doesn't work, column order changes after datsubmod -- 06/27/18 fixed i think above w/ just colnames(datmod) instead of colnames(df) %in% colnames(datmod)
+             "datsubmatch <- match_on(treatment ~ ., data = datsubmod)",
+             "datsubfull <- fullmatch(match_on(datsubmatch), data = datsubmod, min.controls = 0, max.controls = 3)",   ### changed this to only be fullmatch(datsubmatch) for propensity scores -- 06/27/18 justin look at why i said this
+             "matchesStrat <- data.frame(cbind(df2, matches = datsubfull))",
+             "",
+             "#Return matches to .out file",
+             ### 06/27/18 need ~/TempTest/ to be more flexible -- can we get this as a parameter somehow? difficult w/in the ' ' 
+             "output = paste0('~/TempTest/', paste(paste0('matchesStrat', j), 'csv', sep = '.'))",
+             "write.csv(matchesStrat, file = output, row.names=FALSE)"
+             ), fileconn)
+close(fileconn)
+
+##Make combine1.R -- this is how to combine all the output files from Sherlock together
+fileconn = file(paste0(dir, "combine1.R"))
+writeLines(c("#Read in files",
+             "ff = list.files(path='~/TempTest/', full.names=TRUE)",
+             "ff2 = ff[grepl('matchesStrat', ff)]",
+             "myfilelist = lapply(ff2, read.csv)",
+             "",
+             "#Combine into single data frame",
+             "df = do.call('rbind', myfilelist)",
+             "",
+             "#Save as .csv that will be returned to user",
+             "write.csv(df, '~/TempTest/matched_data.csv', row.names=FALSE)"
+             ), fileconn)
+close(fileconn)
+
+##Next addition to mkdata
+##Transfer whole directory /Temp from local machine to Sherlock home directory /home/jhylee/Temp -- 06/27/18 fixed below in the rsync code
+
+### prob need to use a keytab here for password?    https://uit.stanford.edu/service/kerberos/keytabs
+
+#system("kinit jhylee@stanford.edu")
+### 06/27/18 will have to change login below for yourself
+system(paste("rsync -a --stats", sysdir, "jhylee@login.sherlock.stanford.edu:~/TempTest/"))  
+#this part works to send entire directory...just need to figure out the log in part
+
+}
+
+## example function call
+mkdata(dtaAnalysis, dir = "/Users/jlee/Box Sync/jlee/Baiocchi/BigMatch/TempTest/", strataVar = c("binName"), treatmentVar = c("treat"), predictorVar = c("totalct", "hosp_state", "AMI_7", "COPD_7", "ISCHEMICHEART_7", "STROKE_TIA_7", "ATRIAL_FIB_7", "CHRONICKIDNEY_7", "DIABETES_7", "ALZH_DEMEN_7", "Male", "race"))
+
+#### RUNNING INTO AN ERROR WITH THE LAST PART OF mkdata FUNCTION -- SHERLOCK 2.0 ASKS FOR LOGIN AND DUO MOBILE AUTHENTICATION NOW
+### to push manually, open up new Terminal window (not within Sherlock) and run this line:
+      # rsync -a --stats '/Users/jlee/Box Sync/jlee/Baiocchi/BigMatch/TempTest/' jhylee@login.sherlock.stanford.edu:~/TempTest/
+
+
+### STEPS AFTER DATA IS CREATED AND PUSHED INTO SHERLOCK DIRECTORY
+# 1) In Sherlock Terminal (note any packages used (optmatch) must be installed on Sherlock before this point -- see below *** for how to do this):
+      # a) run this line:  sbatch -p manishad --array=1-302 ex.sbatch
+            # edit appropriately for whichever partition you have access too (instead of manishad) and for however many strata (number of bins; strata should be named numerically and               can be any range; ie 5-100) you have (instead of --array=1-302) *side note: in Sherlock 1.0 array could at most handle 1-1000, not sure in Sherlock 2.0 yet
+      # b) while jobs are running, you can look at the status w/ this command:
+              # squeue -p manishad   *again change the partition to whatever you are using
+# 2) After all jobs are finished:
+      # a) if R is not loaded in the Sherlock instance, run this line:
+              # module load R/3.4.0
+      # b) to combine all the output matched datasets, run this line:
+              # R --vanilla < combine1.R
+# 3) Once all files are combined in the matched_data.csv file:
+      # a) this will send the one matched_data.csv file back to your local directory; this must be run in any terminal window outside of Sherlock instance:
+              # rsync -a --stats jhylee@login.sherlock.stanford.edu:~/TempTest/matched_data.csv '/Users/jlee/Box Sync/jlee/Baiocchi/BigMatch/TempTest/'
+# 4) Import matched dataset from local directory to R:
+      # datMatched <- read.csv('/Users/jlee/Box Sync/jlee/Baiocchi/BigMatch/TempTest/matched_data.csv', stringsAsFactors = FALSE)
+
+
+
+# ***If need to install optmatch package:
+# log into Sherlock:
+#     1) module load R/3.4.0
+#     2) R
+#     3) install.packages("optmatch") -- will be prompted to select CRAN mirror
+#     4) quit() to exit R
+```
+
+

@@ -1,0 +1,69 @@
+---
+title: "Big Match - Large Demo"
+author: "Rachael Caelie (Rocky) Aikens"
+date: "10/30/2018"
+output: pdf_document
+---
+
+```{r setup, warning=FALSE, message = FALSE}
+knitr::opts_chunk$set(cache=TRUE, 
+                      warning = FALSE, 
+                      message = FALSE,
+                      cache = TRUE)
+require(MatchIt)
+require(ggplot2)
+require(ggpubr)
+require(dplyr)
+require(haven)
+require(Hmisc)
+require(optmatch)
+
+source('big_match.R')
+source('class_functions.R')
+```
+
+This rmarkdown is meant for running a larger demo of the big_match functionality.
+
+# Import Data
+
+This sample cohort data was provided by Justin Lee at the Quantitative Sciences Unit. It contains ~900,000 observations of 112 variables.  
+
+```{r read in data}
+dat <- read_sas("../sample_data/justincohort_june2017.sas7bdat")
+
+# dimensions: ~900,000 x 112
+dim(dat)
+```
+
+```{r}
+# filter and add treatment column
+dat <- filter(dat, totalct > 1 & arteryCt < 3) %>%
+  mutate(treat = ifelse(arteryCt > 1, 1, 0))
+
+# dimensions: ~900,000 x 112
+dim(dat)
+```
+
+```{r}
+m.strat <- manual_stratify(dat, treat = "treat",
+                           covariates = c("Male", "race", "hosp_state"))
+
+summary(m.strat)
+```
+
+```{r}
+plot(m.strat)
+```
+
+```{r}
+a.strat <- auto_stratify(data = dat, treat = "treat", outcome = "dead", covariates = c("totalct", "hosp_state", "AMI_7", "COPD_7", "ISCHEMICHEART_7", "STROKE_TIA_7", "ATRIAL_FIB_7", "CHRONICKIDNEY_7", "DIABETES_7", "ALZH_DEMEN_7", "Male", "race"))
+```
+
+```{r}
+plot(a.strat)
+```
+
+```{r, eval = FALSE, include = FALSE}
+system.time()
+```
+

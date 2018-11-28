@@ -67,7 +67,7 @@ summarize_balance <- function(data, treat){
   #TODO: rownames for data frames will be deprecated soon, which means this will have to change.
   result <- data %>% 
     group_by(treat) %>% 
-    summarize_all(mean) %>%
+    dplyr::summarize_all(mean) %>%
     t()
   
   colnames(result) <- c("Treat_Mean", "Contol_Mean")
@@ -86,7 +86,7 @@ summarize_balance <- function(data, treat){
 #' @param strata a \code{strata} object 
 #' @return Returns the scatterplot
 
-scatter_plot_helper <- function(issue_table){
+scatter_plot_helper <- function(issue_table, label){
   
   # set parameters
   CONTROL_MIN = 0.2
@@ -99,23 +99,27 @@ scatter_plot_helper <- function(issue_table){
   
   xmax <- max(issue_table$Total, SIZE_MAX*1.05)
   
-  ggplot(issue_table, aes(x = Total, y = Control_Proportion)) + 
+  g <- ggplot(issue_table, aes(x = Total, y = Control_Proportion)) + 
     geom_point() +
     labs(x = "Stratum Size", 
          y = "Fraction Control Observations") +
     ylim(c(0,1)) + xlim(c(0, xmax)) + 
-    geom_rect(aes(ymin=0, ymax=CONTROL_MIN, xmin = 0, xmax = Inf, fill = "firebrick1"), alpha = 0.05) + 
-    geom_rect(aes(ymin=CONTROL_MAX, ymax=1, xmin = 0, xmax = Inf, fill = "firebrick1"), alpha = 0.05) +
-    geom_rect(aes(ymin=0, ymax=1, xmin = 0, xmax = SIZE_MIN, fill = "firebrick1"), alpha = 0.05) +
-    geom_rect(aes(ymin=0, ymax=1, xmin = SIZE_MAX, xmax = Inf, fill = "firebrick1"), alpha = 0.05) + 
+    geom_rect(aes(ymin=0, ymax=CONTROL_MIN, xmin = 0, xmax = Inf, fill = "firebrick1"), alpha = 0.01) + 
+    geom_rect(aes(ymin=CONTROL_MAX, ymax=1, xmin = 0, xmax = Inf, fill = "firebrick1"), alpha = 0.01) +
+    geom_rect(aes(ymin=0, ymax=1, xmin = 0, xmax = SIZE_MIN, fill = "firebrick1"), alpha = 0.01) +
+    geom_rect(aes(ymin=0, ymax=1, xmin = SIZE_MAX, xmax = Inf, fill = "firebrick1"), alpha = 0.01) + 
     geom_vline(xintercept= SIZE_MAX, colour = "firebrick") + 
     geom_vline(xintercept= SIZE_MIN, colour = "firebrick") +
     geom_hline(yintercept= CONTROL_MAX, colour = "firebrick") +
     geom_hline(yintercept= CONTROL_MIN, colour = "firebrick") +
     geom_hline(yintercept= 0.5, colour = "black", linetype = 2) + 
-    theme(legend.position = "none") + 
-    geom_label_repel(data = problem_strata, aes(Total, Control_Proportion,
+    theme(legend.position = "none")
+  
+  if (label){
+    g <- g + geom_label_repel(data = problem_strata, aes(Total, Control_Proportion,
                                      label = Stratum), size = 2.5, color = "firebrick")
+  }
+  print(g)
 }
 
 #' @title Helper plot function for \code{strata} object with type = "hist"
@@ -130,7 +134,7 @@ hist_plot_helper <- function(auto_strata){
   
   plot_summary <- plotdata %>% 
     group_by(stratum) %>% 
-    summarize(prog_mean = mean(prog_scores))
+    dplyr::summarize(prog_mean = mean(prog_scores))
   
   a <- ggplot(data = plot_summary, aes(x = stratum, y = prog_mean, fill = as.factor(stratum))) + 
     geom_col() +
@@ -156,9 +160,9 @@ residual_plot_helper <- function(auto_strata){
   return(plot(1))
 }
 
-plot.strata <- function(strata, type = "scatter"){
+plot.strata <- function(strata, type = "scatter", label = FALSE){
   if (type == "scatter"){
-    scatter_plot_helper(strata$issue_table)
+    scatter_plot_helper(strata$issue_table, label)
   }
   else if (type == "hist"){
     if (!("auto_strata" %in% class(strata))){
