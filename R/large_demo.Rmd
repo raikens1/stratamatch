@@ -5,7 +5,7 @@ date: "10/30/2018"
 output: pdf_document
 ---
 
-```{r setup, warning=FALSE, message = FALSE}
+```{r setup, warning=FALSE, message = FALSE, include = FALSE}
 knitr::opts_chunk$set(cache=TRUE, 
                       warning = FALSE, 
                       message = FALSE,
@@ -44,6 +44,10 @@ dat <- filter(dat, totalct > 1 & arteryCt < 3) %>%
 dim(dat)
 ```
 
+\pagebreak 
+
+# Manual Statify
+
 ```{r}
 m.strat <- manual_stratify(dat, treat = "treat",
                            covariates = c("Male", "race", "hosp_state"))
@@ -55,13 +59,24 @@ summary(m.strat)
 plot(m.strat)
 ```
 
-```{r}
-a.strat <- auto_stratify(data = dat, treat = "treat", outcome = "dead", covariates = c("totalct", "hosp_state", "AMI_7", "COPD_7", "ISCHEMICHEART_7", "STROKE_TIA_7", "ATRIAL_FIB_7", "CHRONICKIDNEY_7", "DIABETES_7", "ALZH_DEMEN_7", "Male", "race"))
+\pagebreak
+
+# Auto Stratify by Prognostic Score
+
+```{r, eval = FALSE}
+a.strat <- auto_stratify(data = dat, treat = "treat", 
+                         outcome = "dead", 
+                         covariates = c("totalct", "hosp_state", "AMI_7", "COPD_7", 
+                                        "ISCHEMICHEART_7","STROKE_TIA_7", "ATRIAL_FIB_7",
+                                        "CHRONICKIDNEY_7", "DIABETES_7","ALZH_DEMEN_7",
+                                        "Male", "race"))
 ```
 
-```{r}
+```{r, eval = FALSE}
 plot(a.strat)
 ```
+
+![Auto Stratify plot.](autostrat_plot.png)
 
 ```{r, eval = FALSE, include = FALSE}
 system.time()

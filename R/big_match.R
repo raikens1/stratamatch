@@ -1,7 +1,8 @@
 require("dplyr")
-require("ggplot2")
-require("ggrepel")
-require("RColorBrewer")
+require("ggplot2") # TODO: remove this dependency
+require("ggrepel") # TODO: remove this dependency
+require("RColorBrewer") # TODO: remove this dependency
+require("Hmisc")
 
 #----------------------------------------------------------
 ### GENERAL HELPER FUNCTIONS
@@ -209,4 +210,23 @@ build_prog_model <- function(data, treat, outcome, covariates, held_sample, held
   model <- glm(formula(formula_str), data = data0, family = "binomial")
   
   return(model)
+}
+
+#' @title Get categorical variables with missing values in modeling set
+#' @description Returns a list of categorical variables which take on some value in the analysis set that is not seen in the modeling set
+#' Assumes a variable is categorical iff it is a factor.
+#' @param model_set data frame with observations as rows
+#' @param analysis_set data frame with observations as rows
+#' @return named list of p vectors.  The name of the element is the categorical variable; the vector is the problematic values for that variable
+get_missing_categories <- function(model_set, analysis_set){
+  # initialize result
+  result <- vector("list", dim(model_set)[2])
+  names(result) <- colnames(model_set)
+  
+  model_vals <- model_set %>% select_if(is.factor) %>% sapply(levels)
+  analysis_vals <- analysis_set %>% select_if(is.factor) %>% sapply(levels)
+  for (i in 1:ncol(analysis_vals)){
+    result[[i]] <- setdiff(model_vals[,i], analysis_vals[,i])
+  }
+  return(result)
 }
