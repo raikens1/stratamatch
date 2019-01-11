@@ -30,36 +30,6 @@ names(lalonde)[names(lalonde) == "treat"] <- "treated"
 
 \pagebreak
 
-# Strata Objects
-
-The functions `auto_stratify` and `manual_stratify` return `auto_strata` and `manual_strata` S3 objects, respectively, which both inherit from class `strata`. The `plot`, `summary` and `print` methods for `strata` objects implement most of the diagnsostics we have for assessing the outcome of a stratification.  The contents of `strata` objects is shown below:
-
-*Info for all strata objects:*
-
-- `data` **data.frame** with strata specified
-
-- `treat` **string** of the name of the treatment assignment column in the data frame
-
-- `covariates` **character vector** giving names of all covariates for stratification (may be NULL if prognostic scores were pre-specified) 
-
-- `call` **call object** of function call which produced object
-
-- `issue_table` **data.frame** of Treated, Controls, and Total observations for each stratum
-
-*Additional info for manual_strata objects:*
-
-- `strata_table` **data.frame** of strata definitions
-
-*Additional info for auto_strata objects:*
-
-- `prog_scores` **numeric vector** of prognostic scores for each observation
-
-- `prog_model` **glm object** prognostic score model (may be NULL if prognostic scores were pre-specified)
-
-- `outcome` **string** with the name of the outcome variable
-
-- `discarded` **???** rows deleted
-
 # Stratify
 ## Manual Stratify
 

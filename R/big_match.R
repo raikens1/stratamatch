@@ -72,8 +72,8 @@ get_issues <- function(row){
 manual_stratify <- function(data, treat, covariates, force = FALSE){
   
   result <- structure(list(analysis_set = NULL, treat = treat, covariates = covariates, 
-                           strata_table = NULL, 
-                           call = match.call(), issue_table = NULL),
+                           call = match.call(), issue_table = NULL,
+                           strata_table = NULL),
                       class = c("manual_strata" , "strata"))
   
   n <- dim(data)[1]
@@ -143,9 +143,9 @@ warn_if_continuous <- function(column, name, force, n){
 
 auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores = NULL, size = 2500, held_frac = 0.1, held_sample = NULL){
   
-  result <- structure(list(analysis_set = NULL, prog_scores = NULL, prog_model = NULL, model_set = NULL,
-                           treat = treat, outcome = outcome, covariates = covariates, 
-                           call = match.call(), issue_table = NULL),
+  result <- structure(list(analysis_set = NULL,treat = treat, covariates = covariates, 
+                           call = match.call(), issue_table = NULL,
+                           outcome = outcome, prog_scores = NULL, prog_model = NULL, model_set = NULL),
                       class = c("auto_strata", "strata"))
   
   # check inputs
@@ -223,51 +223,11 @@ build_prog_model <- function(data, treat, outcome, covariates, held_frac = 0.1, 
     analysis_set <- dplyr::anti_join(data, model_set, by = "join_id_57674") %>%
      dplyr::select(-join_id_57674)
     model_set$join_id_57674 <- NULL
-    
-    issues <- get_missing_categories(model_set, analysis_set)
-    
-    err <- FALSE
-    if (length(issues)!=0) {
-      for (i in 1:length(issues)){
-        if (length(issues[[i]]) !=0) {
-          err <- TRUE
-          print(paste("The following values of", names(issues)[i], "appear in the analysis set but not the model set:"))
-          print(paste(issues[[i]]), collapse = ", ")
-        }
-      }
-    }
-    if (err){
-      stop("Some categorical values in the analysis set do not appear in the modeling set. Consider stratifying by these variables.")
-    } 
   }
   print(paste("Fitting prognostic model:", formula_str))
   model <- glm(formula(formula_str), data = model_set, family = "binomial")
   
   return(list(m = model, m_set = model_set, a_set = analysis_set))
-}
-
-#' @title Get categorical variables with missing values in modeling set
-#' @description Returns a list of categorical variables which take on some value in the analysis set that is not seen in the modeling set
-#' Assumes a variable is categorical iff it is a factor.
-#' @param model_set data frame with observations as rows
-#' @param analysis_set data frame with observations as rows
-#' @return named list of p vectors.  The name of the element is the categorical variable; the vector is the problematic values for that variable (may be the empty set)
-get_missing_categories <- function(model_set, analysis_set){
-  
-  model_vals <- model_set %>% select_if(is.factor) %>% sapply(levels)
-  analysis_vals <- analysis_set %>% select_if(is.factor) %>% sapply(levels)
-  
-  # initialize result
-  if (is.null(ncol(analysis_vals))) {nvars <- 0} else {nvars <- ncol(analysis_vals)}
-  result <- vector("list", nvars)
-  names(result) <- colnames(analysis_vals)
-  
-  if ((nvars != 0)) {
-    for (i in 1:nvars){
-      result[[i]] <- setdiff(model_vals[,i], analysis_vals[,i])
-    }
-  }
-  return(result)
 }
 
 #----------------------------------------------------------
