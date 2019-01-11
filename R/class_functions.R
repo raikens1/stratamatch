@@ -47,7 +47,7 @@ summary.strata <- function(strata){
                                    sum_before = NULL),
                  class = "summary.strata")
   
-  strata_summary$sum_before <- summarize_balance(strata$data, strata$treat)
+  strata_summary$sum_before <- summarize_balance(strata$analysis_set, strata$treat)
   
   return(strata_summary)
 }
@@ -129,7 +129,7 @@ scatter_plot_helper <- function(issue_table, label){
 #' @return Returns an arrangement of the column plot and histogram.
 
 hist_plot_helper <- function(auto_strata){
-  plotdata <- auto_strata$data
+  plotdata <- auto_strata$analysis_set
   plotdata$prog_scores <- auto_strata$prog_scores
   
   plot_summary <- plotdata %>% 

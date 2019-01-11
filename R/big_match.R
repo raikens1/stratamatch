@@ -10,13 +10,13 @@ require("Hmisc")
 
 #' @title Produce table of Treated and Control by strata
 #' @description Given a dataframe with strata assigned, tally the number of treated and control samples
-#' @param data data frame with observations as rows, features as columns
+#' @param a_set data frame with observations as rows, features as columns
 #' @param treat string name of treatment column
 #' @return Returns a 3 by [numer of strata] dataframe with Treat, Control, Total, Control Proportion, and Potential Issues
 
-make_issue_table <- function(data, treat){
-  names(data)[names(data) == treat] <- "treat"
-  df <- data %>%
+make_issue_table <- function(a_set, treat){
+  names(a_set)[names(a_set) == treat] <- "treat"
+  df <- a_set %>%
     group_by(stratum) %>%
     dplyr::summarize(Treated = sum(treat), Control = sum(1-treat), Total = n()) %>%
     mutate(Control_Proportion = Control/Total)
@@ -71,7 +71,7 @@ get_issues <- function(row){
 
 manual_stratify <- function(data, treat, covariates, force = FALSE){
   
-  result <- structure(list(data = NULL, treat = treat, covariates = covariates, 
+  result <- structure(list(analysis_set = NULL, treat = treat, covariates = covariates, 
                            strata_table = NULL, 
                            call = match.call(), issue_table = NULL),
                       class = c("manual_strata" , "strata"))
@@ -93,12 +93,12 @@ manual_stratify <- function(data, treat, covariates, force = FALSE){
   # Interact covariates
   grouped_table <- group_by_at(data, covariates) %>% mutate(stratum = get_integer())
   
-  result$data <- grouped_table %>% ungroup()
+  result$analysis_set <- grouped_table %>% ungroup()
   
   result$strata_table <- grouped_table %>% dplyr::summarize(stratum = first(stratum),
                                                      size = n())
   
-  result$issue_table <- make_issue_table(result$data, treat)
+  result$issue_table <- make_issue_table(result$analysis_set, treat)
   
   return(result)
 }
@@ -137,13 +137,13 @@ warn_if_continuous <- function(column, name, force, n){
 #' @param outcome string giving the name of column with outcome information
 #' @param covariates a vector of the columns to be used as covariates building prognostic score model
 #' @param size numeric, desired size of strata
-#' @param held_sample string giving the type of held out sample desired (currently supports only "control")
-#' @param held_size numeric, desired size of held out sample
+#' @param held_frac numeric between 0 and 1 giving the proportion of samples to be allotted for building the prognostic score
+#' @param held_sample (optional) a data.frame of held aside samples for building prognostic score model.
 #' @return Returns a \code{strata} object
 
-auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores = NULL, size = 2500, held_sample = "controls", held_size = NULL){
+auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores = NULL, size = 2500, held_frac = 0.1, held_sample = NULL){
   
-  result <- structure(list(data = NULL, prog_scores = NULL, prog_model = NULL, discarded = NULL,
+  result <- structure(list(analysis_set = NULL, prog_scores = NULL, prog_model = NULL, model_set = NULL,
                            treat = treat, outcome = outcome, covariates = covariates, 
                            call = match.call(), issue_table = NULL),
                       class = c("auto_strata", "strata"))
@@ -161,55 +161,84 @@ auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores =
   if (!is.null(prog_scores)){
     if (length(prog_scores) != dim(data)[1]){
       stop("prog_scores must be the same length as the data")
-    } 
+    } else {
+      result$analysis_set <- data
+    }
     
   } else {
     # if prog_scores are not specified, build them
-    prog_model <- build_prog_model(data, treat, outcome, covariates, held_sample, held_size)
-    prog_scores <- predict(prog_model, data, type = "response")
+    prog_build <- build_prog_model(data, treat, outcome, covariates, held_frac, held_sample)
+    prog_model <- prog_build$m
+    prog_scores <- predict(prog_model, prog_build$a_set, type = "response")
     
     result$prog_model <- prog_model
-    
+    result$model_set <- prog_build$m_set
+    result$analysis_set <- prog_build$a_set
   }
   
   # Create strata from prognostic score quantiles
-  n_bins <- ceiling(dim(data)[1]/size)
+  n_bins <- ceiling(dim(result$analysis_set)[1]/size)
   #data$stratum <- ntile(prog_scores, n_bins)
-  data$stratum <- cut2(prog_scores, g = n_bins)
+  result$analysis_set$stratum <- cut2(prog_scores, g = n_bins)
   
   # package and resturn result
-  result$data = data
   result$prog_scores = prog_scores
-  result$issue_table  = make_issue_table(data, treat)
+  result$issue_table  = make_issue_table(result$analysis_set, treat)
   
   return(result)
 }
 
 #' @title Generates prognostic score model from the data
-#' @description When the prog_score is not precalculated, fits a prognostic score model to the data according to specifications.  Currently just fits a logistic model on controls.
+#' @description When the prog_score is not precalculated, subsamples to create a model set (if necessary), then fits a prognostic score on that set.
 #' @param data data frame with observations as rows, features as columns
 #' @param treat string giving the name of column designating treatment assignment
 #' @param outcome string giving the name of column with outcome information
 #' @param covariates a vector of the columns to be used as covariates building prognostic score model
-#' @param held_sample, a string defining which sample to use to build the prognostic model.
 #' @param held_size, an integer giving the desired size of the hold-out sample
-#' @return Returns a \code{glm} object
-# TODO (raikens): implement other options for "held_sample"
-build_prog_model <- function(data, treat, outcome, covariates, held_sample, held_size){
+#' @param held_sample, (optional) a held aside dataset to be used to fit the prognostic score model
+#' @return Returns list of: m, a \code{glm} object prognostic model, m_set, the model set, and a_set, the analysis set (data - model set)
+build_prog_model <- function(data, treat, outcome, covariates, held_frac = 0.1, held_sample = NULL){
   formula_str <- paste(outcome, paste(covariates, collapse ="+"), sep = "~")
+  model_set <- NULL
   
-  if (held_sample == "controls"){
-    # fit model on controls only
-    data0 <- data[(data[,treat] == 0),]
+  # if held_sample is specified use that to build score
+  if (!is.null(held_sample)){
+    print("Using user-specified set for prognostic score modeling")
+    model_set <- held_sample
+    analysis_set <- data
+    
+  } else {
+    print("Constructing a model set via subsampling")
+    # otherwise, construct a model sample
+    # Adds an id column and removes it
+    data$join_id_57674 <- 1:nrow(data)
+    model_set <- data %>% filter_(paste(treat, "==", 0)) %>% sample_frac(held_frac, replace = FALSE)
+    analysis_set <- dplyr::anti_join(data, model_set, by = "join_id_57674") %>%
+     dplyr::select(-join_id_57674)
+    model_set$join_id_57674 <- NULL
+    
+    issues <- get_missing_categories(model_set, analysis_set)
+    model_vals <- model_set %>% select_if(is.factor) %>% sapply(levels)
+    print(model_vals)
+    
+    err <- FALSE
+    if (length(issues)!=0) {
+      for (i in 1:length(issues)){
+        if (length(issues[[i]]) !=0) {
+          err <- TRUE
+          print(paste("The following values of", names(issues)[i], "appear in the analysis set but not the model set:"))
+          print(paste(issues[[i]]), collapse = ", ")
+        }
+      }
+    }
+    if (err){
+      stop("Some categorical values in the analysis set do not appear in the modeling set. Consider stratifying by these variables.")
+    } 
   }
-  else {
-    stop("Not a valid option for held_sample.")
-  }
-  
   print(paste("Fitting prognostic model:", formula_str))
-  model <- glm(formula(formula_str), data = data0, family = "binomial")
+  model <- glm(formula(formula_str), data = model_set, family = "binomial")
   
-  return(model)
+  return(list(m = model, m_set = model_set, a_set = analysis_set))
 }
 
 #' @title Get categorical variables with missing values in modeling set
@@ -217,16 +246,41 @@ build_prog_model <- function(data, treat, outcome, covariates, held_sample, held
 #' Assumes a variable is categorical iff it is a factor.
 #' @param model_set data frame with observations as rows
 #' @param analysis_set data frame with observations as rows
-#' @return named list of p vectors.  The name of the element is the categorical variable; the vector is the problematic values for that variable
+#' @return named list of p vectors.  The name of the element is the categorical variable; the vector is the problematic values for that variable (may be the empty set)
 get_missing_categories <- function(model_set, analysis_set){
-  # initialize result
-  result <- vector("list", dim(model_set)[2])
-  names(result) <- colnames(model_set)
   
   model_vals <- model_set %>% select_if(is.factor) %>% sapply(levels)
   analysis_vals <- analysis_set %>% select_if(is.factor) %>% sapply(levels)
-  for (i in 1:ncol(analysis_vals)){
-    result[[i]] <- setdiff(model_vals[,i], analysis_vals[,i])
+  
+  # initialize result
+  if (is.null(ncol(analysis_vals))) {nvars <- 0} else {nvars <- ncol(analysis_vals)}
+  result <- vector("list", nvars)
+  names(result) <- colnames(analysis_vals)
+  
+  if ((nvars != 0)) {
+    for (i in 1:nvars){
+      result[[i]] <- setdiff(model_vals[,i], analysis_vals[,i])
+    }
   }
   return(result)
+}
+
+#----------------------------------------------------------
+### Match
+#----------------------------------------------------------
+
+#' @title Match One
+#' @description Match one dataset using the optmatch package
+#' @param dat a data.frame with observations as rows, outcome column masked
+#' @return a data.frame like dat with pair assignments?
+match_one <- function(dat){
+  return(0)
+}
+
+#' @title Big Match
+#' @description Match within strata in parallel by calling match_one
+#' @param strat a strata object
+#' @return a data.frame like dat with pair assignments?
+big_match <- function(strat) {
+  return(0)
 }

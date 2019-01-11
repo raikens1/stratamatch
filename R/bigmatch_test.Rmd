@@ -133,7 +133,7 @@ a.strat2 <- auto_stratify(lalonde, "treated", "outcome",
 
 # auto stratification with a non-continuous prognostic score
 a.strat3 <- auto_stratify(lalonde, "treated", "outcome", 
-                          covariates = c("hispan", "nodegree", "black"), size = 100 )
+                          covariates = c("hispan", "nodegree", "black"), size = 100)
 ```
 
 \pagebreak
