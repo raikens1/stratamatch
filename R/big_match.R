@@ -169,7 +169,14 @@ auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores =
     # if prog_scores are not specified, build them
     prog_build <- build_prog_model(data, treat, outcome, covariates, held_frac, held_sample)
     prog_model <- prog_build$m
-    prog_scores <- predict(prog_model, prog_build$a_set, type = "response")
+    prog_scores <- tryCatch(predict(prog_model, prog_build$a_set, type = "response"), 
+                            error = function(e) {
+                              if (e$call == "model.frame.default(Terms, newdata, na.action = na.action, xlev = object$xlevels)"){
+                                e$message <- paste("Error applying prognostic model: Some categorical variable value(s) in the analysis set do not appear in the modeling set. Consider stratifying by these variable(s).", 
+                                                   "GLM error:", e$message)
+                                stop(e)
+                              }
+                            })
     
     result$prog_model <- prog_model
     result$model_set <- prog_build$m_set
@@ -218,8 +225,6 @@ build_prog_model <- function(data, treat, outcome, covariates, held_frac = 0.1, 
     model_set$join_id_57674 <- NULL
     
     issues <- get_missing_categories(model_set, analysis_set)
-    model_vals <- model_set %>% select_if(is.factor) %>% sapply(levels)
-    print(model_vals)
     
     err <- FALSE
     if (length(issues)!=0) {
