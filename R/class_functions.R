@@ -20,22 +20,33 @@ print.auto_strata <- function(strata) {
   writeLines("auto_strata object from package big_match.\n")
   writeLines("Function call:")
   print(strata$call)
+  writeLines(paste("\nAnalysis set dimensions:", dim(strata$analysis_set)[1], "X", dim(strata$analysis_set)[2]))
   if(!is.null(strata$prog_model)){
+    writeLines(paste("\nModel set dimensions:", dim(strata$model_set)[1], "X", dim(strata$model_set)[2]))
     writeLines("\nPrognostic Score Model:")
     print(strata$prog_model) # TODO: print formula rather than model
   } else {
     writeLines("\nPrognostic Scores prespecified.")
   }
-  writeLines("\nStrata Sizes:")
-  print(strata$issue_table)
+  writeLines(paste("\nNumber of strata:", dim(strata$issue_table)[1], 
+                   "\n\n\tMin size:", min(strata$issue_table$Total), "\tMax size:", max(strata$issue_table$Total)))
+  if (dim(strata$issue_table)[1] <= 15) {
+    writeLines("\nStrata issue table:")
+    print(strata$issue_table)
+  }
 }
 
 print.manual_strata <- function(strata) {
   writeLines("manual_strata object from package big_match.\n")
   writeLines("Function call:")
   print(strata$call)
-  writeLines("\nStrata Sizes:")
-  print(strata$issue_table)
+  writeLines(paste("\nAnalysis set dimensions:", dim(strata$analysis_set)[1], "X", dim(strata$analysis_set)[2]))
+  writeLines(paste("\nNumber of strata:", dim(strata$issue_table)[1], 
+                   "\n\n\tMin size:", min(strata$issue_table$Total), "\tMax size:", max(strata$issue_table$Total)))
+  if (dim(strata$issue_table)[1] <= 15) {
+    writeLines("\nStrata issue table:")
+    print(strata$issue_table)
+  }
 }
 
 #----------------------------------------------------------

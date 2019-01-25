@@ -21,7 +21,7 @@ source('R/class_functions.R')
 dat <- read_sas("sample_data/justincohort_june2017.sas7bdat")
 
 datInc <- dat[dat$totalct > 1 & dat$arteryCt < 3, ]
-datInc$treat <- ifelse(datInc$arteryCt > 1, 1, 0)
+datInc$treat <- ifelse(datInc$arteryCt > 1, 1, 0) 
 ```
 
 ```{r}

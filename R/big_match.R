@@ -172,8 +172,8 @@ auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores =
     prog_scores <- tryCatch(predict(prog_model, prog_build$a_set, type = "response"), 
                             error = function(e) {
                               if (e$call == "model.frame.default(Terms, newdata, na.action = na.action, xlev = object$xlevels)"){
-                                e$message <- paste("Error applying prognostic model: Some categorical variable value(s) in the analysis set do not appear in the modeling set. Consider stratifying by these variable(s).", 
-                                                   "GLM error:", e$message)
+                                e$print <- paste("Error applying prognostic model: Some categorical variable value(s) in the analysis set do not appear in the modeling set. Consider stratifying by these variable(s).", 
+                                                   "GLM error:", e$print)
                                 stop(e)
                               }
                             })
@@ -183,6 +183,8 @@ auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores =
     result$analysis_set <- prog_build$a_set
   }
   
+  print("Generating strata assignments based on prognostic score.")
+  
   # Create strata from prognostic score quantiles
   n_bins <- ceiling(dim(result$analysis_set)[1]/size)
   #data$stratum <- ntile(prog_scores, n_bins)
@@ -190,6 +192,8 @@ auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores =
   
   # package and resturn result
   result$prog_scores = prog_scores
+  
+  print("Completing strata diagnostics.")
   result$issue_table  = make_issue_table(result$analysis_set, treat)
   
   return(result)
@@ -210,12 +214,12 @@ build_prog_model <- function(data, treat, outcome, covariates, held_frac = 0.1, 
   
   # if held_sample is specified use that to build score
   if (!is.null(held_sample)){
-    print("Using user-specified set for prognostic score modeling")
+    print("Using user-specified set for prognostic score modeling.")
     model_set <- held_sample
     analysis_set <- data
     
   } else {
-    print("Constructing a model set via subsampling")
+    print("Constructing a model set via subsampling.")
     # otherwise, construct a model sample
     # Adds an id column and removes it
     data$join_id_57674 <- 1:nrow(data)
@@ -238,14 +242,44 @@ build_prog_model <- function(data, treat, outcome, covariates, held_frac = 0.1, 
 #' @description Match one dataset using the optmatch package
 #' @param dat a data.frame with observations as rows, outcome column masked
 #' @return a data.frame like dat with pair assignments?
-match_one <- function(dat){
-  return(0)
+match_one <- function(dat, propensity_model, k = 1){
+  dat$match_id <- pairmatch(propensity_model, data = dat, controls = k)
+  return(dat)
 }
 
-#' @title Big Match
+#' @title Big Match v2
 #' @description Match within strata in parallel by calling match_one
 #' @param strat a strata object
 #' @return a data.frame like dat with pair assignments?
-big_match <- function(strat) {
-  return(0)
+big_match_v2 <- function(strat, propensity_formula = NULL) {
+  if (is.null(propensity_formula)){
+    propensity_formula <- formula(paste(c(strat$treat, "~ . -", strat$outcome, "- stratum"), collapse = ""))
+  }
+  # build propensity model
+  propensity_model <- glm(propensity_formula, data = strat$analysis_set, family = binomial())
+  
+  # do match_one
+}
+
+#' @title Big Match
+#' @description Match within strata in parallel using optmatch
+#' @param strat a strata object
+#' @param propensity_formula (optional) formula for propensity score
+#' @param k numeric, the number of control individuals to be matched to each treated individual
+#' @return a named factor with matching assignments
+big_match <- function(strat, propensity_formula = NULL, k = 1){
+  if (is.null(propensity_formula)){
+    # match on all variables, stratified by stratum
+    propensity_formula <- formula(paste(strat$treat, "~ . -", strat$outcome, "- stratum", "+ strata(stratum)"))
+  } else {
+    # append phrase to stratify by stratum
+    orig_form <- Reduce(paste, deparse(propensity_formula))
+    propensity_formula <- formula(paste(orig_form, "+ strata(stratum)"))
+  }
+  
+  print(propensity_formula)
+  # build propensity model
+  propensity_model <- glm(propensity_formula, data = strat$analysis_set, family = binomial())
+  
+  return(pairmatch(propensity_model, data = strat$analysis_set, controls = k))
 }

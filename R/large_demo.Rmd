@@ -6,10 +6,7 @@ output: pdf_document
 ---
 
 ```{r setup, warning=FALSE, message = FALSE, include = FALSE}
-knitr::opts_chunk$set(cache=TRUE, 
-                      warning = FALSE, 
-                      message = FALSE,
-                      cache = TRUE)
+knitr::opts_chunk$set(cache=TRUE, warning = TRUE, message = TRUE, fig.align = "center", fig.height = 4)
 require(MatchIt)
 require(ggplot2)
 require(ggpubr)
@@ -17,6 +14,7 @@ require(dplyr)
 require(haven)
 require(Hmisc)
 require(optmatch)
+theme_set(theme_light())
 
 source('big_match.R')
 source('class_functions.R')
@@ -35,6 +33,8 @@ dat <- read_sas("../sample_data/justincohort_june2017.sas7bdat")
 dim(dat)
 ```
 
+We include only hospitalizations with `totalct` > 1 and `arteryCt < 3`.  A patient is considered to have recieved treatment if `arteryCt` is greater than 1.  The outcome of this analysis is mortality.
+
 ```{r}
 # filter and add treatment column
 dat <- filter(dat, totalct > 1 & arteryCt < 3) %>%
@@ -48,22 +48,37 @@ dim(dat)
 
 # Manual Statify
 
+As a simple example, we can choose to stratify manually by race, sex, and hospital state.  This is done as shown below and gives the following strata sizes:
+
 ```{r}
 m.strat <- manual_stratify(dat, treat = "treat",
                            covariates = c("Male", "race", "hosp_state"))
 
-summary(m.strat)
+print(m.strat)
 ```
+
+The minimum size is `r min(m.strat$issue_table$Total)` (far too small) and the maximum is `r max(m.strat$issue_table$Total)` (too large to be computationally feasible). The diagnostic plot below shows all strata based on their treat/control balance and number of observations.  The un-tinted rectangle is the target for strata with good balance and appropriate size.
 
 ```{r}
 plot(m.strat)
 ```
 
+If desired, one can use trial and error to select a covariate set for stratification which gives more favorable strata sizes and balances.
+
 \pagebreak
 
 # Auto Stratify by Prognostic Score
 
+Another option is to stratify based on prognostic score.  There are a few ways to do this.  The simplest method is to supply a list of covariates to `auto_stratify` which details the features we would like to include in a prognostic model.  The `auto_stratify` function will then automatically split the data randomly into a `model_set` and an `analysis_set`.  By default, the model set contains 1/10 of the controls from the input dataset. A logistic model for prognostic score is then fit on the `model_set` using the covariates specified. Once the prognostic model is fit, the model set should be kept separate from the data used for the remainder of the analysis.  
+
+Using our new prognostic model, we can assign prognostic scores to each observation in the analysis set.  Finally, using these scores, the analysis set can be divided into strata of relatively equal size, where observations which appear in the same strata are characterized by similar prognostic scores.
+
+## Common Problem: Non-Representative Model Set
+
+The code to automatically stratify the dataset might look like this:
+
 ```{r, eval = FALSE}
+set.seed(123)
 a.strat <- auto_stratify(data = dat, treat = "treat", 
                          outcome = "dead", 
                          covariates = c("totalct", "hosp_state", "AMI_7", "COPD_7", 
@@ -72,11 +87,54 @@ a.strat <- auto_stratify(data = dat, treat = "treat",
                                         "Male", "race"))
 ```
 
-```{r, eval = FALSE}
-plot(a.strat)
+In this example dataset, we see a common problem.  When we try to fit a prognostic model which includes the hospital state as a variable, the following error is showm:
+
+`Error applying prognostic model: Some categorical variable value(s) in the analysis set do not appear in the modeling set.`
+
+This occurs because some value(s) of one or more categorical variables appear in the analysis set which were not seen in the model set. This means that when we try to obtain prognostic scores for our analysis set, we run into some new value that our prognostic model was not prepared to handle. For example, suppose all individuals in the model set had `hosp_state` equal to some state in the continental US, and the analysis contained one example from with `hosp_state` equal to "Virgin Islands". We don't know what prognostic score to assign this individual because we did not see any patients in the Virgin Islands when we built our prognostic model.
+
+**We have the following options:**
+
+ 1. **Group by this variable in auto_stratify:** add the offending categorical variable to group_vars in the call to auto_stratify. This will ensure that the model set contains the same proportions of individuals from each category as in the original dataset.
+ 2. **Rejection Sampling:** run auto_stratify again and again with different random seeds until this error does not occur
+ 3. **Remove the offending examples from the entire data set**
+ 4. **Remove this variable from the prognostic model**
+ 
+ In this case, there are only two hospitalizations from the Virgin Islands:
+ 
+```{r}
+filter(dat, hosp_state == "Virgin Islands") %>% nrow()
+```
+ 
+For simplicity, we will remove these observations for now.
+
+ 
+```{r}
+dat <- filter(dat, hosp_state != "Virgin Islands")
+```
+ 
+## Basic Auto Strification
+ 
+Now, we can run the code as before:
+
+```{r, cache = FALSE}
+set.seed(123)
+a.strat <- auto_stratify(data = dat, treat = "treat", 
+                         outcome = "dead", 
+                         covariates = c("totalct", "hosp_state", "AMI_7", "COPD_7", 
+                                        "ISCHEMICHEART_7","STROKE_TIA_7", "ATRIAL_FIB_7",
+                                        "CHRONICKIDNEY_7", "DIABETES_7","ALZH_DEMEN_7",
+                                        "Male", "race"))
 ```
 
-![Auto Stratify plot.](autostrat_plot.png)
+```{r}
+print(a.strat)
+```
+
+
+```{r}
+plot(a.strat)
+```
 
 ```{r, eval = FALSE, include = FALSE}
 system.time()

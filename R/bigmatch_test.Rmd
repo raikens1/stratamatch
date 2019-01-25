@@ -210,4 +210,12 @@ ggarrange(a, b, c, ncol = 1, nrow = 3, labels = "AUTO")
 
 # Matching
 
-This is not implemented yet.
+Here goes nothing.
+
+```{r}
+a.m1 <- big_match(a.strat1)
+a.m2 <- big_match(a.strat2)
+a.m3 <- big_match(a.strat3) # throws a warning
+a.m4 <- big_match(m.strat) # throws a warning
+```
+
