@@ -2,7 +2,8 @@
 ################################
 *.sas7bdat
 ~$*
-R/large_demo_cache/*
+*_files
+*_cache
 
 # Compiled source #
 ###################

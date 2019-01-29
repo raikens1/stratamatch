@@ -3,6 +3,7 @@ require("ggplot2") # TODO: remove this dependency
 require("ggrepel") # TODO: remove this dependency
 require("RColorBrewer") # TODO: remove this dependency
 require("Hmisc")
+require("optmatch")
 
 #----------------------------------------------------------
 ### GENERAL HELPER FUNCTIONS
@@ -275,6 +276,27 @@ big_match <- function(strat, propensity_formula = NULL, k = 1){
     # append phrase to stratify by stratum
     orig_form <- Reduce(paste, deparse(propensity_formula))
     propensity_formula <- formula(paste(orig_form, "+ strata(stratum)"))
+  }
+  
+  print(propensity_formula)
+  # build propensity model
+  propensity_model <- glm(propensity_formula, data = strat$analysis_set, family = binomial())
+  
+  return(pairmatch(propensity_model, data = strat$analysis_set, controls = k))
+}
+
+#' @title Big Match (slow)
+#' @description For performance testing purposes, match using optmatch but do not stratify
+#' @param strat a strata object
+#' @param propensity_formula (optional) formula for propensity score
+#' @param k numeric, the number of control individuals to be matched to each treated individual
+#' @return a named factor with matching assignments
+big_match_slow <- function(strat, propensity_formula = NULL, k = 1){
+  if (is.null(propensity_formula)){
+    # match on all variables, stratified by stratum
+    propensity_formula <- formula(paste(strat$treat, "~ . -", strat$outcome, "- stratum"))
+  } else {
+    # do not modify original formula to append "+strata(stratum)"
   }
   
   print(propensity_formula)

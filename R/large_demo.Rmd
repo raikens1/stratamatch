@@ -136,7 +136,7 @@ print(a.strat)
 plot(a.strat)
 ```
 
-```{r, eval = FALSE, include = FALSE}
-system.time()
-```
+# Matching
+
+Since we're matching on a single computer, we'll start with a very small subset of the original data to demonstrate the optimal matching functionality.
 

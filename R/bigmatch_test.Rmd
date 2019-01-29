@@ -14,6 +14,7 @@ require(MatchIt)
 require(ggplot2)
 require(ggpubr)
 require(dplyr)
+require(optmatch)
 
 
 data("lalonde")
@@ -210,12 +211,18 @@ ggarrange(a, b, c, ncol = 1, nrow = 3, labels = "AUTO")
 
 # Matching
 
-Here goes nothing.
+Below, we run a default big match: the propensity score is built on the analysis set based on all covariates, stratified by stratum assignment. This implementation of big_match is essentially a wrapper for pairmatch from the optmatch package.
 
 ```{r}
-a.m1 <- big_match(a.strat1)
-a.m2 <- big_match(a.strat2)
-a.m3 <- big_match(a.strat3) # throws a warning
-a.m4 <- big_match(m.strat) # throws a warning
+summary(big_match(a.strat1))
+summary(big_match(a.strat2))
+summary(big_match(a.strat3)) # throws a warning
+summary(big_match(m.strat)) # throws a warning
+```
+
+One can also specify the propensity score formula:
+
+```{r}
+summary(big_match(a.strat2, propensity_formula = treated ~ educ))
 ```
 

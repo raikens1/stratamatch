@@ -1,0 +1,100 @@
+---
+title: "Performance of Big Match for Varying Sample Sizes"
+author: "Rachael Caelie (Rocky) Aikens"
+date: "1/28/2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, warning=FALSE, message = FALSE, include = FALSE}
+knitr::opts_chunk$set(cache=TRUE, warning = TRUE, message = TRUE, fig.align = "center", fig.height = 4)
+require(MatchIt)
+require(ggplot2)
+require(ggpubr)
+require(dplyr)
+require(haven)
+require(Hmisc)
+require(optmatch)
+theme_set(theme_light())
+
+source('big_match.R')
+source('class_functions.R')
+```
+
+This rmarkdown is meant for testing the performance of the current implementation of big_match on sample data.
+
+# Import Data
+
+This sample cohort data was provided by Justin Lee at the Quantitative Sciences Unit. It contains ~900,000 observations of 112 variables.  
+
+```{r read in data}
+dat <- read_sas("../sample_data/justincohort_june2017.sas7bdat")
+
+# dimensions: ~900,000 x 112
+dim(dat)
+```
+
+We include only hospitalizations with `totalct` > 1 and `arteryCt < 3`.  A patient is considered to have recieved treatment if `arteryCt` is greater than 1.  The outcome of this analysis is mortality.
+
+```{r}
+# filter and add treatment column
+dat <- filter(dat, totalct > 1 & arteryCt < 3) %>%
+  mutate(treat = ifelse(arteryCt > 1, 1, 0))
+
+# dimensions: ~900,000 x 112
+dim(dat)
+
+dat <- filter(dat, hosp_state != "Virgin Islands")
+```
+
+\pagebreak 
+
+# User Time
+
+```{r}
+run_big_match <- function(n_samples){
+  n_dat <- sample_n(dat, n_samples)
+  t1 <- proc.time()
+  a.strat <- auto_stratify(data = n_dat, treat = "treat", 
+                         outcome = "dead", 
+                         covariates = c("totalct", "AMI_7", "COPD_7", 
+                                        "ISCHEMICHEART_7","STROKE_TIA_7", "ATRIAL_FIB_7",
+                                        "CHRONICKIDNEY_7", "DIABETES_7","ALZH_DEMEN_7",
+                                        "Male"),
+                         size = 2500)
+  print("Stratification complete.")
+  strat_time <- proc.time() - t1
+  t2 <- proc.time()
+  big_match(a.strat, propensity_formula = treat ~ totalct + hosp_state + AMI_7 + COPD_7 + ISCHEMICHEART_7 + STROKE_TIA_7 + ATRIAL_FIB_7 + CHRONICKIDNEY_7 + DIABETES_7 + ALZH_DEMEN_7 + Male + race)
+  strata_match_time <- proc.time() - t2
+  t3 <- proc.time()
+  big_match_slow(a.strat, propensity_formula = treat ~ totalct + hosp_state + AMI_7 + COPD_7 + ISCHEMICHEART_7 + STROKE_TIA_7 + ATRIAL_FIB_7 + CHRONICKIDNEY_7 + DIABETES_7 + ALZH_DEMEN_7 + Male + race)
+  full_match_time = proc.time() - t3
+  return(data.frame(rbind(strat_time, strata_match_time, full_match_time)))
+}
+```
+
+```{r}
+options("optmatch_max_problem_size" = Inf)
+n_samples <- c(5000, 10000, 15000, 20000, 25000, 30000, 35000)
+time_list <- lapply(n_samples, run_big_match)
+
+bind_rows(time_list, .id = "column_label")
+```
+
+```{r}
+trials <- length(n_samples)
+time_df <- bind_rows(time_list, .id = "column_label") %>%
+  mutate(n_samples = rep(n_samples, each = 3)) %>% 
+  mutate(process = rep(c("stratify", "Big Match", "Full Match"), trials)) %>%
+  select(c(process, n_samples, user.self, sys.self, elapsed))
+```
+
+```{r}
+a <- ggplot(time_df, aes(x = n_samples, y = user.self, group = process, color = process)) + 
+  geom_line() + 
+  labs(x = "Number of Samples", y = "User Time (seconds)")
+a
+```
+
