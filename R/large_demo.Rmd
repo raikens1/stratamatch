@@ -81,10 +81,9 @@ The code to automatically stratify the dataset might look like this:
 set.seed(123)
 a.strat <- auto_stratify(data = dat, treat = "treat", 
                          outcome = "dead", 
-                         covariates = c("totalct", "hosp_state", "AMI_7", "COPD_7", 
-                                        "ISCHEMICHEART_7","STROKE_TIA_7", "ATRIAL_FIB_7",
-                                        "CHRONICKIDNEY_7", "DIABETES_7","ALZH_DEMEN_7",
-                                        "Male", "race"))
+                         prog_formula = dead ~ totalct + hosp_state + AMI_7 + COPD_7 + 
+                           ISCHEMICHEART_7 + STROKE_TIA_7 + ATRIAL_FIB_7 + CHRONICKIDNEY_7 + DIABETES_7 +
+                           ALZH_DEMEN_7 + Male + race)
 ```
 
 In this example dataset, we see a common problem.  When we try to fit a prognostic model which includes the hospital state as a variable, the following error is showm:
@@ -121,10 +120,9 @@ Now, we can run the code as before:
 set.seed(123)
 a.strat <- auto_stratify(data = dat, treat = "treat", 
                          outcome = "dead", 
-                         covariates = c("totalct", "hosp_state", "AMI_7", "COPD_7", 
-                                        "ISCHEMICHEART_7","STROKE_TIA_7", "ATRIAL_FIB_7",
-                                        "CHRONICKIDNEY_7", "DIABETES_7","ALZH_DEMEN_7",
-                                        "Male", "race"))
+                         prog_formula = dead ~ totalct + hosp_state + AMI_7 + COPD_7 + 
+                           ISCHEMICHEART_7 + STROKE_TIA_7 + ATRIAL_FIB_7 + CHRONICKIDNEY_7 + DIABETES_7 +
+                           ALZH_DEMEN_7 + Male + race)
 ```
 
 ```{r}
@@ -139,4 +137,40 @@ plot(a.strat)
 # Matching
 
 Since we're matching on a single computer, we'll start with a very small subset of the original data to demonstrate the optimal matching functionality.
+
+Here, we subsample down to 30,000 examples:
+
+```{r}
+small_dat <- sample_n(dat, 30000)
+```
+
+Now, stratify using the prognostic score model:
+
+`dead ~ totalct + AMI_7 + COPD_7 + ISCHEMICHEART_7 + STROKE_TIA_7 + 
+          ATRIAL_FIB_7 + CHRONICKIDNEY_7 + DIABETES_7 +
+          ALZH_DEMEN_7 + Male + race`
+
+```{r}
+t1 <- proc.time()
+a.strat <- auto_stratify(small_dat, treat = "treat", 
+                         outcome = "dead", 
+                         prog_formula = dead ~ totalct + AMI_7 + COPD_7 + 
+                           ISCHEMICHEART_7 + STROKE_TIA_7 + ATRIAL_FIB_7 + CHRONICKIDNEY_7 + DIABETES_7 +
+                           ALZH_DEMEN_7 + Male + race)
+strat_time = proc.time()-t1
+```
+
+This process took `r as.numeric(strat_time[1])` seconds.
+
+Now, perform a big match within prognostic score strata.  When propensity score is not specified (as below), all variables are used (except of course for outcome and strata).
+
+```{r}
+t2 <- proc.time()
+mymatch <-   big_match(a.strat, propensity_formula = treat ~ totalct + hosp_state + 
+              AMI_7 + COPD_7 + ISCHEMICHEART_7 + STROKE_TIA_7 + ATRIAL_FIB_7 +
+              CHRONICKIDNEY_7 + DIABETES_7 + ALZH_DEMEN_7 + Male + race)
+match_time <- proc.time() - t1
+```
+
+Matching 30,000 subjects across ~12 prognostic score strata took `r as.numeric(match_time[1])` seconds.  Without using strata, this generally takes more than a minute.
 

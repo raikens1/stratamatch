@@ -4,6 +4,10 @@ require("ggrepel") # TODO: remove this dependency
 require("RColorBrewer") # TODO: remove this dependency
 require("Hmisc")
 require("optmatch")
+# install.packages("devtools")
+# devtools::install_github("hadley/multidplyr") # TODO since multiplyr is not a real R package yet, this is annoying
+# library(multidplyr)
+
 
 #----------------------------------------------------------
 ### GENERAL HELPER FUNCTIONS
@@ -72,9 +76,9 @@ get_issues <- function(row){
 
 manual_stratify <- function(data, treat, covariates, force = FALSE){
   
-  result <- structure(list(analysis_set = NULL, treat = treat, covariates = covariates, 
+  result <- structure(list(analysis_set = NULL, treat = treat, 
                            call = match.call(), issue_table = NULL,
-                           strata_table = NULL),
+                           covariates = covariates, strata_table = NULL),
                       class = c("manual_strata" , "strata"))
   
   n <- dim(data)[1]
@@ -132,31 +136,31 @@ warn_if_continuous <- function(column, name, force, n){
 #----------------------------------------------------------
 
 #' @title Automatically creates strata for matching
-#' @description Creates \code{strata} object, given covariates for a linear model, or pre-calculated prognostic scores
+#' @description Creates \code{strata} object, given formula for a prognostic model, or pre-calculated prognostic scores
 #' @param data data frame with observations as rows, features as columns
 #' @param treat string giving the name of column designating treatment assignment
 #' @param outcome string giving the name of column with outcome information
-#' @param covariates a vector of the columns to be used as covariates building prognostic score model
+#' @param prog_formula formula for building prognostic score model
 #' @param size numeric, desired size of strata
 #' @param held_frac numeric between 0 and 1 giving the proportion of samples to be allotted for building the prognostic score
 #' @param held_sample (optional) a data.frame of held aside samples for building prognostic score model.
 #' @return Returns a \code{strata} object
 
-auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores = NULL, size = 2500, held_frac = 0.1, held_sample = NULL){
+auto_stratify <- function(data, treat, outcome, prog_formula = NULL, prog_scores = NULL, size = 2500, held_frac = 0.1, held_sample = NULL){
   
-  result <- structure(list(analysis_set = NULL,treat = treat, covariates = covariates, 
+  result <- structure(list(analysis_set = NULL,treat = treat,  
                            call = match.call(), issue_table = NULL,
                            outcome = outcome, prog_scores = NULL, prog_model = NULL, model_set = NULL),
                       class = c("auto_strata", "strata"))
   
   # check inputs
   
-  if (is.null(covariates) && is.null(prog_scores)){
-    stop("At least one of covariates and prog_scores should be specified.")
+  if (is.null(prog_formula) && is.null(prog_scores)){
+    stop("At least one of prog_formula and prog_scores should be specified.")
   }
   
-  if (!is.null(covariates) && !is.null(prog_scores)){
-    warning("covariates and prog_scores are both specified. Using prog_scores; ignoring covariates.") 
+  if (!is.null(prog_formula) && !is.null(prog_scores)){
+    warning("prog_formula and prog_scores are both specified. Using prog_scores; ignoring formula.") 
   }
   
   if (!is.null(prog_scores)){
@@ -168,7 +172,7 @@ auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores =
     
   } else {
     # if prog_scores are not specified, build them
-    prog_build <- build_prog_model(data, treat, outcome, covariates, held_frac, held_sample)
+    prog_build <- build_prog_model(data, treat, outcome, prog_formula, held_frac, held_sample)
     prog_model <- prog_build$m
     prog_scores <- tryCatch(predict(prog_model, prog_build$a_set, type = "response"), 
                             error = function(e) {
@@ -205,12 +209,11 @@ auto_stratify <- function(data, treat, outcome, covariates = NULL, prog_scores =
 #' @param data data frame with observations as rows, features as columns
 #' @param treat string giving the name of column designating treatment assignment
 #' @param outcome string giving the name of column with outcome information
-#' @param covariates a vector of the columns to be used as covariates building prognostic score model
+#' @param prog_formula formula for building prognostic score model
 #' @param held_size, an integer giving the desired size of the hold-out sample
 #' @param held_sample, (optional) a held aside dataset to be used to fit the prognostic score model
 #' @return Returns list of: m, a \code{glm} object prognostic model, m_set, the model set, and a_set, the analysis set (data - model set)
-build_prog_model <- function(data, treat, outcome, covariates, held_frac = 0.1, held_sample = NULL){
-  formula_str <- paste(outcome, paste(covariates, collapse ="+"), sep = "~")
+build_prog_model <- function(data, treat, outcome, prog_formula, held_frac = 0.1, held_sample = NULL){
   model_set <- NULL
   
   # if held_sample is specified use that to build score
@@ -229,8 +232,8 @@ build_prog_model <- function(data, treat, outcome, covariates, held_frac = 0.1, 
      dplyr::select(-join_id_57674)
     model_set$join_id_57674 <- NULL
   }
-  print(paste("Fitting prognostic model:", formula_str))
-  model <- glm(formula(formula_str), data = model_set, family = "binomial")
+  print(paste("Fitting prognostic model:",Reduce(paste, deparse(prog_formula))))
+  model <- glm(prog_formula, data = model_set, family = "binomial")
   
   return(list(m = model, m_set = model_set, a_set = analysis_set))
 }
@@ -258,7 +261,7 @@ big_match_v2 <- function(strat, propensity_formula = NULL) {
   }
   # build propensity model
   propensity_model <- glm(propensity_formula, data = strat$analysis_set, family = binomial())
-  
+
   # do match_one
 }
 

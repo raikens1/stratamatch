@@ -111,18 +111,18 @@ scatter_plot_helper <- function(issue_table, label){
   xmax <- max(issue_table$Total, SIZE_MAX*1.05)
   
   g <- ggplot(issue_table, aes(x = Total, y = Control_Proportion)) + 
-    geom_point() +
     labs(x = "Stratum Size", 
          y = "Fraction Control Observations") +
     ylim(c(0,1)) + xlim(c(0, xmax)) + 
-    geom_rect(aes(ymin=0, ymax=CONTROL_MIN, xmin = 0, xmax = Inf, fill = "firebrick1"), alpha = 0.01) + 
-    geom_rect(aes(ymin=CONTROL_MAX, ymax=1, xmin = 0, xmax = Inf, fill = "firebrick1"), alpha = 0.01) +
-    geom_rect(aes(ymin=0, ymax=1, xmin = 0, xmax = SIZE_MIN, fill = "firebrick1"), alpha = 0.01) +
-    geom_rect(aes(ymin=0, ymax=1, xmin = SIZE_MAX, xmax = Inf, fill = "firebrick1"), alpha = 0.01) + 
+    geom_rect(aes(ymin=0, ymax=CONTROL_MIN, xmin = 0, xmax = Inf), fill = "lightgoldenrod2", alpha = 0.1) + 
+    geom_rect(aes(ymin=CONTROL_MAX, ymax=1, xmin = 0, xmax = Inf), fill = "lightgoldenrod2", alpha = 0.1) +
+    geom_rect(aes(ymin=0, ymax=1, xmin = 0, xmax = SIZE_MIN), fill = alpha("firebrick1", 0.1)) +
+    geom_rect(aes(ymin=0, ymax=1, xmin = SIZE_MAX, xmax = Inf), fill = alpha("firebrick1", 0.1)) + 
+    geom_point() +
     geom_vline(xintercept= SIZE_MAX, colour = "firebrick") + 
     geom_vline(xintercept= SIZE_MIN, colour = "firebrick") +
-    geom_hline(yintercept= CONTROL_MAX, colour = "firebrick") +
-    geom_hline(yintercept= CONTROL_MIN, colour = "firebrick") +
+    geom_hline(yintercept= CONTROL_MAX, colour = "goldenrod1") +
+    geom_hline(yintercept= CONTROL_MIN, colour = "goldenrod1") +
     geom_hline(yintercept= 0.5, colour = "black", linetype = 2) + 
     theme(legend.position = "none")
   

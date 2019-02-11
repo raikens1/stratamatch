@@ -80,10 +80,10 @@ a.strat <- auto_stratify(lalonde, "treated", "outcome")
 
 ```{r, eval = FALSE}
 # auto stratification with covariates and prog scores specified, and prog_scores invalid
-a.strat <- auto_stratify(lalonde, "treated", "outcome", c("age", "educ"), prog_scores = 1:4)
+a.strat <- auto_stratify(lalonde, "treated", "outcome", outcome ~ age + educ, prog_scores = 1:4)
 
 # covariates and prog_scores are both specified. Using prog_scores; ignoring covariates.
-# Error in auto_stratify(lalonde, "treat", "outcome", c("age", "educ"), :
+# Error in auto_stratify(lalonde, "treat", "outcome", outcome ~ age + :
 #   prog_scores must be the same length as the data
 ```
 
@@ -98,13 +98,13 @@ a.strat1 <- auto_stratify(data = lalonde, "treated", "outcome",
                           prog_scores = myprogscore, size = 100)
 
 # auto stratification
-a.strat2 <- auto_stratify(lalonde, "treated", "outcome", 
-                          covariates = c("age", "educ", "hispan", "nodegree", "black"), 
+a.strat2 <- auto_stratify(lalonde, "treated", "outcome",
+                          prog_formula = outcome ~ age + educ + hispan + nodegree + black,
                           size = 100)
 
 # auto stratification with a non-continuous prognostic score
 a.strat3 <- auto_stratify(lalonde, "treated", "outcome", 
-                          covariates = c("hispan", "nodegree", "black"), size = 100)
+                          prog_formula = outcome ~ hispan + nodegree + black, size = 100)
 ```
 
 \pagebreak
