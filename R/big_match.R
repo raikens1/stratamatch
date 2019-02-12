@@ -4,6 +4,8 @@ require("ggrepel") # TODO: remove this dependency
 require("RColorBrewer") # TODO: remove this dependency
 require("Hmisc")
 require("optmatch")
+require("foreach")
+require("doParallel")
 # install.packages("devtools")
 # devtools::install_github("hadley/multidplyr") # TODO since multiplyr is not a real R package yet, this is annoying
 # library(multidplyr)
@@ -246,23 +248,79 @@ build_prog_model <- function(data, treat, outcome, prog_formula, held_frac = 0.1
 #' @description Match one dataset using the optmatch package
 #' @param dat a data.frame with observations as rows, outcome column masked
 #' @return a data.frame like dat with pair assignments?
-match_one <- function(dat, propensity_model, k = 1){
-  dat$match_id <- pairmatch(propensity_model, data = dat, controls = k)
+match_one <- function(dat, propensity_model, treat, k = 1){
+  dist_matrix <- make_distance_matrix(dat, propensity_model = propensity_model, treat = treat)
+  dat$match_id <- pairmatch(dist_matrix, data = dat, controls = k)
   return(dat)
 }
 
-#' @title Big Match v2
-#' @description Match within strata in parallel by calling match_one
+#' @title Make distance matrix
+#' @description Makes the distance matrix to be passed to pairmatch. Similar to match_on.glm in optmatch
+#' except that the model need not have been fit on the data we are matching
+#' @param dat a data.frame of observations to be matched
+#' @param propensity_model a glm object modeling propensity scores
+#' @return a matrix of distances to be passed to pairmatch()
+make_distance_matrix <- function(dat, propensity_model, treat){
+  names(dat)[names(dat) == treat] <- "treat"
+  z <- dat$treat
+  print(length(z))
+  lp <- predict(propensity_model, dat)
+  pooled.sd <- sqrt(((sum(!z) - 1) * mad(lp[!z])^2 +
+                           (sum(!!z) - 1) * mad(lp[!!z])^2) / (length(lp) - 2))
+  
+  return(match_on(x = lp/pooled.sd, z = z, rescale = F))
+}
+
+#' @title Big Match dopar
+#' @description Match within strata in parallel by calling match_one.  Doesn't work.
 #' @param strat a strata object
 #' @return a data.frame like dat with pair assignments?
-big_match_v2 <- function(strat, propensity_formula = NULL) {
+big_match_dopar <- function(strat, propensity_formula = NULL) {
   if (is.null(propensity_formula)){
     propensity_formula <- formula(paste(c(strat$treat, "~ . -", strat$outcome, "- stratum"), collapse = ""))
   }
   # build propensity model
   propensity_model <- glm(propensity_formula, data = strat$analysis_set, family = binomial())
-
+  
+  numCores <- detectCores() 
+  
+  registerDoParallel(numCores)
+  
+  t1 <- proc.time()
+  foreach(i = as.character(unique(a.strat1$analysis_set$stratum))) %do% {
+    filter(a.strat1$analysis_set, stratum == i) %>% pairmatch(x = propensity_model, data = ., controls = 1)
+    
+  }
+  proc.time() - t1
+  stopImplicitCluster()
   # do match_one
+}
+
+
+#' @title Big Match v2
+#' @description Match within strata in parallel by calling match_one
+#' @param strat a strata object
+#' @return a data.frame like dat with pair assignments?
+big_match_multidplyr <- function(strat, propensity_formula = NULL) {
+  if (is.null(propensity_formula)){
+    propensity_formula <- formula(paste(c(strat$treat, "~ . -", strat$outcome, "- stratum"), collapse = ""))
+  }
+  # build propensity model
+  propensity_model <- glm(propensity_formula, data = strat$analysis_set, family = binomial())
+  
+  numCores <- detectCores() 
+  
+  cluster <- create_cluster(numCores)
+  cluster_assign_value(cluster, 'propensity_model', propensity_model)
+  cluster_assign_value(cluster, 'match_one', match_one)
+  cluster_assign_value(cluster, 'make_distance_matrix', make_distance_matrix)
+  cluster_assign_value(cluster, 'match_on', match_on)
+  cluster_assign_value(cluster, 'pairmatch', pairmatch)
+  cluster_assign_value(cluster, 'treat', a.strat$treat)
+  
+  t1 <- proc.time()
+  a.strat$analysis_set %>% partition(stratum, cluster = cluster) %>% do(match_one(., propensity_model = propensity_model, treat = treat))
+  proc.time() - t1
 }
 
 #' @title Big Match
