@@ -16,8 +16,8 @@ require(Hmisc)
 require(optmatch)
 theme_set(theme_light())
 
-source('big_match.R')
-source('class_functions.R')
+source('../R/big_match.R')
+source('../R/class_functions.R')
 ```
 
 This rmarkdown is meant for running a larger demo of the big_match functionality.

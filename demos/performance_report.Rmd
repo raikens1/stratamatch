@@ -18,8 +18,8 @@ require(Hmisc)
 require(optmatch)
 theme_set(theme_light())
 
-source('big_match.R')
-source('class_functions.R')
+source('../R/big_match.R')
+source('../R/class_functions.R')
 ```
 
 This rmarkdown is meant for testing the performance of the current implementation of big_match on sample data.

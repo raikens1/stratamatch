@@ -1,6 +1,6 @@
 ---
 title: "Big_match - Testing and Small Demo"
-author: "Rachael 'Rocky' Aikens, Voight Lab"
+author: "Rachael 'Rocky' Aikens, Chen/Baiocchi Lab"
 date: "August 24, 2018"
 output:
   pdf_document: default
@@ -18,8 +18,8 @@ require(optmatch)
 
 
 data("lalonde")
-source('big_match.R')
-source('class_functions.R')
+source('../R/big_match.R')
+source('../R/class_functions.R')
 
 # adding a binary outcome
 lalonde$outcome <- lalonde$re78 > 15000
