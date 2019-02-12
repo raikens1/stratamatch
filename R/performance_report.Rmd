@@ -54,27 +54,40 @@ dat <- filter(dat, hosp_state != "Virgin Islands")
 
 ```{r}
 run_big_match <- function(n_samples){
-  n_dat <- sample_n(dat, n_samples)
+  n_dat <- sample_n(dat, n_samples, replace = FALSE)
+  
+  # stratify 
   t1 <- proc.time()
   a.strat <- auto_stratify(data = n_dat, treat = "treat", 
                          outcome = "dead", 
-                         prog_formula = dead ~ totalct + hosp_state + AMI_7 + COPD_7 + 
+                         prog_formula = dead ~ totalct + AMI_7 + COPD_7 + 
                            ISCHEMICHEART_7 + STROKE_TIA_7 + ATRIAL_FIB_7 + CHRONICKIDNEY_7 + DIABETES_7 +
-                           ALZH_DEMEN_7 + Male + race,
+                           ALZH_DEMEN_7 + Male,
                          size = 2500)
   print("Stratification complete.")
   strat_time <- proc.time() - t1
+  
+  # big match by strata in series
   t2 <- proc.time()
   big_match(a.strat, propensity_formula = treat ~ totalct + hosp_state + 
               AMI_7 + COPD_7 + ISCHEMICHEART_7 + STROKE_TIA_7 + ATRIAL_FIB_7 +
               CHRONICKIDNEY_7 + DIABETES_7 + ALZH_DEMEN_7 + Male + race)
   strata_match_time <- proc.time() - t2
+  
+  # big match without strata
   t3 <- proc.time()
-  big_match_slow(a.strat, propensity_formula = treat ~ totalct + hosp_state +
+  big_match_nstrat(a.strat, propensity_formula = treat ~ totalct + hosp_state +
                    AMI_7 + COPD_7 + ISCHEMICHEART_7 + STROKE_TIA_7 + ATRIAL_FIB_7 +
                    CHRONICKIDNEY_7 + DIABETES_7 + ALZH_DEMEN_7 + Male + race)
   full_match_time = proc.time() - t3
-  return(data.frame(rbind(strat_time, strata_match_time, full_match_time)))
+  
+  # big match with multidplyr
+  t4 <- proc.time()
+  big_match_multidplyr(a.strat, propensity_formula = treat ~ totalct + hosp_state +
+                   AMI_7 + COPD_7 + ISCHEMICHEART_7 + STROKE_TIA_7 + ATRIAL_FIB_7 +
+                   CHRONICKIDNEY_7 + DIABETES_7 + ALZH_DEMEN_7 + Male + race)
+  multi_time <- proc.time() - t4
+  return(data.frame(rbind(strat_time, strata_match_time, full_match_time, multi_time)))
 }
 ```
 
@@ -89,8 +102,8 @@ bind_rows(time_list, .id = "column_label")
 ```{r}
 trials <- length(n_samples)
 time_df <- bind_rows(time_list, .id = "column_label") %>%
-  mutate(n_samples = rep(n_samples, each = 3)) %>% 
-  mutate(process = rep(c("stratify", "Big Match", "Full Match"), trials)) %>%
+  mutate(n_samples = rep(n_samples, each = 4)) %>% 
+  mutate(process = rep(c("Stratification", "Match by strata in series", "Match without strata", "Match by strata in parallel"), trials)) %>%
   select(c(process, n_samples, user.self, sys.self, elapsed))
 ```
 
@@ -99,5 +112,22 @@ a <- ggplot(time_df, aes(x = n_samples, y = user.self, group = process, color = 
   geom_line() + 
   labs(x = "Number of Samples", y = "User Time (seconds)")
 a
+```
+
+```{r}
+n_dat <- sample_n(dat, 30000, replace = FALSE)
+a.strat <- auto_stratify(data = n_dat, treat = "treat", 
+                       outcome = "dead", 
+                       prog_formula = dead ~ totalct  + AMI_7 + COPD_7 + 
+                         ISCHEMICHEART_7 + STROKE_TIA_7 + ATRIAL_FIB_7 + CHRONICKIDNEY_7 + DIABETES_7 +
+                         ALZH_DEMEN_7 + Male,
+                       size = 2500)
+print("Stratification complete.")
+t1 <- proc.time()
+mymatch <- big_match_multidplyr(a.strat, propensity_formula = treat ~ totalct + hosp_state +
+                   AMI_7 + COPD_7 + ISCHEMICHEART_7 + STROKE_TIA_7 + ATRIAL_FIB_7 +
+                   CHRONICKIDNEY_7 + DIABETES_7 + ALZH_DEMEN_7 + Male + race)
+multi_time <- proc.time() - t1
+multi_time
 ```
 
