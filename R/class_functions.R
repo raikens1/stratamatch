@@ -7,7 +7,6 @@
 #' @param object any R object
 #' @return Returns \code{TRUE} if its argument has class "strata" among its classes and
 #' \code{FALSE} otherwise.
-
 is.strata <- function(object) {
   inherits(object, "strata")
 }
@@ -22,7 +21,7 @@ print.auto_strata <- function(strata) {
   print(strata$call)
   writeLines(paste("\nAnalysis set dimensions:", dim(strata$analysis_set)[1], "X", dim(strata$analysis_set)[2]))
   if(!is.null(strata$prog_model)){
-    writeLines(paste("\nModel set dimensions:", dim(strata$model_set)[1], "X", dim(strata$model_set)[2]))
+    writeLines(paste("\nModel set dimensions:", dim(strata$prognostic_set)[1], "X", dim(strata$prognostic_set)[2]))
     writeLines("\nPrognostic Score Model:")
     print(strata$prog_model) # TODO: print formula rather than model
   } else {
@@ -96,7 +95,6 @@ summarize_balance <- function(data, treat){
 #' @description Produces a scatterplot of stratum size by control proportion.
 #' @param strata a \code{strata} object 
 #' @return Returns the scatterplot
-
 scatter_plot_helper <- function(issue_table, label){
   
   # set parameters
@@ -138,7 +136,6 @@ scatter_plot_helper <- function(issue_table, label){
 #' and a histogram of prognostic score, colored by strata
 #' @param auto_strata an \code{auto_strata} object 
 #' @return Returns an arrangement of the column plot and histogram.
-
 hist_plot_helper <- function(auto_strata){
   plotdata <- auto_strata$analysis_set
   plotdata$prog_scores <- auto_strata$prog_scores
@@ -165,7 +162,6 @@ hist_plot_helper <- function(auto_strata){
 #' @description Produces partial residual plots for the prognostic scores
 #' @param auto_strata an \code{auto_strata} object 
 #' @return Returns the (partial) residual plot(s)
-
 residual_plot_helper <- function(auto_strata){
   # TODO: Implement
   return(plot(1))

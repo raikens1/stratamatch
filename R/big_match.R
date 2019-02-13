@@ -146,16 +146,14 @@ warn_if_continuous <- function(column, name, force, n){
 #' @param held_frac numeric between 0 and 1 giving the proportion of samples to be allotted for building the prognostic score
 #' @param held_sample (optional) a data.frame of held aside samples for building prognostic score model.
 #' @return Returns a \code{strata} object
-
 auto_stratify <- function(data, treat, outcome, prog_formula = NULL, prog_scores = NULL, size = 2500, held_frac = 0.1, held_sample = NULL){
   
   result <- structure(list(analysis_set = NULL,treat = treat,  
-                           call = match.call(), issue_table = NULL,
-                           outcome = outcome, prog_scores = NULL, prog_model = NULL, model_set = NULL),
+                           call = match.call(), issue_table = NULL, strata_table = NULL,
+                           outcome = outcome, prog_scores = NULL, prog_model = NULL, prognostic_set = NULL),
                       class = c("auto_strata", "strata"))
   
   # check inputs
-  
   if (is.null(prog_formula) && is.null(prog_scores)){
     stop("At least one of prog_formula and prog_scores should be specified.")
   }
@@ -185,7 +183,7 @@ auto_stratify <- function(data, treat, outcome, prog_formula = NULL, prog_scores
                             })
     
     result$prog_model <- prog_model
-    result$model_set <- prog_build$m_set
+    result$prognostic_set <- prog_build$m_set
     result$analysis_set <- prog_build$a_set
   }
   
@@ -193,8 +191,14 @@ auto_stratify <- function(data, treat, outcome, prog_formula = NULL, prog_scores
   
   # Create strata from prognostic score quantiles
   n_bins <- ceiling(dim(result$analysis_set)[1]/size)
-  #data$stratum <- ntile(prog_scores, n_bins)
-  result$analysis_set$stratum <- cut2(prog_scores, g = n_bins)
+  qcut <- cut2(prog_scores, g = n_bins)
+  result$strata_table <- data.frame(qcut) %>% 
+    mutate(stratum = as.numeric(qcut), quantile_bin = qcut) %>%
+    group_by(quantile_bin) %>%
+    dplyr::summarise(size = n(), stratum = first(stratum)) %>%
+    arrange(stratum) %>%
+    select(stratum, quantile_bin, size)
+  result$analysis_set$stratum <- as.numeric(qcut)
   
   # package and resturn result
   result$prog_scores = prog_scores
@@ -215,12 +219,12 @@ auto_stratify <- function(data, treat, outcome, prog_formula = NULL, prog_scores
 #' @param held_sample, (optional) a held aside dataset to be used to fit the prognostic score model
 #' @return Returns list of: m, a \code{glm} object prognostic model, m_set, the model set, and a_set, the analysis set (data - model set)
 build_prog_model <- function(data, treat, outcome, prog_formula, held_frac = 0.1, held_sample = NULL){
-  model_set <- NULL
+  prognostic_set <- NULL
   
   # if held_sample is specified use that to build score
   if (!is.null(held_sample)){
     print("Using user-specified set for prognostic score modeling.")
-    model_set <- held_sample
+    prognostic_set <- held_sample
     analysis_set <- data
     
   } else {
@@ -228,15 +232,15 @@ build_prog_model <- function(data, treat, outcome, prog_formula, held_frac = 0.1
     # otherwise, construct a model sample
     # Adds an id column and removes it
     data$join_id_57674 <- 1:nrow(data)
-    model_set <- data %>% filter_(paste(treat, "==", 0)) %>% sample_frac(held_frac, replace = FALSE)
-    analysis_set <- dplyr::anti_join(data, model_set, by = "join_id_57674") %>%
+    prognostic_set <- data %>% filter_(paste(treat, "==", 0)) %>% sample_frac(held_frac, replace = FALSE)
+    analysis_set <- dplyr::anti_join(data, prognostic_set, by = "join_id_57674") %>%
      dplyr::select(-join_id_57674)
-    model_set$join_id_57674 <- NULL
+    prognostic_set$join_id_57674 <- NULL
   }
   print(paste("Fitting prognostic model:",Reduce(paste, deparse(prog_formula))))
-  model <- glm(prog_formula, data = model_set, family = "binomial")
+  model <- glm(prog_formula, data = prognostic_set, family = "binomial")
   
-  return(list(m = model, m_set = model_set, a_set = analysis_set))
+  return(list(m = model, m_set = prognostic_set, a_set = analysis_set))
 }
 
 #----------------------------------------------------------
