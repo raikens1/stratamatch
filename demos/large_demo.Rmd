@@ -18,6 +18,7 @@ theme_set(theme_light())
 
 source('../R/big_match.R')
 source('../R/class_functions.R')
+getwd()
 ```
 
 This rmarkdown is meant for running a larger demo of the big_match functionality.

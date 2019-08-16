@@ -10,7 +10,6 @@ require("doParallel")
 # devtools::install_github("hadley/multidplyr") # TODO since multiplyr is not a real R package yet, this is annoying
 library(multidplyr)
 
-
 #----------------------------------------------------------
 ### GENERAL HELPER FUNCTIONS
 #----------------------------------------------------------
@@ -20,6 +19,7 @@ library(multidplyr)
 #' @param a_set data frame with observations as rows, features as columns
 #' @param treat string name of treatment column
 #' @return Returns a 3 by [numer of strata] dataframe with Treat, Control, Total, Control Proportion, and Potential Issues
+#' @export
 make_issue_table <- function(a_set, treat){
   names(a_set)[names(a_set) == treat] <- "treat"
   df <- a_set %>%
@@ -197,7 +197,7 @@ auto_stratify <- function(data, treat, outcome, prog_formula = NULL, prog_scores
     group_by(quantile_bin) %>%
     dplyr::summarise(size = n(), stratum = first(stratum)) %>%
     arrange(stratum) %>%
-    select(stratum, quantile_bin, size)
+    dplyr::select(stratum, quantile_bin, size)
   result$analysis_set$stratum <- as.numeric(qcut)
   
   # package and resturn result

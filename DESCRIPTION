@@ -1,0 +1,21 @@
+Package: BigMatch
+Type: Package
+Date: 2019-08-16
+Title: Stratification and Matching for Large Observational Data Sets
+Version: 0.1.0
+Author: Rachael C. Aikens, Michael Baiocchi
+Maintainer: Rachael C. Aikens <raikens@stanford.edu>
+Description: While matching is a mainstay in causal inference for observational
+    studies, the speed of many matching algorithms scale poorly with the number 
+    of observations.  As the sizes of observational studies grow larger with 
+    the advance of "big data," the computational task of matching becomes more 
+    cumbersome.  Big_match will break down the matching task by strata of 
+    manageable size, and parallelize the matching task across strata.
+License: TBD
+Encoding: UTF-8
+LazyData: TRUE
+Imports: 
+  dplyr, ggplot2, ggrepel, RColorBrewer, Hmisc, optmatch, magrittr
+Suggests:
+  knitr, matchit
+RoxygenNote: 6.1.1

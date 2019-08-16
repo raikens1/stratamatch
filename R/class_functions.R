@@ -21,18 +21,14 @@ print.auto_strata <- function(strata) {
   print(strata$call)
   writeLines(paste("\nAnalysis set dimensions:", dim(strata$analysis_set)[1], "X", dim(strata$analysis_set)[2]))
   if(!is.null(strata$prog_model)){
-    writeLines(paste("\nModel set dimensions:", dim(strata$prognostic_set)[1], "X", dim(strata$prognostic_set)[2]))
+    writeLines(paste("\nPrognostic set dimensions:", dim(strata$prognostic_set)[1], "X", dim(strata$prognostic_set)[2]))
     writeLines("\nPrognostic Score Model:")
-    print(strata$prog_model) # TODO: print formula rather than model
+    print(strata$prog_model$formula) # TODO: print formula rather than model
   } else {
     writeLines("\nPrognostic Scores prespecified.")
   }
   writeLines(paste("\nNumber of strata:", dim(strata$issue_table)[1], 
                    "\n\n\tMin size:", min(strata$issue_table$Total), "\tMax size:", max(strata$issue_table$Total)))
-  if (dim(strata$issue_table)[1] <= 15) {
-    writeLines("\nStrata issue table:")
-    print(strata$issue_table)
-  }
 }
 
 print.manual_strata <- function(strata) {
