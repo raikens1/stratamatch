@@ -11,11 +11,11 @@ Description: While matching is a mainstay in causal inference for observational
     the advance of "big data," the computational task of matching becomes more 
     cumbersome.  Big_match will break down the matching task by strata of 
     manageable size, and parallelize the matching task across strata.
-License: TBD
+License: GPL2, GPL3
 Encoding: UTF-8
 LazyData: TRUE
 Imports: 
-  dplyr, ggplot2, ggrepel, RColorBrewer, Hmisc, optmatch, magrittr
+  dplyr, ggplot2, ggrepel, RColorBrewer, Hmisc, optmatch
 Suggests:
   knitr, matchit
 RoxygenNote: 6.1.1
