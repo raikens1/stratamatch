@@ -14,10 +14,8 @@ require(dplyr)
 require(haven)
 require(Hmisc)
 require(optmatch)
+library(BigMatch)
 theme_set(theme_light())
-
-source('../R/big_match.R')
-source('../R/class_functions.R')
 getwd()
 ```
 

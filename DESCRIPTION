@@ -25,12 +25,16 @@ LazyData: true
 Imports: 
   dplyr (>= 0.8.3),
   ggplot2 (>= 3.2.1),
+  ggpubr (>= 0.2.2), 
   ggrepel (>= 0.8.1),
   Hmisc (>= 4.2-0),
   RColorBrewer (>= 1.1-2),
-  magrittr, 
+  magrittr (>= 1.5), 
   optmatch (>= 0.9-11),
-Depends: R (>= 3.6.1)
+  parallel (>= 3.6.1)
+Depends: 
+  R (>= 3.6.1),
+  multidplyr
 Suggests:
   knitr,
   matchit

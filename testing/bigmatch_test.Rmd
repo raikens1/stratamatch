@@ -151,7 +151,7 @@ b <- plot(a.strat1, label = TRUE)
 c <- plot(a.strat2, label = TRUE)
 d <- plot(a.strat3, label = TRUE) 
 
-ggarrange(a, b, c, d, ncol = 2, nrow = 2,
+ggpubr::ggarrange(a, b, c, d, ncol = 2, nrow = 2,
           labels = "AUTO")
 ```
 
@@ -199,7 +199,7 @@ b <- plot(a.strat2, type = "hist")
 # strata quantiles are less evenly distributed from 0 to 1
 c <- plot(a.strat3, type = "hist")
 
-ggarrange(a, b, c, ncol = 1, nrow = 3, labels = "AUTO")
+ggpubr::ggarrange(a, b, c, ncol = 1, nrow = 3, labels = "AUTO")
 ```
 
 

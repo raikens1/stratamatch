@@ -128,34 +128,38 @@ make_scatter_plot <- function(issue_table, label){
 
   xmax <- max(issue_table$Total, SIZE_MAX * 1.05)
 
-  g <- ggplot2::ggplot(issue_table, aes(x = Total, y = Control_Proportion)) +
-    labs(x = "Stratum Size",
+  g <- ggplot2::ggplot(issue_table,
+                       ggplot2::aes(x = Total, y = Control_Proportion)) +
+    ggplot2::labs(x = "Stratum Size",
          y = "Fraction Control Observations") +
-    ylim(c(0, 1)) + xlim(c(0, xmax)) +
-    geom_rect(aes(ymin = 0, ymax = CONTROL_MIN,
+    ggplot2::ylim(c(0, 1)) + ggplot2::xlim(c(0, xmax)) +
+    ggplot2::geom_rect(ggplot2::aes(ymin = 0, ymax = CONTROL_MIN,
                   xmin = 0, xmax = Inf),
               fill = "lightgoldenrod2", alpha = 0.1) +
-    geom_rect(aes(ymin = CONTROL_MAX, ymax = 1,
+    ggplot2::geom_rect(ggplot2::aes(ymin = CONTROL_MAX, ymax = 1,
                   xmin = 0, xmax = Inf),
               fill = "lightgoldenrod2", alpha = 0.1) +
-    geom_rect(aes(ymin = 0, ymax = 1,
+    ggplot2::geom_rect(ggplot2::aes(ymin = 0, ymax = 1,
                   xmin = 0, xmax = SIZE_MIN),
-              fill = alpha("firebrick1", 0.1)) +
-    geom_rect(aes(ymin = 0, ymax = 1,
+              fill = ggplot2::alpha("firebrick1", 0.1)) +
+    ggplot2::geom_rect(ggplot2::aes(ymin = 0, ymax = 1,
                   xmin = SIZE_MAX, xmax = Inf),
-              fill = alpha("firebrick1", 0.1)) +
-    geom_point() +
-    geom_vline(xintercept = SIZE_MAX, colour = "firebrick") +
-    geom_vline(xintercept = SIZE_MIN, colour = "firebrick") +
-    geom_hline(yintercept = CONTROL_MAX, colour = "goldenrod1") +
-    geom_hline(yintercept = CONTROL_MIN, colour = "goldenrod1") +
-    geom_hline(yintercept = 0.5, colour = "black", linetype = 2) +
-    theme(legend.position = "none")
+              fill = ggplot2::alpha("firebrick1", 0.1)) +
+    ggplot2::geom_point() +
+    ggplot2::geom_vline(xintercept = SIZE_MAX, colour = "firebrick") +
+    ggplot2::geom_vline(xintercept = SIZE_MIN, colour = "firebrick") +
+    ggplot2::geom_hline(yintercept = CONTROL_MAX, colour = "goldenrod1") +
+    ggplot2::geom_hline(yintercept = CONTROL_MIN, colour = "goldenrod1") +
+    ggplot2::geom_hline(yintercept = 0.5, colour = "black", linetype = 2) +
+    ggplot2::theme(legend.position = "none")
 
   if (label){
-    g <- g + geom_label_repel(data = problem_strata,
-                              aes(Total, Control_Proportion, label = Stratum),
-                              size = 2.5, color = "firebrick")
+    g <- g +
+      ggrepel::geom_label_repel(data = problem_strata,
+                                ggplot2::aes(Total, 
+                                             Control_Proportion,
+                                             label = Stratum),
+                                size = 2.5, color = "firebrick")
   }
   print(g)
 }
@@ -174,17 +178,19 @@ make_hist_plot <- function(auto_strata){
     dplyr::summarize(prog_mean = mean(prog_scores))
 
   a <- ggplot2::ggplot(data = plot_summary,
-              aes(x = stratum, y = prog_mean, fill = as.factor(stratum))) +
-    geom_col() +
-    labs(y = "Mean Prognistic Score", x = "Stratum") +
-    theme(legend.position = "none") +
-    scale_fill_brewer(palette = "Blues")
+                       ggplot2::aes(x = stratum, y = prog_mean,
+                                    fill = as.factor(stratum))) +
+    ggplot2::geom_col() +
+    ggplot2::labs(y = "Mean Prognistic Score", x = "Stratum") +
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::scale_fill_brewer(palette = "Blues")
 
-  b <- ggplot2::ggplot(plotdata, aes(x = prog_scores, group = as.factor(stratum),
+  b <- ggplot2::ggplot(plotdata, ggplot2::aes(x = prog_scores,
+                                              group = as.factor(stratum),
                             fill = as.factor(stratum))) +
-    geom_histogram() +
-    labs(y = "Prognostic Score", "Number of Observations") +
-    scale_fill_brewer(name = "Stratum", palette = "Blues")
+    ggplot2::geom_histogram() +
+    ggplot2::labs(y = "Prognostic Score", "Number of Observations") +
+    ggplot2::scale_fill_brewer(name = "Stratum", palette = "Blues")
 
   return(ggpubr::ggarrange(a, b, ncol = 2, widths = c(1, 1.5)))
 }
