@@ -1,0 +1,271 @@
+
+#----------------------------------------------------------
+### GENERAL HELPER FUNCTIONS
+#----------------------------------------------------------
+
+#' @title Produce table of Treated and Control by strata
+#' @description Given a dataframe with strata assigned, tally the number of treated and control samples
+#' @param a_set data frame with observations as rows, features as columns
+#' @param treat string name of treatment column
+#' @return Returns a 3 by [numer of strata] dataframe with Treat, Control, Total, Control Proportion, and Potential Issues
+#' @export
+make_issue_table <- function(a_set, treat){
+  names(a_set)[names(a_set) == treat] <- "treat"
+  df <- a_set %>%
+    dplyr::group_by(stratum) %>%
+    dplyr::summarize(Treated = sum(treat),
+                     Control = sum(1 - treat),
+                     Total = n()) %>%
+    dplyr::mutate(Control_Proportion = Control / Total)
+  
+  colnames(df) <- c("Stratum", "Treat",
+                    "Control", "Total",
+                    "Control_Proportion")
+  df$Potential_Issues <- apply(df, 1, get_issues)
+  
+  return(df)
+}
+
+
+#' @title Helper for make_issue_table to return issues string
+#' @description Given a row which summarizes the Treat, Control, Total, and 
+#' Control_Proportion of a stratum, return a string of potential issues with the stratum
+#' @param row a row of the data.frame produced in make_issue_table
+#' @return Returns a string of potential issues ("none" if everything is fine)
+#' @export
+get_issues <- function(row){
+  row <- as.numeric(row[4:5])
+  
+  # set parameters
+  CONTROL_MIN <- 0.2
+  CONTROL_MAX <- 0.8
+  SIZE_MIN <- 75
+  SIZE_MAX <- 4000
+  
+  issues <- c(
+    if (row[1] > SIZE_MAX) "Too many samples",
+    if (row[1] < SIZE_MIN) "Too few samples",
+    if (row[2] > CONTROL_MAX) "Not enough treated samples",
+    if (row[2] < CONTROL_MIN) "Not enough control samples"
+  )
+  
+  if (is.null(issues)) {
+    issues <- c("none")
+  }
+  
+  return(paste(issues, collapse = "; "))
+}
+
+#----------------------------------------------------------
+### MANUAL STRATIFY
+#----------------------------------------------------------
+
+#' @title Manually creates strata for matching
+#' @description Creates \code{strata} object, given a set of covariates to stratify on
+#' @param data data frame with observations as rows, features as columns
+#' @param covariates a vector of the columns to be used as covariates for stratification
+#' @param force a boolean. If true, run even if a variable appears continuous.
+#' @return Returns a \code{strata} object
+#' @export
+manual_stratify <- function(data, treat, covariates, force = FALSE){
+  
+  result <- structure(list(analysis_set = NULL,
+                           treat = treat,
+                           call = match.call(),
+                           issue_table = NULL,
+                           covariates = covariates,
+                           strata_table = NULL),
+                      class = c("manual_strata", "strata"))
+  
+  n <- dim(data)[1]
+  
+  # Check that all covariates are discrete
+  for (i in 1:length(covariates)){
+    warn_if_continuous(data[, covariates[i]], covariates[i], force, n)
+  }
+  
+  # helper function to extract group labels from dplyr
+  get_next_integer <- function(){
+    i <- 0
+    function(u, v) {
+      i <<- i + 1
+    }
+  }
+  get_integer <- get_next_integer()
+  
+  # Interact covariates
+  grouped_table <- dplyr::group_by_at(data, covariates) %>%
+    dplyr::mutate(stratum = get_integer())
+  
+  result$analysis_set <- grouped_table %>%
+    dplyr::ungroup()
+  
+  result$strata_table <- grouped_table %>%
+    dplyr::summarize(stratum = first(stratum),
+                     size = n())
+  
+  result$issue_table <- make_issue_table(result$analysis_set, treat)
+  
+  return(result)
+}
+
+#' @title Throws an error if a column is continuous
+#' @description checks if there is a large number of unique values in the input column.
+#' @param column vector or factor column from a data frame
+#' @param name name of the input column
+#' @param force, a boolean. If true, warn but do not stop
+#' @return Does not return anything
+
+warn_if_continuous <- function(column, name, force, n){
+  if (is.factor(column)){
+    return() # assume all factors are discrete
+  } else {
+    values <- length(unique(column))
+    if (values > min(c(15, 0.05 * n))){
+      if ( force == FALSE ){
+        stop(paste("There are ", values,
+                   " distinct values for ", name,
+                   ". Is it continuous?", sep = ""))
+      } else {
+        warning(paste("There are ", values,
+                      " distinct values for ", name,
+                      ". Is it continuous?", sep = ""))
+      }
+    }
+    return()
+  }
+}
+
+#----------------------------------------------------------
+### AUTO STRATIFY
+#----------------------------------------------------------
+
+#' @title Automatically creates strata for matching
+#' @description Creates \code{strata} object, given formula for a prognostic model, or pre-calculated prognostic scores
+#' @param data data frame with observations as rows, features as columns
+#' @param treat string giving the name of column designating treatment assignment
+#' @param outcome string giving the name of column with outcome information
+#' @param prog_formula formula for building prognostic score model
+#' @param size numeric, desired size of strata
+#' @param held_frac numeric between 0 and 1 giving the proportion of samples to be allotted for building the prognostic score
+#' @param held_sample (optional) a data.frame of held aside samples for building prognostic score model.
+#' @return Returns a \code{strata} object
+#' @export
+auto_stratify <- function(data, treat, outcome, prog_formula = NULL,
+                          prog_scores = NULL, size = 2500,
+                          held_frac = 0.1, held_sample = NULL) {
+  
+  result <- structure(list(analysis_set = NULL,
+                           treat = treat,
+                           call = match.call(),
+                           issue_table = NULL,
+                           strata_table = NULL,
+                           outcome = outcome,
+                           prog_scores = NULL,
+                           prog_model = NULL,
+                           prognostic_set = NULL),
+                      class = c("auto_strata", "strata"))
+  
+  # check inputs
+  if (is.null(prog_formula) && is.null(prog_scores)){
+    stop("At least one of prog_formula and prog_scores
+         should be specified.")
+  }
+  
+  if (!is.null(prog_formula) && !is.null(prog_scores)){
+    warning("prog_formula and prog_scores are both specified.
+            Using prog_scores; ignoring formula.")
+  }
+  
+  if (!is.null(prog_scores)){
+    if (length(prog_scores) != dim(data)[1]){
+      stop("prog_scores must be the same length as the data")
+    } else {
+      result$analysis_set <- data
+    }
+    
+  } else {
+    # if prog_scores are not specified, build them
+    prog_build <- build_prog_model(data, treat, outcome,
+                                   prog_formula, held_frac,
+                                   held_sample)
+    prog_model <- prog_build$m
+    prog_scores <- tryCatch(predict(prog_model, prog_build$a_set,
+                                    type = "response"),
+                            error = function(e) {
+                              if (e$call == "model.frame.default(Terms, newdata, na.action = na.action, xlev = object$xlevels)"){
+                                e$print <- paste("Error applying prognostic model:
+                                                 Some categorical variable value(s) in
+                                                 the analysis set do not appear in the modeling set.
+                                                 Consider stratifying by these variable(s).",
+                                                 "GLM error:", e$print)
+                                stop(e)
+                              }
+                            })
+    
+    result$prog_model <- prog_model
+    result$prognostic_set <- prog_build$m_set
+    result$analysis_set <- prog_build$a_set
+  }
+  
+  print("Generating strata assignments based on prognostic score.")
+  
+  # Create strata from prognostic score quantiles
+  n_bins <- ceiling(dim(result$analysis_set)[1] / size)
+  qcut <- Hmisc::cut2(prog_scores, g = n_bins)
+  result$strata_table <- data.frame(qcut) %>%
+    dplyr::mutate(stratum = as.numeric(qcut), quantile_bin = qcut) %>%
+    dplyr::group_by(quantile_bin) %>%
+    dplyr::summarise(size = n(), stratum = first(stratum)) %>%
+    dplyr::arrange(stratum) %>%
+    dplyr::select(stratum, quantile_bin, size)
+  result$analysis_set$stratum <- as.numeric(qcut)
+  
+  # package and resturn result
+  result$prog_scores <- prog_scores
+  
+  print("Completing strata diagnostics.")
+  result$issue_table <- make_issue_table(result$analysis_set, treat)
+  
+  return(result)
+  }
+
+#' @title Generates prognostic score model from the data
+#' @description When the prog_score is not precalculated, subsamples to create a model set (if necessary), then fits a prognostic score on that set.
+#' @param data data frame with observations as rows, features as columns
+#' @param treat string giving the name of column designating treatment assignment
+#' @param outcome string giving the name of column with outcome information
+#' @param prog_formula formula for building prognostic score model
+#' @param held_size, an integer giving the desired size of the hold-out sample
+#' @param held_sample, (optional) a held aside dataset to be used to fit the prognostic score model
+#' @return Returns list of: m, a \code{glm} object prognostic model, m_set, the model set, and a_set, the analysis set (data - model set)
+build_prog_model <- function(data, treat, outcome,
+                             prog_formula, held_frac = 0.1,
+                             held_sample = NULL){
+  prognostic_set <- NULL
+  
+  # if held_sample is specified use that to build score
+  if (!is.null(held_sample)){
+    print("Using user-specified set for prognostic score modeling.")
+    prognostic_set <- held_sample
+    analysis_set <- data
+    
+  } else {
+    print("Constructing a model set via subsampling.")
+    # otherwise, construct a model sample
+    # Adds an id column and removes it
+    data$join_id_57674 <- 1:nrow(data)
+    prognostic_set <- data %>% dplyr::filter_(paste(treat, "==", 0)) %>%
+      dplyr::sample_frac(held_frac, replace = FALSE)
+    analysis_set <- dplyr::anti_join(data, prognostic_set,
+                                     by = "join_id_57674") %>%
+      dplyr::select(-join_id_57674)
+    prognostic_set$join_id_57674 <- NULL
+  }
+  print(paste("Fitting prognostic model:",
+              Reduce(paste, deparse(prog_formula))))
+  
+  model <- glm(prog_formula, data = prognostic_set, family = "binomial")
+  
+  return(list(m = model, m_set = prognostic_set, a_set = analysis_set))
+}

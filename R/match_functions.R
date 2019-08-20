@@ -109,7 +109,6 @@ big_match_multidplyr <- function(strat, propensity_formula = NULL) {
 #' @param propensity_formula (optional) formula for propensity score
 #' @param k numeric, the number of control individuals to be matched to each treated individual
 #' @return a named factor with matching assignments
-#' @export
 big_match <- function(strat, propensity_formula = NULL, k = 1){
   if (is.null(propensity_formula)){
     # match on all variables, stratified by stratum

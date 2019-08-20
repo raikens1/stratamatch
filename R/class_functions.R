@@ -7,6 +7,7 @@
 #' @param object any R object
 #' @return Returns \code{TRUE} if its argument has class "strata" among its classes and
 #' \code{FALSE} otherwise.
+#' @export
 is.strata <- function(object) {
   inherits(object, "strata")
 }
@@ -15,6 +16,7 @@ is.strata <- function(object) {
 ### PRINT METHODS
 #----------------------------------------------------------
 
+#' @export
 print.auto_strata <- function(strata) {
   writeLines("auto_strata object from package big_match.\n")
 
@@ -42,6 +44,7 @@ print.auto_strata <- function(strata) {
                    "\tMax size:", max(strata$issue_table$Total)))
 }
 
+#' @export
 print.manual_strata <- function(strata) {
   writeLines("manual_strata object from package big_match.\n")
 
@@ -65,7 +68,7 @@ print.manual_strata <- function(strata) {
 #----------------------------------------------------------
 ### SUMMARY METHODS
 #----------------------------------------------------------
-
+#' @export
 summary.strata <- function(strata){
   strata_summary <- structure(list(call = strata$call,
                                    issue_table = strata$issue_table,
@@ -92,7 +95,7 @@ summarize_balance <- function(data, treat){
   # TODO: rownames for data frames will be deprecated soon,
   # which means this will have to change.
   result <- data %>%
-    group_by(treat) %>%
+    dplyr::group_by(treat) %>%
     dplyr::summarize_all(mean) %>%
     t()
 
@@ -125,7 +128,7 @@ make_scatter_plot <- function(issue_table, label){
 
   xmax <- max(issue_table$Total, SIZE_MAX * 1.05)
 
-  g <- ggplot(issue_table, aes(x = Total, y = Control_Proportion)) +
+  g <- ggplot2::ggplot(issue_table, aes(x = Total, y = Control_Proportion)) +
     labs(x = "Stratum Size",
          y = "Fraction Control Observations") +
     ylim(c(0, 1)) + xlim(c(0, xmax)) +
@@ -167,17 +170,17 @@ make_hist_plot <- function(auto_strata){
   plotdata$prog_scores <- auto_strata$prog_scores
 
   plot_summary <- plotdata %>%
-    group_by(stratum) %>%
+    dplyr::group_by(stratum) %>%
     dplyr::summarize(prog_mean = mean(prog_scores))
 
-  a <- ggplot(data = plot_summary,
+  a <- ggplot2::ggplot(data = plot_summary,
               aes(x = stratum, y = prog_mean, fill = as.factor(stratum))) +
     geom_col() +
     labs(y = "Mean Prognistic Score", x = "Stratum") +
     theme(legend.position = "none") +
     scale_fill_brewer(palette = "Blues")
 
-  b <- ggplot(plotdata, aes(x = prog_scores, group = as.factor(stratum),
+  b <- ggplot2::ggplot(plotdata, aes(x = prog_scores, group = as.factor(stratum),
                             fill = as.factor(stratum))) +
     geom_histogram() +
     labs(y = "Prognostic Score", "Number of Observations") +
@@ -195,6 +198,7 @@ make_resid_plot <- function(auto_strata){
   return(plot(1))
 }
 
+#' @export
 plot.strata <- function(strata, type = "scatter", label = FALSE){
   if (type == "scatter"){
     make_scatter_plot(strata$issue_table, label)
