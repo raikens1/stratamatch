@@ -49,3 +49,6 @@ BigMatch.Rproj
 ehthumbs.db
 Thumbs.db
 .Rproj.user
+inst/doc
+doc
+Meta

@@ -1,11 +1,21 @@
+#----------------------------------------------------------
+### CONTAINS: 
+# Matching methods to be called on strata objects, and their helpers
+#----------------------------------------------------------
 
 #----------------------------------------------------------
-### Match
+### Helpers
 #----------------------------------------------------------
 
-#' @title Match One
-#' @description Match one dataset using the optmatch package
+#' Match One
+#'
+#' Not meant to be called externally. Match one dataset using the optmatch
+#' package
+#'
 #' @param dat a data.frame with observations as rows, outcome column masked
+#' @param propensity_model a \code{glm} object with the propensity model
+#' @param treat string, the name of the treatment assignment column
+#' @param k the number of controls to be matched to each treated individual
 #' @return a data.frame like dat with pair assignments column
 match_one <- function(dat, propensity_model, treat, k = 1){
   dist_matrix <- make_distance_matrix(dat,
@@ -15,12 +25,16 @@ match_one <- function(dat, propensity_model, treat, k = 1){
   return(dat)
 }
 
-#' @title Make distance matrix
-#' @description Makes the distance matrix to be passed to pairmatch. Similar to match_on.glm in optmatch
-#' except that the model need not have been fit on the data we are matching
+#' Make Distance Matrix
+#'
+#' Not meant to be called externally. Makes the distance matrix to be passed to
+#' pairmatch. Similar to match_on.glm in optmatch except that the model need not
+#' have been fit on the data we are matching
+#'
 #' @param dat a data.frame of observations to be matched
-#' @param propensity_model a glm object modeling propensity scores
-#' @return a matrix of distances to be passed to pairmatch()
+#' @param propensity_model a \code{glm} object modeling propensity scores
+#' @param treat string, the name of the treatment assignment column
+#' @return a matrix of distances to be passed to opmatch::pairmatch()
 make_distance_matrix <- function(dat, propensity_model, treat){
   names(dat)[names(dat) == treat] <- "treat"
   z <- dat$treat
@@ -32,11 +46,19 @@ make_distance_matrix <- function(dat, propensity_model, treat){
   return(optmatch::match_on(x = lp / pooled.sd, z = z, rescale = F))
 }
 
-#' @title Big Match dopar
-#' @description Match within strata in parallel by calling match_one with dopar.
-#' Doesn't work right now 
+#----------------------------------------------------------
+### Matching Methods
+#----------------------------------------------------------
+
+#' Big Match Dopar
+#'
+#' Still in development. Match within strata in parallel by calling match_one
+#' with dopar. Doesn't work right now.
+#'
 #' @param strat a strata object
-#' @return a data.frame like dat with pair assignments?
+#' @param propensity_formula a formula for the propensity score.  If
+#'   unspecified, all columns except outcome and strata are used.
+#' @return a data.frame with pair assignments
 big_match_dopar <- function(strat, propensity_formula = NULL) {
   if (is.null(propensity_formula)){
     propensity_formula <- formula(paste(c(strat$treat, "~ . -", strat$outcome,
@@ -61,11 +83,14 @@ big_match_dopar <- function(strat, propensity_formula = NULL) {
 }
 
 
-#' @title Big Match v2
-#' @description Match within strata in parallel by calling match_one
+#' Big Match Multidplyr
+#'
+#' Still in development. Match within strata in parallel by calling match_one
+#' with multidplyr.  Currently buggy, but returns a result.
+#'
 #' @param strat a strata object
 #' @param propensity_formula the formula for the propensity score
-#' @return a data.frame like dat with pair assignments?
+#' @return a data.frame like dat with pair assignments
 #' @export
 big_match_multidplyr <- function(strat, propensity_formula = NULL) {
   if (is.null(propensity_formula)){
@@ -81,7 +106,7 @@ big_match_multidplyr <- function(strat, propensity_formula = NULL) {
   num_cores <- parallel::detectCores()
   treat <- strat$treat
   cluster <- multidplyr::new_cluster(num_cores)
-  multidplyr::cluster_assign(cluster, 
+  multidplyr::cluster_assign(cluster,
                              propensity_model = propensity_model,
                              match_on = optmatch::match_on,
                              pairmatch = optmatch::pairmatch,
@@ -89,33 +114,45 @@ big_match_multidplyr <- function(strat, propensity_formula = NULL) {
                              make_distance_matrix = make_distance_matrix,
                              treat = treat)
   # match in parallel
-  result <- strat$analysis_set %>%
-    dplyr::group_by(stratum) %>%
-    multidplyr::partition(cluster = cluster) %>%
-    do(match_one(., propensity_model = propensity_model, treat = treat)) %>%
-    collect()
+  #result <- strat$analysis_set %>%
+  #  group_by(stratum) %>%
+  #  partition(cluster = cluster) %>%
+  #  do(match_one(., propensity_model = propensity_model, treat = treat)) %>% collect()
   
+  stp1 <- strat$analysis_set %>% group_by(stratum)
+  
+  stp2 <- stp1 %>% partition(cluster = cluster)
+  
+  stp3 <- stp2 %>% do(match_one(., propensity_model = propensity_model, treat = treat))
+  
+  stp4 <- stp3 %>% collect
+
   #parallel::stopCluster(cluster)
 
   return(result)
 }
 
-#' @title Big Match
-#' @description Match within strata in series using optmatch
+#' Big Match
+#'
+#' Match within strata in series using optmatch.  Probably needs to be renamed.
+#'
 #' @param strat a strata object
 #' @param propensity_formula (optional) formula for propensity score
-#' @param k numeric, the number of control individuals to be matched to each treated individual
+#' @param k numeric, the number of control individuals to be matched to each
+#'   treated individual
 #' @return a named factor with matching assignments
 #' @export
 big_match <- function(strat, propensity_formula = NULL, k = 1){
   if (is.null(propensity_formula)){
     # match on all variables, stratified by stratum
     propensity_formula <- formula(paste(strat$treat, "~ . -", strat$outcome,
-                                        "- stratum", "+ survival::strata(stratum)"))
+                                        "- stratum",
+                                        "+ survival::strata(stratum)"))
   } else {
     # append phrase to stratify by stratum
     orig_form <- Reduce(paste, deparse(propensity_formula))
-    propensity_formula <- formula(paste(orig_form, "+ survival::strata(stratum)"))
+    propensity_formula <- formula(paste(orig_form,
+                                        "+ survival::strata(stratum)"))
   }
 
   print(propensity_formula)
@@ -129,11 +166,17 @@ big_match <- function(strat, propensity_formula = NULL, k = 1){
                              controls = k))
 }
 
-#' @title Big Match (not stratified)
-#' @description For performance testing purposes, match using optmatch but do not stratify
+#' Big Match - Not Stratified
+#'
+#' Not meant to be called externally, but exported currently for convenience.
+#' This function is for performance testing purposes, so that we can compare the
+#' speed of matching within strata to matching the entire dataset without
+#' stratification.
+#'
 #' @param strat a strata object
 #' @param propensity_formula (optional) formula for propensity score
-#' @param k numeric, the number of control individuals to be matched to each treated individual
+#' @param k numeric, the number of control individuals to be matched to each
+#'   treated individual
 #' @return a named factor with matching assignments
 #' @export
 big_match_nstrat <- function(strat, propensity_formula = NULL, k = 1){

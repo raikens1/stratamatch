@@ -113,6 +113,7 @@ a
 ```
 
 ```{r}
+profvis({
 n_dat <- sample_n(dat, 30000, replace = FALSE)
 a.strat <- auto_stratify(data = n_dat, treat = "treat", 
                        outcome = "dead", 
@@ -127,5 +128,6 @@ mymatch <- big_match_multidplyr(a.strat, propensity_formula = treat ~ totalct + 
                    CHRONICKIDNEY_7 + DIABETES_7 + ALZH_DEMEN_7 + Male + race)
 multi_time <- proc.time() - t1
 multi_time
+})
 ```
 

@@ -1,9 +1,17 @@
 #----------------------------------------------------------
+### CONTAINS: 
+# Methods for the strata objects for the generics `is`, `print`, `summarize`, and
+# `plot`
+#----------------------------------------------------------
+
+#----------------------------------------------------------
 ### INHERITANCE
 #----------------------------------------------------------
 
-#' @title Checks strata class
-#' @description Checks if the target object is a \code{strata} object.
+#' Checks strata class
+#' 
+#' Checks if the target object is a \code{strata} object.
+#' 
 #' @param object any R object
 #' @return Returns \code{TRUE} if its argument has class "strata" among its classes and
 #' \code{FALSE} otherwise.
@@ -16,6 +24,11 @@ is.strata <- function(object) {
 ### PRINT METHODS
 #----------------------------------------------------------
 
+#' Print Auto Strata
+#' 
+#' Print method for \code{auto_strata} object
+#' 
+#' @param strata, an \code{auto_strata} object
 #' @export
 print.auto_strata <- function(strata) {
   writeLines("auto_strata object from package big_match.\n")
@@ -29,8 +42,8 @@ print.auto_strata <- function(strata) {
 
   if (!is.null(strata$prog_model)) {
     writeLines(paste("\nPrognostic set dimensions:",
-                     dim(strata$prognostic_set)[1], "X",
-                     dim(strata$prognostic_set)[2]))
+                     dim(strata$pilot_set)[1], "X",
+                     dim(strata$pilot_set)[2]))
 
     writeLines("\nPrognostic Score Formula:")
     print(strata$prog_model$formula)
@@ -44,6 +57,11 @@ print.auto_strata <- function(strata) {
                    "\tMax size:", max(strata$issue_table$Total)))
 }
 
+#' Print Manual Strata
+#' 
+#' Print method for \code{manual_strata} object
+#' 
+#' @param strata, a \code{manual_strata} object
 #' @export
 print.manual_strata <- function(strata) {
   writeLines("manual_strata object from package big_match.\n")
@@ -68,6 +86,9 @@ print.manual_strata <- function(strata) {
 #----------------------------------------------------------
 ### SUMMARY METHODS
 #----------------------------------------------------------
+#' Summary method for strata object
+#' 
+#' @param strata \code{strata} object
 #' @export
 summary.strata <- function(strata){
   strata_summary <- structure(list(call = strata$call,
@@ -81,10 +102,14 @@ summary.strata <- function(strata){
   return(strata_summary)
 }
 
-#' @title Calculate balance measures over a dataframe
-#' @description Calculate Mean over Treat and Control, and difference in Means
+#' Calculate balance measures over a dataframe
+#'
+#' Still under development. Calculate mean of each covariate over Treat and
+#' Control groups, and difference in means between groups.
+#'
 #' @param data, a \code{data.frame} from a \code{strata} object
-#' @param treat, a string giving the name of the treatment assignment column in the dataframe
+#' @param treat, a string giving the name of the treatment assignment column in
+#'   the dataframe
 #' @return Returns a data.frame of balance measures
 summarize_balance <- function(data, treat){
 
@@ -111,9 +136,16 @@ summarize_balance <- function(data, treat){
 ### PLOT METHODS
 #----------------------------------------------------------
 
-#' @title Helper plot function for \code{strata} object with type = "scatter"
-#' @description Produces a scatterplot of stratum size by control proportion.
-#' @param strata a \code{strata} object 
+#' Make Scatter Plot
+#'
+#' Not meant to be called externally. Helper plot function for \code{strata}
+#' object with type = "scatter." Generates a scatter plot of all strata by size
+#' and treat:control ratio.  Highlights strata which may be problematic.
+#'
+#' @param issue_table the \code{issue_table} from a \code{strata} object
+#' @param label, if true, label problematic strata.  Not recommended if there
+#'   are many problematic strata.
+#' @seealso \code{\link{make_issue_table}}
 #' @return Returns the scatterplot
 make_scatter_plot <- function(issue_table, label){
 
@@ -156,7 +188,7 @@ make_scatter_plot <- function(issue_table, label){
   if (label){
     g <- g +
       ggrepel::geom_label_repel(data = problem_strata,
-                                ggplot2::aes(Total, 
+                                ggplot2::aes(Total,
                                              Control_Proportion,
                                              label = Stratum),
                                 size = 2.5, color = "firebrick")
@@ -164,10 +196,14 @@ make_scatter_plot <- function(issue_table, label){
   print(g)
 }
 
-#' @title Helper plot function for \code{strata} object with type = "hist"
-#' @description Produces a column plot of prognostic score means across strata 
-#' and a histogram of prognostic score, colored by strata
-#' @param auto_strata an \code{auto_strata} object 
+#' Make histogram plot
+#'
+#' Not meant to be called externally.  Helper plot function for \code{strata}
+#' object with type = "hist".  Produces a column plot of prognostic score means
+#' across strata and a histogram of prognostic score, colored by strata.  Not
+#' recommended if there are many strata.
+#' 
+#' @param auto_strata an \code{auto_strata} object
 #' @return Returns an arrangement of the column plot and histogram.
 make_hist_plot <- function(auto_strata){
   plotdata <- auto_strata$analysis_set
@@ -195,15 +231,35 @@ make_hist_plot <- function(auto_strata){
   return(ggpubr::ggarrange(a, b, ncol = 2, widths = c(1, 1.5)))
 }
 
-#' @title Helper plot function for \code{strata} object with type = "residual"
-#' @description Produces partial residual plots for the prognostic scores
-#' @param auto_strata an \code{auto_strata} object 
+#' Make Residual Plot
+#'
+#' Not yet implemented.  Not meant to be called externally. Helper plot function
+#' for \code{strata} object with type = "residual"
+#'
+#' @description Produces partial residual plots for the prognostic score models
+#' @param auto_strata an \code{auto_strata} object
 #' @return Returns the (partial) residual plot(s)
 make_resid_plot <- function(auto_strata){
   # TODO: Implement
   return(plot(1))
 }
 
+#' Plot method for \code{strata} object
+#'
+#' Generates diagnostic plots for the product of a stratification by
+#' \code{\link{auto_stratify}} or \code{\link{manual_stratify}}.  There are
+#' three plot types: \enumerate{ \item "scatter" (default) - produces a scatter
+#' plot of strata by size and treat:control ratio \item "hist" - produces a
+#' histogram of stratum size (not supported for \code{manual strata} objects)
+#' \item "resid" - produces a residual plot for the prognostic model (not
+#' supported for \code{manual strata} objects) }
+#'
+#' @param strata a \code{strata} object returned by \code{\link{auto_stratify}}
+#'   or \code{\link{manual_stratify}}
+#' @param type string giving the plot type (default = \code{"scatter"}).  Other
+#'   options are \code{"hist"} and \code{"residual"}
+#' @param label ignored unless \code{type = scatter}. If \code{TRUE}, then
+#'   problematic strata are labeled in the scatter plot
 #' @export
 plot.strata <- function(strata, type = "scatter", label = FALSE){
   if (type == "scatter"){

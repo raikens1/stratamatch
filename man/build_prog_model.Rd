@@ -2,27 +2,32 @@
 % Please edit documentation in R/stratify_functions.R
 \name{build_prog_model}
 \alias{build_prog_model}
-\title{Generates prognostic score model from the data}
+\title{Build Prognostic Model}
 \usage{
-build_prog_model(data, treat, outcome, prog_formula, held_frac = 0.1,
+build_prog_model(data, treat, prog_formula, held_frac = 0.1,
   held_sample = NULL)
 }
 \arguments{
-\item{data}{data frame with observations as rows, features as columns}
+\item{data}{\code{data.frame} with observations as rows, features as columns}
 
-\item{treat}{string giving the name of column designating treatment assignment}
-
-\item{outcome}{string giving the name of column with outcome information}
+\item{treat}{string giving the name of column designating treatment
+assignment}
 
 \item{prog_formula}{formula for building prognostic score model}
 
-\item{held_sample, }{(optional) a held aside dataset to be used to fit the prognostic score model}
+\item{held_frac, }{numeric giving the fraction of controls to partition to the
+pilot set (default = 0.1)}
 
-\item{held_size, }{an integer giving the desired size of the hold-out sample}
+\item{held_sample, }{(optional) a held aside dataset to be used to fit the
+prognostic score model}
 }
 \value{
-Returns list of: m, a \code{glm} object prognostic model, m_set, the model set, and a_set, the analysis set (data - model set)
+Returns a \code{list} of: m, a \code{glm} object prognostic model,
+  m_set, the model set, and a_set, the analysis set (data - model set)
 }
 \description{
-When the prog_score is not precalculated, subsamples to create a model set (if necessary), then fits a prognostic score on that set.
+Not meant to be called externally. If a pilot set is not provided, one is
+partitioned from the input data according to the input parameters. The
+prognostic model is then fit on the pilot set based on the prognostic score
+formula (\code{prog_score}).
 }

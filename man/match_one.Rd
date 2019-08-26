@@ -8,10 +8,17 @@ match_one(dat, propensity_model, treat, k = 1)
 }
 \arguments{
 \item{dat}{a data.frame with observations as rows, outcome column masked}
+
+\item{propensity_model}{a \code{glm} object with the propensity model}
+
+\item{treat}{string, the name of the treatment assignment column}
+
+\item{k}{the number of controls to be matched to each treated individual}
 }
 \value{
 a data.frame like dat with pair assignments column
 }
 \description{
-Match one dataset using the optmatch package
+Not meant to be called externally. Match one dataset using the optmatch
+package
 }

@@ -36,7 +36,9 @@ Depends:
   R (>= 3.6.1),
   multidplyr
 Suggests:
-  knitr,
-  matchit
+    knitr,
+    matchit,
+    rmarkdown
 URL: https://github.com/raikens1/BigMatch
 RoxygenNote: 6.1.1
+VignetteBuilder: knitr

@@ -2,7 +2,7 @@
 % Please edit documentation in R/match_functions.R
 \name{big_match_nstrat}
 \alias{big_match_nstrat}
-\title{Big Match (not stratified)}
+\title{Big Match - Not Stratified}
 \usage{
 big_match_nstrat(strat, propensity_formula = NULL, k = 1)
 }
@@ -11,11 +11,15 @@ big_match_nstrat(strat, propensity_formula = NULL, k = 1)
 
 \item{propensity_formula}{(optional) formula for propensity score}
 
-\item{k}{numeric, the number of control individuals to be matched to each treated individual}
+\item{k}{numeric, the number of control individuals to be matched to each
+treated individual}
 }
 \value{
 a named factor with matching assignments
 }
 \description{
-For performance testing purposes, match using optmatch but do not stratify
+Not meant to be called externally, but exported currently for convenience.
+This function is for performance testing purposes, so that we can compare the
+speed of matching within strata to matching the entire dataset without
+stratification.
 }

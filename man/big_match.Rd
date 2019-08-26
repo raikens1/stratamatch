@@ -11,11 +11,12 @@ big_match(strat, propensity_formula = NULL, k = 1)
 
 \item{propensity_formula}{(optional) formula for propensity score}
 
-\item{k}{numeric, the number of control individuals to be matched to each treated individual}
+\item{k}{numeric, the number of control individuals to be matched to each
+treated individual}
 }
 \value{
 a named factor with matching assignments
 }
 \description{
-Match within strata in series using optmatch
+Match within strata in series using optmatch.  Probably needs to be renamed.
 }

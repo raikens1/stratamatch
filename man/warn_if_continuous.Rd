@@ -2,20 +2,29 @@
 % Please edit documentation in R/stratify_functions.R
 \name{warn_if_continuous}
 \alias{warn_if_continuous}
-\title{Throws an error if a column is continuous}
+\title{Warn if continuous}
 \usage{
 warn_if_continuous(column, name, force, n)
 }
 \arguments{
-\item{column}{vector or factor column from a data frame}
+\item{column}{vector or factor column from a \code{data.frame}}
 
 \item{name}{name of the input column}
 
 \item{force, }{a boolean. If true, warn but do not stop}
+
+\item{n, }{the number of rows in the data set}
 }
 \value{
 Does not return anything
 }
 \description{
-checks if there is a large number of unique values in the input column.
+Throws an error if a column is continuous
+}
+\details{
+Not meant to be called externally. Only categorical or binary covariates
+should be used to manually stratify a data set.  However, it's hard to tell
+for sure if something is continuous or just discrete with real-numbered
+values. Returns without throwing an error if the column is a factor, but
+throws an error or warning if the column has many distinct values.
 }

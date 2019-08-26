@@ -2,30 +2,61 @@
 % Please edit documentation in R/stratify_functions.R
 \name{auto_stratify}
 \alias{auto_stratify}
-\title{Automatically creates strata for matching}
+\title{Auto Stratify}
 \usage{
 auto_stratify(data, treat, outcome, prog_formula = NULL,
   prog_scores = NULL, size = 2500, held_frac = 0.1,
   held_sample = NULL)
 }
 \arguments{
-\item{data}{data frame with observations as rows, features as columns}
+\item{data}{\code{data.frame} with observations as rows, features as columns}
 
-\item{treat}{string giving the name of column designating treatment assignment}
+\item{treat}{string giving the name of column designating treatment
+assignment}
 
 \item{outcome}{string giving the name of column with outcome information}
 
 \item{prog_formula}{formula for building prognostic score model}
 
-\item{size}{numeric, desired size of strata}
+\item{prog_scores}{vector of prognostic scores for all individuals in the
+data set. Should be in the same order as the rows of \code{data}.}
 
-\item{held_frac}{numeric between 0 and 1 giving the proportion of samples to be allotted for building the prognostic score}
+\item{size}{numeric, desired size of strata (default = 2500)}
 
-\item{held_sample}{(optional) a data.frame of held aside samples for building prognostic score model.}
+\item{held_frac}{numeric between 0 and 1 giving the proportion of controls to
+be allotted for building the prognostic score (default = 0.1)}
+
+\item{held_sample}{a data.frame of held aside samples for building prognostic
+score model.}
 }
 \value{
 Returns a \code{strata} object
 }
 \description{
-Creates \code{strata} object, given formula for a prognostic model, or pre-calculated prognostic scores
+Automatically creates strata for matching based on a prognostic score formula
+or a vector of prognostic scores already estimated by the user. Creates a
+\code{auto_strata} object, which can be passed to \code{\link{big_match}} for
+stratified matching or unpacked by the user to be matched by some other
+means.
+}
+\details{
+Stratifying by prognostic score quantiles can be more effective than manually
+stratifying a data set because the prognostic score is continuous, thus the
+strata produced tend to be of equal size with similar prognosis.
+
+There are two main methods:
+
+\enumerate{ \item Prespecify a vector of prognostic scores
+(\code{prog_scores}) that you would like to use. \item Provide a prognostic
+formula (\code{prog_formula}) and allow \code{auto_stratify} to partition a
+'pilot' data set of controls on which to fit a prognostic score.  The
+individuals from the pilot set will be removed from the rest of the data (the
+analysis set). There are various methods for specifying how to partition the
+pilot set. }
+
+At least one of these two methods must be used. As a result, at least one of
+\code{prog_scores} or \code{prog_formula} must be supplied.
+}
+\seealso{
+\code{\link{manual_stratify}}, \code{\link{new_auto_strata}}
 }

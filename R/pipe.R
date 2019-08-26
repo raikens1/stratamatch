@@ -1,4 +1,3 @@
-
 #' Pipe operator
 #'
 #' @name %>%
@@ -8,4 +7,3 @@
 #' @importFrom magrittr %>%
 #' @usage lhs \%>\% rhs
 NULL
-
