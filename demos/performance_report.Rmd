@@ -91,7 +91,8 @@ run_big_match <- function(n_samples){
 
 ```{r}
 options("optmatch_max_problem_size" = Inf)
-n_samples <- c(5000, 10000, 15000, 20000, 25000, 30000, 35000)
+#n_samples <- c(5000, 10000, 15000, 20000, 25000, 30000, 35000)
+n_samples <- c(5000, 30000) # For quicker diagnostics
 time_list <- lapply(n_samples, run_big_match)
 
 bind_rows(time_list, .id = "column_label")
@@ -123,9 +124,7 @@ a.strat <- auto_stratify(data = n_dat, treat = "treat",
                        size = 2500)
 print("Stratification complete.")
 t1 <- proc.time()
-mymatch <- big_match_multidplyr(a.strat, propensity_formula = treat ~ totalct + hosp_state +
-                   AMI_7 + COPD_7 + ISCHEMICHEART_7 + STROKE_TIA_7 + ATRIAL_FIB_7 +
-                   CHRONICKIDNEY_7 + DIABETES_7 + ALZH_DEMEN_7 + Male + race)
+mymatch <- big_match_multidplyr(a.strat)
 multi_time <- proc.time() - t1
 multi_time
 })

@@ -30,15 +30,16 @@ Imports:
   Hmisc (>= 4.2-0),
   RColorBrewer (>= 1.1-2),
   magrittr (>= 1.5), 
-  optmatch (>= 0.9-11),
   parallel (>= 3.6.1)
 Depends: 
   R (>= 3.6.1),
+  optmatch (>= 0.9-11),
   multidplyr
 Suggests:
     knitr,
     matchit,
-    rmarkdown
+    rmarkdown,
+    testthat (>= 2.1.0)
 URL: https://github.com/raikens1/BigMatch
 RoxygenNote: 6.1.1
 VignetteBuilder: knitr

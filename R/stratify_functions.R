@@ -49,14 +49,14 @@ manual_stratify <- function(data, treat, covariates, force = FALSE){
 
   # Interact covariates
   grouped_table <- dplyr::group_by_at(data, covariates) %>%
-    dplyr::mutate(stratum = get_integer())
+    dplyr::mutate(stratum = as.integer(get_integer()))
 
   result$analysis_set <- grouped_table %>%
     dplyr::ungroup()
 
   result$strata_table <- grouped_table %>%
-    dplyr::summarize(stratum = first(stratum),
-                     size = n())
+    dplyr::summarize(stratum = dplyr::first(stratum),
+                     size = dplyr::n())
 
   result$issue_table <- make_issue_table(result$analysis_set, treat)
 
@@ -83,7 +83,7 @@ warn_if_continuous <- function(column, name, force, n){
     return() # assume all factors are discrete
   } else {
     values <- length(unique(column))
-    if (values > min(c(15, 0.05 * n))){
+    if (values > min(c(15, 0.3 * n))){
       if ( force == FALSE ){
         stop(paste("There are ", values,
                    " distinct values for ", name,
@@ -158,13 +158,11 @@ auto_stratify <- function(data, treat, outcome, prog_formula = NULL,
 
   # check inputs
   if (is.null(prog_formula) && is.null(prog_scores)){
-    stop("At least one of prog_formula and prog_scores
-         should be specified.")
+    stop("At least one of prog_formula and prog_scores should be specified.")
   }
 
   if (!is.null(prog_formula) && !is.null(prog_scores)){
-    warning("prog_formula and prog_scores are both specified.
-            Using prog_scores; ignoring formula.")
+    warning("prog_formula and prog_scores are both specified. Using prog_scores; ignoring formula.")
   }
 
   if (!is.null(prog_scores)){
@@ -205,12 +203,12 @@ auto_stratify <- function(data, treat, outcome, prog_formula = NULL,
   n_bins <- ceiling(dim(result$analysis_set)[1] / size)
   qcut <- Hmisc::cut2(prog_scores, g = n_bins)
   result$strata_table <- data.frame(qcut) %>%
-    dplyr::mutate(stratum = as.numeric(qcut), quantile_bin = qcut) %>%
+    dplyr::mutate(stratum = as.integer(qcut), quantile_bin = qcut) %>%
     dplyr::group_by(quantile_bin) %>%
-    dplyr::summarise(size = n(), stratum = first(stratum)) %>%
+    dplyr::summarise(size = dplyr::n(), stratum = dplyr::first(stratum)) %>%
     dplyr::arrange(stratum) %>%
     dplyr::select(stratum, quantile_bin, size)
-  result$analysis_set$stratum <- as.numeric(qcut)
+  result$analysis_set$stratum <- as.integer(qcut)
 
   # package and resturn result
   result$prog_scores <- prog_scores
@@ -288,7 +286,7 @@ make_issue_table <- function(a_set, treat){
     dplyr::group_by(stratum) %>%
     dplyr::summarize(Treated = sum(treat),
                      Control = sum(1 - treat),
-                     Total = n()) %>%
+                     Total = dplyr::n()) %>%
     dplyr::mutate(Control_Proportion = Control / Total)
   
   colnames(df) <- c("Stratum", "Treat",

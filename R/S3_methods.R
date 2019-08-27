@@ -5,22 +5,6 @@
 #----------------------------------------------------------
 
 #----------------------------------------------------------
-### INHERITANCE
-#----------------------------------------------------------
-
-#' Checks strata class
-#' 
-#' Checks if the target object is a \code{strata} object.
-#' 
-#' @param object any R object
-#' @return Returns \code{TRUE} if its argument has class "strata" among its classes and
-#' \code{FALSE} otherwise.
-#' @export
-is.strata <- function(object) {
-  inherits(object, "strata")
-}
-
-#----------------------------------------------------------
 ### PRINT METHODS
 #----------------------------------------------------------
 
@@ -41,7 +25,7 @@ print.auto_strata <- function(strata) {
                    dim(strata$analysis_set)[2]))
 
   if (!is.null(strata$prog_model)) {
-    writeLines(paste("\nPrognostic set dimensions:",
+    writeLines(paste("\nPilot set dimensions:",
                      dim(strata$pilot_set)[1], "X",
                      dim(strata$pilot_set)[2]))
 

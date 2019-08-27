@@ -1,0 +1,13 @@
+auto_strata object from package big_match.
+
+Function call:
+auto_stratify(data = test_dat, treat = "treat", outcome = "outcome", 
+    prog_scores = test_dat$cont)
+
+Analysis set dimensions: 16 X 5
+
+Prognostic Scores prespecified.
+
+Number of strata: 1 
+
+	Min size: 16 	Max size: 16

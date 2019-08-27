@@ -93,10 +93,15 @@ big_match_dopar <- function(strat, propensity_formula = NULL) {
 #' @return a data.frame like dat with pair assignments
 #' @export
 big_match_multidplyr <- function(strat, propensity_formula = NULL) {
+  library(multidplyr)
+  t1 <- proc.time()
   if (is.null(propensity_formula)){
     propensity_formula <- formula(paste(c(strat$treat, "~ . -", strat$outcome,
                                           "- stratum"), collapse = ""))
   }
+  
+  print(propensity_formula)
+  
   # build propensity model
   propensity_model <- glm(propensity_formula,
                           data = strat$analysis_set,
@@ -119,17 +124,20 @@ big_match_multidplyr <- function(strat, propensity_formula = NULL) {
   #  partition(cluster = cluster) %>%
   #  do(match_one(., propensity_model = propensity_model, treat = treat)) %>% collect()
   
-  stp1 <- strat$analysis_set %>% group_by(stratum)
+  stp1 <- group_by(strat$analysis_set, stratum)
   
-  stp2 <- stp1 %>% partition(cluster = cluster)
+  stp2 <- multidplyr::partition(stp1, cluster = cluster)
   
-  stp3 <- stp2 %>% do(match_one(., propensity_model = propensity_model, treat = treat))
+  print(is(stp2))
+  print(methods(do))
   
-  stp4 <- stp3 %>% collect
-
+  stp3 <- do(stp2, match_one(., propensity_model = propensity_model, treat = treat))
+  
+  result <- collect(stp3)
+  
   #parallel::stopCluster(cluster)
 
-  return(result)
+  return(proc.time()-t1)
 }
 
 #' Big Match
@@ -147,12 +155,12 @@ big_match <- function(strat, propensity_formula = NULL, k = 1){
     # match on all variables, stratified by stratum
     propensity_formula <- formula(paste(strat$treat, "~ . -", strat$outcome,
                                         "- stratum",
-                                        "+ survival::strata(stratum)"))
+                                        "+ strata(stratum)"))
   } else {
     # append phrase to stratify by stratum
     orig_form <- Reduce(paste, deparse(propensity_formula))
     propensity_formula <- formula(paste(orig_form,
-                                        "+ survival::strata(stratum)"))
+                                        "+ strata(stratum)"))
   }
 
   print(propensity_formula)
