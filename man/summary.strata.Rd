@@ -4,10 +4,12 @@
 \alias{summary.strata}
 \title{Summary method for strata object}
 \usage{
-\method{summary}{strata}(strata)
+\method{summary}{strata}(object, ...)
 }
 \arguments{
-\item{strata}{\code{strata} object}
+\item{object}{a \code{strata} object}
+
+\item{...}{other arguments}
 }
 \description{
 Summary method for strata object

@@ -4,10 +4,12 @@
 \alias{print.auto_strata}
 \title{Print Auto Strata}
 \usage{
-\method{print}{auto_strata}(strata)
+\method{print}{auto_strata}(x, ...)
 }
 \arguments{
-\item{strata, }{an \code{auto_strata} object}
+\item{x, }{an \code{auto_strata} object}
+
+\item{...}{other arguments}
 }
 \description{
 Print method for \code{auto_strata} object

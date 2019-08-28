@@ -4,10 +4,12 @@
 \alias{print.manual_strata}
 \title{Print Manual Strata}
 \usage{
-\method{print}{manual_strata}(strata)
+\method{print}{manual_strata}(x, ...)
 }
 \arguments{
-\item{strata, }{a \code{manual_strata} object}
+\item{x, }{a \code{manual_strata} object}
+
+\item{...}{other arguments}
 }
 \description{
 Print method for \code{manual_strata} object

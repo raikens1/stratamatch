@@ -12,58 +12,60 @@
 #' 
 #' Print method for \code{auto_strata} object
 #' 
-#' @param strata, an \code{auto_strata} object
+#' @param x, an \code{auto_strata} object
+#' @param ... other arguments
 #' @export
-print.auto_strata <- function(strata) {
+print.auto_strata <- function(x, ...) {
   writeLines("auto_strata object from package big_match.\n")
 
   writeLines("Function call:")
-  print(strata$call)
+  print(x$call)
 
   writeLines(paste("\nAnalysis set dimensions:",
-                   dim(strata$analysis_set)[1], "X",
-                   dim(strata$analysis_set)[2]))
+                   dim(x$analysis_set)[1], "X",
+                   dim(x$analysis_set)[2]))
 
-  if (!is.null(strata$prog_model)) {
+  if (!is.null(x$prog_model)) {
     writeLines(paste("\nPilot set dimensions:",
-                     dim(strata$pilot_set)[1], "X",
-                     dim(strata$pilot_set)[2]))
+                     dim(x$pilot_set)[1], "X",
+                     dim(x$pilot_set)[2]))
 
     writeLines("\nPrognostic Score Formula:")
-    print(strata$prog_model$formula)
+    print(x$prog_model$formula)
 
   } else {
     writeLines("\nPrognostic Scores prespecified.")
   }
 
-  writeLines(paste("\nNumber of strata:", dim(strata$issue_table)[1],
-                   "\n\n\tMin size:", min(strata$issue_table$Total),
-                   "\tMax size:", max(strata$issue_table$Total)))
+  writeLines(paste("\nNumber of strata:", dim(x$issue_table)[1],
+                   "\n\n\tMin size:", min(x$issue_table$Total),
+                   "\tMax size:", max(x$issue_table$Total)))
 }
 
 #' Print Manual Strata
 #' 
 #' Print method for \code{manual_strata} object
 #' 
-#' @param strata, a \code{manual_strata} object
+#' @param x, a \code{manual_strata} object
+#' @param ... other arguments
 #' @export
-print.manual_strata <- function(strata) {
+print.manual_strata <- function(x, ...) {
   writeLines("manual_strata object from package big_match.\n")
 
   writeLines("Function call:")
-  print(strata$call)
+  print(x$call)
 
   writeLines(paste("\nAnalysis set dimensions:",
-                   dim(strata$analysis_set)[1], "X",
-                   dim(strata$analysis_set)[2]))
+                   dim(x$analysis_set)[1], "X",
+                   dim(x$analysis_set)[2]))
 
-  writeLines(paste("\nNumber of strata:", dim(strata$issue_table)[1],
-                   "\n\n\tMin size:", min(strata$issue_table$Total),
-                   "\tMax size:", max(strata$issue_table$Total)))
+  writeLines(paste("\nNumber of strata:", dim(x$issue_table)[1],
+                   "\n\n\tMin size:", min(x$issue_table$Total),
+                   "\tMax size:", max(x$issue_table$Total)))
 
-  if (dim(strata$issue_table)[1] <= 15) {
+  if (dim(x$issue_table)[1] <= 15) {
     writeLines("\nStrata issue table:")
-    print(strata$issue_table)
+    print(x$issue_table)
   }
 }
 
@@ -72,16 +74,17 @@ print.manual_strata <- function(strata) {
 #----------------------------------------------------------
 #' Summary method for strata object
 #' 
-#' @param strata \code{strata} object
+#' @param object a \code{strata} object
+#' @param ... other arguments
 #' @export
-summary.strata <- function(strata){
-  strata_summary <- structure(list(call = strata$call,
-                                   issue_table = strata$issue_table,
+summary.strata <- function(object, ...){
+  strata_summary <- structure(list(call = object$call,
+                                   issue_table = object$issue_table,
                                    sum_before = NULL),
-                 class = "summary.strata")
+                 class = "summary.strata") # necessary to make a new class?
 
-  strata_summary$sum_before <- summarize_balance(strata$analysis_set,
-                                                 strata$treat)
+  strata_summary$sum_before <- summarize_balance(object$analysis_set,
+                                                 object$treat)
 
   return(strata_summary)
 }
@@ -238,32 +241,33 @@ make_resid_plot <- function(auto_strata){
 #' \item "resid" - produces a residual plot for the prognostic model (not
 #' supported for \code{manual strata} objects) }
 #'
-#' @param strata a \code{strata} object returned by \code{\link{auto_stratify}}
+#' @param x a \code{strata} object returned by \code{\link{auto_stratify}}
 #'   or \code{\link{manual_stratify}}
 #' @param type string giving the plot type (default = \code{"scatter"}).  Other
 #'   options are \code{"hist"} and \code{"residual"}
 #' @param label ignored unless \code{type = scatter}. If \code{TRUE}, then
 #'   problematic strata are labeled in the scatter plot
+#' @param ... other arguments
 #' @export
-plot.strata <- function(strata, type = "scatter", label = FALSE){
+plot.strata <- function(x, type = "scatter", label = FALSE, ...){
   if (type == "scatter"){
-    make_scatter_plot(strata$issue_table, label)
+    make_scatter_plot(x$issue_table, label)
   }
   else if (type == "hist"){
-    if (!("auto_strata" %in% class(strata))){
+    if (!("auto_strata" %in% class(x))){
       stop("Prognostic score histograms are only valid for auto-stratified data.")
     } else {
-      make_hist_plot(strata)
+      make_hist_plot(x)
     }
   }
   else if (type == "residual"){
-    if (!("auto_strata" %in% class(strata))){
+    if (!("auto_strata" %in% class(x))){
       stop("Prognostic score residual plots are only valid for auto-stratified data.")
     } else {
-      if (is.null(strata$prog_model)){
+      if (is.null(x$prog_model)){
         stop("Cannot make prognostic score residual plots. Prognostic model is unknown.")
       } else{
-        make_resid_plot(strata)
+        make_resid_plot(x)
       }
     }
   }

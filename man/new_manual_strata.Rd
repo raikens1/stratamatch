@@ -11,7 +11,8 @@ new_manual_strata(treat, covariates, analysis_set = NULL, call = NULL,
 \item{treat}{a string giving the name of the column where treatment
 information is stored}
 
-\item{covariates}{}
+\item{covariates}{a character vector with the names of the categorical
+columns on which to stratify}
 
 \item{analysis_set}{the data set which will be stratified}
 
@@ -20,7 +21,8 @@ information is stored}
 \item{issue_table}{a table of each stratum and potential issues of size and
 treat:control balance}
 
-\item{strata_table}{a table of each stratum and the covariate bin this corresponds to}
+\item{strata_table}{a table of each stratum and the covariate bin this
+corresponds to}
 }
 \value{
 a basic \code{manual_strata} object

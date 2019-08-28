@@ -288,12 +288,12 @@ make_issue_table <- function(a_set, treat){
                      Control = sum(1 - treat),
                      Total = dplyr::n()) %>%
     dplyr::mutate(Control_Proportion = Control / Total)
-  
+
   colnames(df) <- c("Stratum", "Treat",
                     "Control", "Total",
                     "Control_Proportion")
   df$Potential_Issues <- apply(df, 1, get_issues)
-  
+
   return(df)
 }
 
@@ -308,23 +308,23 @@ make_issue_table <- function(a_set, treat){
 #' @return Returns a string of potential issues ("none" if everything is fine)
 get_issues <- function(row){
   row <- as.numeric(row[4:5])
-  
+
   # set parameters
   CONTROL_MIN <- 0.2
   CONTROL_MAX <- 0.8
   SIZE_MIN <- 75
   SIZE_MAX <- 4000
-  
+
   issues <- c(
     if (row[1] > SIZE_MAX) "Too many samples",
     if (row[1] < SIZE_MIN) "Too few samples",
     if (row[2] > CONTROL_MAX) "Not enough treated samples",
     if (row[2] < CONTROL_MIN) "Not enough control samples"
   )
-  
+
   if (is.null(issues)) {
     issues <- c("none")
   }
-  
+
   return(paste(issues, collapse = "; "))
 }

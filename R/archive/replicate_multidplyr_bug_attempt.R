@@ -27,7 +27,7 @@ mdplyr_function <- function(big_df){
     partition(cluster = cluster) %>%
     summarise(m = my_slow_mean(X)) %>% collect()
   t2 <- proc.time() - t1
-  
+
   print(t2)
 }
 

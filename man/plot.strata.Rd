@@ -4,10 +4,10 @@
 \alias{plot.strata}
 \title{Plot method for \code{strata} object}
 \usage{
-\method{plot}{strata}(strata, type = "scatter", label = FALSE)
+\method{plot}{strata}(x, type = "scatter", label = FALSE, ...)
 }
 \arguments{
-\item{strata}{a \code{strata} object returned by \code{\link{auto_stratify}}
+\item{x}{a \code{strata} object returned by \code{\link{auto_stratify}}
 or \code{\link{manual_stratify}}}
 
 \item{type}{string giving the plot type (default = \code{"scatter"}).  Other
@@ -15,6 +15,8 @@ options are \code{"hist"} and \code{"residual"}}
 
 \item{label}{ignored unless \code{type = scatter}. If \code{TRUE}, then
 problematic strata are labeled in the scatter plot}
+
+\item{...}{other arguments}
 }
 \description{
 Generates diagnostic plots for the product of a stratification by

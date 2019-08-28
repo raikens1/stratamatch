@@ -93,15 +93,14 @@ big_match_dopar <- function(strat, propensity_formula = NULL) {
 #' @return a data.frame like dat with pair assignments
 #' @export
 big_match_multidplyr <- function(strat, propensity_formula = NULL) {
-  library(multidplyr)
   t1 <- proc.time()
   if (is.null(propensity_formula)){
     propensity_formula <- formula(paste(c(strat$treat, "~ . -", strat$outcome,
                                           "- stratum"), collapse = ""))
   }
-  
+
   print(propensity_formula)
-  
+
   # build propensity model
   propensity_model <- glm(propensity_formula,
                           data = strat$analysis_set,
@@ -123,21 +122,23 @@ big_match_multidplyr <- function(strat, propensity_formula = NULL) {
   #  group_by(stratum) %>%
   #  partition(cluster = cluster) %>%
   #  do(match_one(., propensity_model = propensity_model, treat = treat)) %>% collect()
-  
-  stp1 <- group_by(strat$analysis_set, stratum)
-  
+
+  stp1 <- dplyr::group_by(strat$analysis_set, stratum)
+
   stp2 <- multidplyr::partition(stp1, cluster = cluster)
-  
+
   print(is(stp2))
   print(methods(do))
-  
-  stp3 <- do(stp2, match_one(., propensity_model = propensity_model, treat = treat))
-  
-  result <- collect(stp3)
-  
+
+  stp3 <- do(stp2, match_one(.,
+                             propensity_model = propensity_model,
+                             treat = treat))
+
+  result <- multidplyr::collect(stp3)
+
   #parallel::stopCluster(cluster)
 
-  return(proc.time()-t1)
+  return(result)
 }
 
 #' Big Match

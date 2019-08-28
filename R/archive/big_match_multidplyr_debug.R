@@ -35,10 +35,12 @@ stp2 <- partition(stp1, cluster = cluster)
 print(is(stp2))
 print(methods(do))
 
-stp3 <- do(stp2, match_one(., propensity_model = propensity_model, treat = treat))
+stp3 <- do(stp2, match_one(.,
+                           propensity_model = propensity_model,
+                           treat = treat))
 
 result <- collect(stp3)
 
 #parallel::stopCluster(cluster)
 
-print(proc.time()-t1)
+print(proc.time() - t1)
