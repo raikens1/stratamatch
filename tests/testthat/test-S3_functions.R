@@ -22,7 +22,7 @@ make_test_data <- function(){
 
 test_that("Print manual strata works", {
   test_dat <- make_test_data()
-  m.strat <- manual_stratify(test_dat, "treat", c("cat"))
+  m.strat <- manual_stratify(test_dat, treat ~ cat)
 
   expect_known_output(print(m.strat), file = "ref_mstrat_print", update = F)
 })
@@ -49,7 +49,7 @@ test_that("Print auto strata works", {
 
 test_that("Plot errors work", {
   test_dat <- make_test_data()
-  m.strat <- manual_stratify(test_dat, "treat", c("cat"))
+  m.strat <- manual_stratify(test_dat, treat ~ cat)
 
   expect_error(plot(m.strat, type = "residual"),
                "Prognostic score residual plots are only valid for auto-stratified data.")
@@ -65,7 +65,7 @@ test_that("Plot errors work", {
 
 test_that("Scatter plot works", {
   test_dat <- make_test_data()
-  m.strat <- manual_stratify(test_dat, "treat", c("cat"))
+  m.strat <- manual_stratify(test_dat, treat ~ cat)
 
   expect_known_output(plot(m.strat), file = "ref_mstrat_scatter_plot", update = F)
 })

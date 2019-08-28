@@ -30,60 +30,15 @@ names(lalonde)[names(lalonde) == "treat"] <- "treated"
 # Stratify
 ## Manual Stratify
 
-### Testing errors and warnings
-
-This call should return an error because "educ" is a continuous variable.
-
-```{r, eval = FALSE}
-# manual stratification with a continuous variable 
-m.strat <- manual_stratify(lalonde, treat = "treated",
-                           covariates = c("black", "hispan", "educ", "nodegree"))
-
-# Error in warn_if_continuous(data[, covariates[i]], covariates[i]) : 
-#   There are 19 distinct values for educ. Is it continuous?
-
-# manual stratification with a continuous variable, force = TRUE 
-m.strat <- manual_stratify(lalonde, treat = "treated",
-                           covariates = c("black", "hispan", "educ", "nodegree"), force = TRUE)
-
-# There are 19 distinct values for educ. Is it continuous?
-```
-
-### Testing Functionality with Valid Inputs
-
 This call should return six strata (since black and hispanic seem to be mutually exclusive categories in this dataset).
 
 ```{r}
-# allowable manual stratification
-m.strat <- manual_stratify(lalonde, treat = "treated",
-                           covariates = c("black", "hispan", "nodegree"))
+m.strat <- manual_stratify(lalonde, treated ~ black + hispan + nodegree)
 ```
 
 \pagebreak
 
 ## Auto Stratify
-
-### Testing Errors and Warnings
-First, testing error handling. These should fail and/or give warnings.
-
-```{r, eval=FALSE}
-# auto stratification with missing arguements
-a.strat <- auto_stratify(lalonde, "treated", "outcome")
-
-# Error in auto_stratify(lalonde, "treat", "outcome") : 
-#   At least one of covariates and prog_scores should be specified.
-```
-
-```{r, eval = FALSE}
-# auto stratification with covariates and prog scores specified, and prog_scores invalid
-a.strat <- auto_stratify(lalonde, "treated", "outcome", outcome ~ age + educ, prog_scores = 1:4)
-
-# covariates and prog_scores are both specified. Using prog_scores; ignoring covariates.
-# Error in auto_stratify(lalonde, "treat", "outcome", outcome ~ age + :
-#   prog_scores must be the same length as the data
-```
-
-### Testing Functionality with Valid Inputs
 
 These should give valid results.
 

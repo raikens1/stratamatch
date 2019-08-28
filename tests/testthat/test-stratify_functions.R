@@ -23,14 +23,10 @@ make_test_data <- function(){
 test_that("manual_stratify errors work", {
   test_dat <- make_test_data()
 
-  expect_error(manual_stratify(test_dat,
-                               treat = "treat",
-                               covariates = c("cat", "cont")),
+  expect_error(manual_stratify(test_dat, strat_formula = treat ~ cat + cont),
                "There are 16 distinct values for cont. Is it continuous?")
 
-  expect_warning(manual_stratify(test_dat,
-                               treat = "treat",
-                               covariates = c("cat", "cont"),
+  expect_warning(manual_stratify(test_dat, strat_formula = treat ~ cat + cont,
                                force = TRUE),
                "There are 16 distinct values for cont. Is it continuous?")
 })
@@ -38,9 +34,7 @@ test_that("manual_stratify errors work", {
 test_that("manual stratify works", {
   test_dat <- make_test_data()
 
-  m.strat <- manual_stratify(test_dat,
-                             treat = "treat",
-                             covariates = c("cat"))
+  m.strat <- manual_stratify(test_dat, treat ~ cat)
 
   expect_is(m.strat, "manual_strata")
   expect_is(m.strat, "strata")
@@ -51,7 +45,7 @@ test_that("manual stratify works", {
   expect_equal(m.strat$treat, "treat")
 
   expect_equal(toString(m.strat$call),
-               "manual_stratify, test_dat, treat, c(\"cat\")")
+               "manual_stratify, test_dat, treat ~ cat")
 
   exp_issue_table <- data.frame(Stratum = 1:4,
                             Treat = rep(2, 4),

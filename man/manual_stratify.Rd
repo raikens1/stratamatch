@@ -4,15 +4,15 @@
 \alias{manual_stratify}
 \title{Manual Stratify}
 \usage{
-manual_stratify(data, treat, covariates, force = FALSE)
+manual_stratify(data, strat_formula, force = FALSE)
 }
 \arguments{
 \item{data}{data.frame with observations as rows, features as columns}
 
-\item{treat}{the name of the column which specifies treatment assignment}
-
-\item{covariates}{a vector strings, which are the names of the columns to be
-used as covariates stratification}
+\item{strat_formula}{the formula to be used for stratification.  (e.g. `treat
+~ X1`) the variable on the left is taken to be the name of the treatment
+assignment column, and the variables on the left are taken to be the
+variables by which the data should be stratified}
 
 \item{force}{a boolean. If true, run even if a variable appears continuous.
 (default = FALSE)}

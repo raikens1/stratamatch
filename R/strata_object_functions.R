@@ -23,12 +23,21 @@
 #'   corresponds to
 #' @return a basic \code{manual_strata} object
 #' @export
-new_manual_strata <- function(treat, covariates,
-                              analysis_set = NULL,
-                              call = NULL,
-                              issue_table = NULL,
-                              strata_table = NULL){
+new_manual_strata <- function(treat = character(),
+                              covariates = character(),
+                              analysis_set = data.frame(),
+                              call = call(),
+                              issue_table = data.frame(),
+                              strata_table = data.frame()){
 
+  
+  stopifnot(is.character(treat))
+  stopifnot(is.character(covariates))
+  stopifnot(is.data.frame(analysis_set))
+  stopifnot(is.call(call))
+  stopifnot(is.data.frame(issue_table))
+  stopifnot(is.data.frame(strata_table))
+  
   my_manualstrata <- structure(list(analysis_set = analysis_set,
                                     treat = treat,
                                     call = call,
@@ -36,7 +45,8 @@ new_manual_strata <- function(treat, covariates,
                                     covariates = covariates,
                                     strata_table = strata_table),
                                class = c("manual_strata", "strata"))
-
+  
+  return(my_manualstrata)
 }
 
 #' New Autostrata

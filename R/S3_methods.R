@@ -5,6 +5,48 @@
 #----------------------------------------------------------
 
 #----------------------------------------------------------
+### INHERITANCE
+#----------------------------------------------------------
+
+#' Checks \code{strata} class
+#' 
+#' Checks if the target object is a \code{strata} object.
+#' 
+#' @param object any R object
+#' @return Returns \code{TRUE} if its argument has class "strata" among its classes and
+#' \code{FALSE} otherwise.
+#' @export
+is.strata <- function(object) {
+  inherits(object, "strata")
+}
+
+#' Checks \code{auto_strata} class
+#' 
+#' Checks if the target object is an \code{auto_strata} object.
+#' 
+#' @param object any R object
+#' @return Returns \code{TRUE} if its argument has class "auto_strata" among its classes and
+#' \code{FALSE} otherwise.
+#' @export
+is.auto_strata <- function(object) {
+  inherits(object, "auto_strata")
+}
+
+
+#' Checks \code{manual_strata} class
+#' 
+#' Checks if the target object is a \code{manual_strata} object.
+#' 
+#' @param object any R object
+#' @return Returns \code{TRUE} if its argument has class "manual_strata" among its classes and
+#' \code{FALSE} otherwise.
+#' @export
+is.manual_strata <- function(object) {
+  inherits(object, "manual_strata")
+}
+
+
+#----------------------------------------------------------
 ### PRINT METHODS
 #----------------------------------------------------------
 

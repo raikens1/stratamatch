@@ -14,23 +14,19 @@
 #' matched by some other means.
 #'
 #' @param data data.frame with observations as rows, features as columns
-#' @param treat the name of the column which specifies treatment assignment
-#' @param covariates a vector strings, which are the names of the columns to be
-#'   used as covariates stratification
+#' @param strat_formula the formula to be used for stratification.  (e.g. `treat
+#'   ~ X1`) the variable on the left is taken to be the name of the treatment
+#'   assignment column, and the variables on the left are taken to be the
+#'   variables by which the data should be stratified
 #' @param force a boolean. If true, run even if a variable appears continuous.
 #'   (default = FALSE)
 #' @return A \code{manual_strata} object
 #' @seealso \code{\link{auto_stratify}}, \code{\link{new_manual_strata}}
 #' @export
-manual_stratify <- function(data, treat, covariates, force = FALSE){
-
-  result <- new_manual_strata(analysis_set = NULL,
-                            treat = treat,
-                            call = match.call(),
-                            issue_table = NULL,
-                            covariates = covariates,
-                            strata_table = NULL)
-
+manual_stratify <- function(data, strat_formula, force = FALSE){
+  treat <- all.vars(strat_formula)[1]
+  covariates <- all.vars(strat_formula)[-1]
+  
   n <- dim(data)[1]
 
   # Check that all covariates are discrete
@@ -50,15 +46,22 @@ manual_stratify <- function(data, treat, covariates, force = FALSE){
   # Interact covariates
   grouped_table <- dplyr::group_by_at(data, covariates) %>%
     dplyr::mutate(stratum = as.integer(get_integer()))
-
-  result$analysis_set <- grouped_table %>%
+  
+  analysis_set <- grouped_table %>%
     dplyr::ungroup()
-
-  result$strata_table <- grouped_table %>%
+  
+  strata_table <- grouped_table %>%
     dplyr::summarize(stratum = dplyr::first(stratum),
                      size = dplyr::n())
-
-  result$issue_table <- make_issue_table(result$analysis_set, treat)
+  
+  issue_table <- make_issue_table(analysis_set, treat)
+  
+  result <- new_manual_strata(analysis_set = analysis_set,
+                              treat = treat,
+                              call = match.call(),
+                              issue_table = issue_table,
+                              covariates = covariates,
+                              strata_table = strata_table)
 
   return(result)
 }
@@ -147,15 +150,15 @@ auto_stratify <- function(data, treat, outcome, prog_formula = NULL,
                           held_frac = 0.1, held_sample = NULL) {
 
   result <- new_auto_strata(analysis_set = NULL,
-                           treat = treat,
-                           call = match.call(),
-                           issue_table = NULL,
-                           strata_table = NULL,
-                           outcome = outcome,
-                           prog_scores = NULL,
-                           prog_model = NULL,
-                           pilot_set = NULL)
-
+                            treat = treat,
+                            call = match.call(),
+                            issue_table = NULL,
+                            strata_table = NULL,
+                            outcome = outcome,
+                            prog_scores = NULL,
+                            prog_model = NULL,
+                            pilot_set = NULL)
+  
   # check inputs
   if (is.null(prog_formula) && is.null(prog_scores)){
     stop("At least one of prog_formula and prog_scores should be specified.")
@@ -215,7 +218,7 @@ auto_stratify <- function(data, treat, outcome, prog_formula = NULL,
 
   print("Completing strata diagnostics.")
   result$issue_table <- make_issue_table(result$analysis_set, treat)
-
+  
   return(result)
 }
 
