@@ -91,7 +91,6 @@ big_match_dopar <- function(strat, propensity_formula = NULL) {
 #' @param strat a strata object
 #' @param propensity_formula the formula for the propensity score
 #' @return a data.frame like dat with pair assignments
-#' @export
 big_match_multidplyr <- function(strat, propensity_formula = NULL) {
   t1 <- proc.time()
   if (is.null(propensity_formula)){
