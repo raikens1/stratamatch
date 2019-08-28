@@ -62,11 +62,6 @@ print.manual_strata <- function(x, ...) {
   writeLines(paste("\nNumber of strata:", dim(x$issue_table)[1],
                    "\n\n\tMin size:", min(x$issue_table$Total),
                    "\tMax size:", max(x$issue_table$Total)))
-
-  if (dim(x$issue_table)[1] <= 15) {
-    writeLines("\nStrata issue table:")
-    print(x$issue_table)
-  }
 }
 
 #----------------------------------------------------------
