@@ -4,6 +4,7 @@
 ~$*
 *_files
 *_cache
+BigMatch.Rproj
 
 # Compiled source #
 ###################
@@ -48,3 +49,6 @@
 ehthumbs.db
 Thumbs.db
 .Rproj.user
+inst/doc
+doc
+Meta

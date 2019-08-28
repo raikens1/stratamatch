@@ -1,0 +1,19 @@
+manual_strata object from package big_match.
+
+Function call:
+manual_stratify(data = test_dat, treat = "treat", covariates = c("cat"))
+
+Analysis set dimensions: 16 X 5
+
+Number of strata: 4 
+
+	Min size: 4 	Max size: 4
+
+Strata issue table:
+# A tibble: 4 x 6
+  Stratum Treat Control Total Control_Proportion Potential_Issues
+    <int> <dbl>   <dbl> <int>              <dbl> <chr>           
+1       1     2       2     4                0.5 Too few samples 
+2       2     2       2     4                0.5 Too few samples 
+3       3     2       2     4                0.5 Too few samples 
+4       4     2       2     4                0.5 Too few samples 

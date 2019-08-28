@@ -1,25 +1,21 @@
 ---
-title: "Big_match - Testing and Small Demo"
-author: "Rachael 'Rocky' Aikens, Chen/Baiocchi Lab"
-date: "August 24, 2018"
-output:
-  pdf_document: default
-  html_document: default
+title: "Introduction to BigMatch"
+author: "Rachael C. Aikens"
+date: "` r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to BigMatch}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 This R markdown document is used for testing and demoing the current functionality of bigmatch.  We'll use the sample data from the MatchIt package for basic testing.
 
 ```{r, warning=FALSE, message = FALSE}
-require(MatchIt)
-require(ggplot2)
-require(ggpubr)
-require(dplyr)
-require(optmatch)
-
+library(MatchIt)
+library(BigMatch)
 
 data("lalonde")
-source('../R/big_match.R')
-source('../R/class_functions.R')
 
 # adding a binary outcome
 lalonde$outcome <- lalonde$re78 > 15000
@@ -157,7 +153,7 @@ b <- plot(a.strat1, label = TRUE)
 c <- plot(a.strat2, label = TRUE)
 d <- plot(a.strat3, label = TRUE) 
 
-ggarrange(a, b, c, d, ncol = 2, nrow = 2,
+ggpubr::ggarrange(a, b, c, d, ncol = 2, nrow = 2,
           labels = "AUTO")
 ```
 
@@ -205,7 +201,7 @@ b <- plot(a.strat2, type = "hist")
 # strata quantiles are less evenly distributed from 0 to 1
 c <- plot(a.strat3, type = "hist")
 
-ggarrange(a, b, c, ncol = 1, nrow = 3, labels = "AUTO")
+ggpubr::ggarrange(a, b, c, ncol = 1, nrow = 3, labels = "AUTO")
 ```
 
 
