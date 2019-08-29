@@ -91,7 +91,7 @@ big_match_dopar <- function(strat, propensity_formula = NULL) {
 #' @param strat a strata object
 #' @param propensity_formula the formula for the propensity score
 #' @return a data.frame like dat with pair assignments
-big_match_multidplyr <- function(strat, propensity_formula = NULL) {
+big_match_multidplyr <- function(strat, propensity_formula = NULL, k = 1) {
   t1 <- proc.time()
   if (is.null(propensity_formula)){
     propensity_formula <- formula(paste(c(strat$treat, "~ . -", strat$outcome,
@@ -115,7 +115,8 @@ big_match_multidplyr <- function(strat, propensity_formula = NULL) {
                              pairmatch = optmatch::pairmatch,
                              match_one = match_one,
                              make_distance_matrix = make_distance_matrix,
-                             treat = treat)
+                             treat = treat,
+                             k = k)
   # match in parallel
   #result <- strat$analysis_set %>%
   #  group_by(stratum) %>%
@@ -131,7 +132,8 @@ big_match_multidplyr <- function(strat, propensity_formula = NULL) {
 
   stp3 <- do(stp2, match_one(.,
                              propensity_model = propensity_model,
-                             treat = treat))
+                             treat = treat,
+                             k = k))
 
   result <- multidplyr::collect(stp3)
 
