@@ -30,10 +30,11 @@ Imports:
   Hmisc (>= 4.2-0),
   RColorBrewer (>= 1.1-2),
   magrittr (>= 1.5),
+  optmatch (>= 0.9-11),
+  survival(>= 2.44.1.1)
 Depends: 
   R (>= 3.6.0),
-  multidplyr,
-  optmatch (>= 0.9-11)
+  multidplyr
 Suggests:
     knitr,
     rmarkdown,
