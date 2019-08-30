@@ -90,6 +90,8 @@ big_match_dopar <- function(strat, propensity_formula = NULL) {
 #'
 #' @param strat a strata object
 #' @param propensity_formula the formula for the propensity score
+#' @param k the number of control individuals to match to each treated
+#'   individual
 #' @return a data.frame like dat with pair assignments
 big_match_multidplyr <- function(strat, propensity_formula = NULL, k = 1) {
   t1 <- proc.time()
@@ -121,7 +123,7 @@ big_match_multidplyr <- function(strat, propensity_formula = NULL, k = 1) {
   #result <- strat$analysis_set %>%
   #  group_by(stratum) %>%
   #  partition(cluster = cluster) %>%
-  #  do(match_one(., propensity_model = propensity_model, treat = treat)) %>% collect()
+  #  do(match_one(., propensity_model = propensity_model, treat = treat, k = k)) %>% collect()
 
   stp1 <- dplyr::group_by(strat$analysis_set, stratum)
 

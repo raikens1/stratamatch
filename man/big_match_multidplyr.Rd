@@ -4,12 +4,15 @@
 \alias{big_match_multidplyr}
 \title{Big Match Multidplyr}
 \usage{
-big_match_multidplyr(strat, propensity_formula = NULL)
+big_match_multidplyr(strat, propensity_formula = NULL, k = 1)
 }
 \arguments{
 \item{strat}{a strata object}
 
 \item{propensity_formula}{the formula for the propensity score}
+
+\item{k}{the number of control individuals to match to each treated
+individual}
 }
 \value{
 a data.frame like dat with pair assignments

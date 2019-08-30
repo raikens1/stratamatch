@@ -30,14 +30,14 @@ new_manual_strata <- function(treat = character(),
                               issue_table = data.frame(),
                               strata_table = data.frame()){
 
-  
+
   stopifnot(is.character(treat))
   stopifnot(is.character(covariates))
   stopifnot(is.data.frame(analysis_set))
   stopifnot(is.call(call))
   stopifnot(is.data.frame(issue_table))
   stopifnot(is.data.frame(strata_table))
-  
+
   my_manualstrata <- structure(list(analysis_set = analysis_set,
                                     treat = treat,
                                     call = call,
@@ -45,7 +45,7 @@ new_manual_strata <- function(treat = character(),
                                     covariates = covariates,
                                     strata_table = strata_table),
                                class = c("manual_strata", "strata"))
-  
+
   return(my_manualstrata)
 }
 
@@ -89,6 +89,14 @@ new_auto_strata <- function(outcome, treat,
                            prog_scores = NULL,
                            prog_model = NULL,
                            pilot_set = NULL){
+
+  stopifnot(is.character(outcome))
+  stopifnot(is.character(treat))
+  stopifnot(is.data.frame(analysis_set))
+  stopifnot(is.call(call))
+  stopifnot(is.data.frame(issue_table))
+  stopifnot(is.data.frame(strata_table))
+  stopifnot(is.numeric(prog_scores))
 
   my_autostrata <- structure(list(analysis_set = analysis_set,
                                  treat = treat,
