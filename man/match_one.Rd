@@ -4,7 +4,7 @@
 \alias{match_one}
 \title{Match One}
 \usage{
-match_one(dat, propensity_model, treat, k = 1)
+match_one(dat, propensity_model, treat, k)
 }
 \arguments{
 \item{dat}{a data.frame with observations as rows, outcome column masked}

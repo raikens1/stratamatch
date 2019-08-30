@@ -95,7 +95,7 @@ auto_stratify <- function(data, treat, outcome = NULL, prog_formula = NULL,
 }
 
 #----------------------------------------------------------
-### General Helpers
+### Helpers
 #----------------------------------------------------------
 
 #' Build Prognostic Model

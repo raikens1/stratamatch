@@ -160,18 +160,79 @@ summarize_balance <- function(data, treat){
 ### PLOT METHODS
 #----------------------------------------------------------
 
-#' Make Scatter Plot
+#' Plot method for \code{strata} object
+#'
+#' Generates diagnostic plots for the product of a stratification by
+#' \code{\link{auto_stratify}} or \code{\link{manual_stratify}}.  There are
+#' three plot types: \enumerate{ 
+#' \item "scatter" (default) - produces a scatter
+#' plot of strata by size and treat:control ratio 
+#' \item "hist" - produces a
+#' histogram of propensity scores within a stratum 
+#' \item "FM" - produces a
+#' Fisher-Mill plot of individuals within a stratum 
+#' \item "resid" - produces a
+#' residual plot for the prognostic model (not supported for \code{manual
+#' strata} objects)}
+#'
+#' @param x a \code{strata} object returned by \code{\link{auto_stratify}} or
+#'   \code{\link{manual_stratify}}
+#' @param type string giving the plot type (default = \code{"scatter"}).  Other
+#'   options are \code{"hist"}, \code{"FM"} and \code{"residual"}
+#' @param label ignored unless \code{type = "scatter"}. If \code{TRUE}, then
+#'   problematic strata are labeled in the scatter plot
+#' @param propensity either a vector if propensity scores, a model for
+#'   propensity scores, or a formula for fitting a propensity score model.
+#'   Required for "hist" and "FM plots.  Otherwise ignored
+#' @param stratum the number of the stratum to be plotted.  Required for "hist"
+#'   and "FM" plots. Otherwise ignored
+#' @param ... other arguments
+#' @return a plot of the specified type
+#' @export
+plot.strata <- function(x, type = "scatter", label = FALSE, 
+                        propensity, stratum, ...){
+  if (type == "scatter") make_scatter_plot(x, label)
+  else if (type == "hist") make_hist_plot(x, propensity, stratum)
+  else if (type == "FM") make_fm_plot(x, propensity, stratum)
+  else if (type == "residual") make_resid_plot(x)
+  else {
+    stop("Not a recognized plot type.")
+  }
+}
+
+#' Make scatter plot
+#' 
+#' Not meant to be called externally.  Helper plot function for \code{strata}.
+#' Checks dependencies and dispatches to \code{\link{make_scatter_plot_gg}} if
+#' able.  Otherwise makes a plot in base R.
+#'
+#' @inheritParams plot.strata
+#'
+#' @return a scatter plot of strata by size and control proportion
+make_scatter_plot <- function(x, label) {
+  if (requireNamespace("ggplot2", quietly = T)){
+    if (label == FALSE | requireNamespace("ggrepel", quietly = T)) {
+      make_scatter_plot_gg(x$issue_table, label)
+    } else {
+      warning("Cannot add labels without ggrepel.  Ignoring label = TRUE.")
+      make_scatter_plot_gg(x$issue_table, FALSE)
+    }
+  }
+}
+
+#' Make Scatter Plot (GGplot installed)
 #'
 #' Not meant to be called externally. Helper plot function for \code{strata}
 #' object with type = "scatter." Generates a scatter plot of all strata by size
-#' and treat:control ratio.  Highlights strata which may be problematic.
+#' and treat:control ratio, using \code{ggplot} and \code{ggrepel}.  Highlights
+#' strata which may be problematic.
 #'
 #' @param issue_table the \code{issue_table} from a \code{strata} object
 #' @param label, if true, label problematic strata.  Not recommended if there
 #'   are many problematic strata.
 #' @seealso \code{\link{make_issue_table}}
 #' @return Returns the scatterplot
-make_scatter_plot <- function(issue_table, label){
+make_scatter_plot_gg <- function(issue_table, label){
 
   # set parameters
   CONTROL_MIN <- 0.2
@@ -223,92 +284,96 @@ make_scatter_plot <- function(issue_table, label){
 #' Make histogram plot
 #'
 #' Not meant to be called externally.  Helper plot function for \code{strata}
-#' object with type = "hist".  Produces a column plot of prognostic score means
-#' across strata and a histogram of prognostic score, colored by strata.  Not
-#' recommended if there are many strata.
+#' object with type = "hist".  Produces a histogram of propensity scores
+#' across strata. 
 #' 
-#' @param auto_strata an \code{auto_strata} object
-#' @return Returns an arrangement of the column plot and histogram.
-make_hist_plot <- function(auto_strata){
-  plotdata <- auto_strata$analysis_set
-  plotdata$prog_scores <- auto_strata$prog_scores
+#' @inheritParams plot.strata
+#' @param s the number code of the strata to be plotted
+#' 
+#' @return Returns a histogram of propensity scores with strata
+make_hist_plot <- function(x, propensity, s){
+  a_set <- x$analysis_set
+  
+  if(!is.element(s, unique(a_set$stratum))){
+    stop("stratum number does not exist in analysis set")
+  }
+  
+  plt_data <- a_set %>%
+    dplyr::mutate(prop_score = get_prop_scores(propensity, a_set)) %>%
+    dplyr::filter(stratum == s)
+  
+  names(plt_data)[names(plt_data) == x$treat] <- "treat"
+  
+  ht <- dplyr::filter(plt_data, treat == 1)$prop_score
+  hc <- dplyr::filter(plt_data, treat == 0)$prop_score
+  
+  title <- paste("Histogram of propensity scores in stratum", s)
+    
+  hist(ht, col = rgb(1,0,0,0.5), main = title, xlab = "propensity score")
+  hist(hc, col = rgb(0,0,1,0.5), add = TRUE)
+  legend("topright", inset=c(-0.2,0), legend = c("treated", "control"),
+         col = c(rgb(1,0,0,0.5), rgb(0,0,1,0.5)))
+}
 
-  plot_summary <- plotdata %>%
-    dplyr::group_by(stratum) %>%
-    dplyr::summarize(prog_mean = mean(prog_scores))
-
-  a <- ggplot2::ggplot(data = plot_summary,
-                       ggplot2::aes(x = stratum, y = prog_mean,
-                                    fill = as.factor(stratum))) +
-    ggplot2::geom_col() +
-    ggplot2::labs(y = "Mean Prognistic Score", x = "Stratum") +
-    ggplot2::theme(legend.position = "none") +
-    ggplot2::scale_fill_brewer(palette = "Blues")
-
-  b <- ggplot2::ggplot(plotdata, ggplot2::aes(x = prog_scores,
-                                              group = as.factor(stratum),
-                            fill = as.factor(stratum))) +
-    ggplot2::geom_histogram() +
-    ggplot2::labs(y = "Prognostic Score", "Number of Observations") +
-    ggplot2::scale_fill_brewer(name = "Stratum", palette = "Blues")
-
-  return(ggpubr::ggarrange(a, b, ncol = 2, widths = c(1, 1.5)))
+#' Make Fisher-Mill plot
+#'
+#' Not meant to be called externally.  Helper plot function for \code{strata}
+#' object with type = "FM".  Produces Fisher-Mill plot for individuals within a
+#' stratum.
+#'
+#' @inheritParams plot.strata
+#' @seealso Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
+#'   Section 3.2 for an explaination of Fisher-Mill plots
+#' @return Returns a histogram of propensity scores with strata
+make_fm_plot <- function(x, propensity, stratum){
+  warning("not yet implemented")
+  return(0)
 }
 
 #' Make Residual Plot
 #'
 #' Not yet implemented.  Not meant to be called externally. Helper plot function
-#' for \code{strata} object with type = "residual"
-#'
-#' @description Produces partial residual plots for the prognostic score models
-#' @param auto_strata an \code{auto_strata} object
+#' for \code{strata} object with type = "residual" Produces partial residual
+#' plots for the prognostic score models
+#' 
+#' @inheritParams plot.strata
 #' @return Returns the (partial) residual plot(s)
-make_resid_plot <- function(auto_strata){
-  # TODO: Implement
-  return(plot(1))
+make_resid_plot <- function(x){
+  if (!is.auto_strata(x)){
+    stop("Prognostic score residual plots are only valid for auto-stratified data.")
+  } else {
+    if (is.null(x$prog_model)){
+      stop("Cannot make prognostic model residual plots since prog_scores were provided.")
+    } else{
+      return(plot(x$prog_model))
+    }
+  }
 }
 
-#' Plot method for \code{strata} object
+#' Parse \code{propensity} input to obtain propensity scores
 #'
-#' Generates diagnostic plots for the product of a stratification by
-#' \code{\link{auto_stratify}} or \code{\link{manual_stratify}}.  There are
-#' three plot types: \enumerate{ \item "scatter" (default) - produces a scatter
-#' plot of strata by size and treat:control ratio \item "hist" - produces a
-#' histogram of stratum size (not supported for \code{manual strata} objects)
-#' \item "resid" - produces a residual plot for the prognostic model (not
-#' supported for \code{manual strata} objects) }
+#' the \code{propensity} input to \code{plot.strata} can be propensity scores, a
+#' propensity model, or a formula for propensity score.  This function figures 
+#' out which type \code{propensity} is and returns the propensity scores.
 #'
-#' @param x a \code{strata} object returned by \code{\link{auto_stratify}}
-#'   or \code{\link{manual_stratify}}
-#' @param type string giving the plot type (default = \code{"scatter"}).  Other
-#'   options are \code{"hist"} and \code{"residual"}
-#' @param label ignored unless \code{type = scatter}. If \code{TRUE}, then
-#'   problematic strata are labeled in the scatter plot
-#' @param ... other arguments
-#' @export
-plot.strata <- function(x, type = "scatter", label = FALSE, ...){
-  if (type == "scatter"){
-    make_scatter_plot(x$issue_table, label)
+#' @param propensity either a vector of propensity scores, a model for propensity, or a formula for propensity scores
+#' @param data, the analysis set data within a stratum
+#'
+#' @return vector of propensity scores
+get_prop_scores <- function(propensity, data){
+  # if it is a vector of propensity scores, return it
+  if (is.numeric(propensity) & length(propensity) == dim(data)[1]){
+    return(propensity)
   }
-  else if (type == "hist"){
-    if (!("auto_strata" %in% class(x))){
-      stop("Prognostic score histograms are only valid for auto-stratified data.")
-    } else {
-      make_hist_plot(x)
-    }
+  
+  # if it is a formula
+  if (inherits(propensity, "formula")){
+    prop_model <- glm(propensity, data, family = "binomial")
+    return(predict(prop_model))
   }
-  else if (type == "residual"){
-    if (!("auto_strata" %in% class(x))){
-      stop("Prognostic score residual plots are only valid for auto-stratified data.")
-    } else {
-      if (is.null(x$prog_model)){
-        stop("Cannot make prognostic score residual plots. Prognostic model is unknown.")
-      } else{
-        make_resid_plot(x)
-      }
-    }
-  }
-   else {
-     stop("Not a recognized plot type.")
-   }
+  
+  # if it is a model for propensity, predict on data
+  # This error handling doesn't work
+  return(tryCatch(predict(propensity, newdata = data, type = "response"),
+                          error = function(c) "Error: propensity type not recognized"))
 }

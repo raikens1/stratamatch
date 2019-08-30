@@ -4,26 +4,42 @@
 \alias{plot.strata}
 \title{Plot method for \code{strata} object}
 \usage{
-\method{plot}{strata}(x, type = "scatter", label = FALSE, ...)
+\method{plot}{strata}(x, type = "scatter", label = FALSE, propensity,
+  stratum, ...)
 }
 \arguments{
-\item{x}{a \code{strata} object returned by \code{\link{auto_stratify}}
-or \code{\link{manual_stratify}}}
+\item{x}{a \code{strata} object returned by \code{\link{auto_stratify}} or
+\code{\link{manual_stratify}}}
 
 \item{type}{string giving the plot type (default = \code{"scatter"}).  Other
-options are \code{"hist"} and \code{"residual"}}
+options are \code{"hist"}, \code{"FM"} and \code{"residual"}}
 
-\item{label}{ignored unless \code{type = scatter}. If \code{TRUE}, then
+\item{label}{ignored unless \code{type = "scatter"}. If \code{TRUE}, then
 problematic strata are labeled in the scatter plot}
 
+\item{propensity}{either a vector if propensity scores, a model for
+propensity scores, or a formula for fitting a propensity score model.
+Required for "hist" and "FM plots.  Otherwise ignored}
+
+\item{stratum}{the number of the stratum to be plotted.  Required for "hist"
+and "FM" plots. Otherwise ignored}
+
 \item{...}{other arguments}
+}
+\value{
+a plot of the specified type
 }
 \description{
 Generates diagnostic plots for the product of a stratification by
 \code{\link{auto_stratify}} or \code{\link{manual_stratify}}.  There are
-three plot types: \enumerate{ \item "scatter" (default) - produces a scatter
-plot of strata by size and treat:control ratio \item "hist" - produces a
-histogram of stratum size (not supported for \code{manual strata} objects)
-\item "resid" - produces a residual plot for the prognostic model (not
-supported for \code{manual strata} objects) }
+three plot types: \enumerate{ 
+\item "scatter" (default) - produces a scatter
+plot of strata by size and treat:control ratio 
+\item "hist" - produces a
+histogram of propensity scores within a stratum 
+\item "FM" - produces a
+Fisher-Mill plot of individuals within a stratum 
+\item "resid" - produces a
+residual plot for the prognostic model (not supported for \code{manual
+strata} objects)}
 }

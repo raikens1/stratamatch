@@ -100,6 +100,9 @@ warn_if_continuous <- function(column, name, force, n){
   }
 }
 
+#----------------------------------------------------------
+### INPUT CHECKERS
+#----------------------------------------------------------
 
 #' Check inputs to manual_stratify
 #' 

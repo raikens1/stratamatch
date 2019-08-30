@@ -2,24 +2,22 @@
 % Please edit documentation in R/S3_methods.R
 \name{make_scatter_plot}
 \alias{make_scatter_plot}
-\title{Make Scatter Plot}
+\title{Make scatter plot}
 \usage{
-make_scatter_plot(issue_table, label)
+make_scatter_plot(x, label)
 }
 \arguments{
-\item{issue_table}{the \code{issue_table} from a \code{strata} object}
+\item{x}{a \code{strata} object returned by \code{\link{auto_stratify}} or
+\code{\link{manual_stratify}}}
 
-\item{label, }{if true, label problematic strata.  Not recommended if there
-are many problematic strata.}
+\item{label}{ignored unless \code{type = "scatter"}. If \code{TRUE}, then
+problematic strata are labeled in the scatter plot}
 }
 \value{
-Returns the scatterplot
+a scatter plot of strata by size and control proportion
 }
 \description{
-Not meant to be called externally. Helper plot function for \code{strata}
-object with type = "scatter." Generates a scatter plot of all strata by size
-and treat:control ratio.  Highlights strata which may be problematic.
-}
-\seealso{
-\code{\link{make_issue_table}}
+Not meant to be called externally.  Helper plot function for \code{strata}.
+Checks dependencies and dispatches to \code{\link{make_scatter_plot_gg}} if
+able.  Otherwise makes a plot in base R.
 }

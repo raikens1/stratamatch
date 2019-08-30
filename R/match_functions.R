@@ -17,7 +17,7 @@
 #' @param treat string, the name of the treatment assignment column
 #' @param k the number of controls to be matched to each treated individual
 #' @return a data.frame like dat with pair assignments column
-match_one <- function(dat, propensity_model, treat, k = 1){
+match_one <- function(dat, propensity_model, treat, k){
   dist_matrix <- make_distance_matrix(dat,
                                       propensity_model = propensity_model,
                                       treat = treat)
@@ -78,7 +78,8 @@ big_match_dopar <- function(strat, propensity_formula = NULL, k = 1) {
   # just use do for now so we can debug
   foreach(i = as.character(unique(a.strat1$analysis_set$stratum))) %do% {
     dplyr::filter(strat$analysis_set, stratum == i) %>%
-      match_one(., propensity_model = propensity_model, treat = strat$treat)
+      match_one(., propensity_model = propensity_model,
+                treat = strat$treat, k)
 
   }
   stopImplicitCluster()

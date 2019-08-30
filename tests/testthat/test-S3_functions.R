@@ -50,16 +50,17 @@ test_that("Print auto strata works", {
 test_that("Plot errors work", {
   test_dat <- make_test_data()
   m.strat <- manual_stratify(test_dat, treat ~ cat)
-
-  expect_error(plot(m.strat, type = "residual"),
-               "Prognostic score residual plots are only valid for auto-stratified data.")
   a.strat <- auto_stratify(test_dat,
                            "treat",
                            "outcome",
                            prog_scores = test_dat$cont)
 
+  expect_error(plot(m.strat, type = "residual"),
+               "Prognostic score residual plots are only valid for auto-stratified data.")
   expect_error(plot(a.strat, type = "residual"),
-               "Cannot make prognostic score residual plots. Prognostic model is unknown.")
+               "Cannot make prognostic model residual plots since prog_scores were provided.")
+  expect_error(plot(m.strat, type = "FM"),
+               "Cannot make Fisher-Mill plots on manually stratified data.")
 })
 
 

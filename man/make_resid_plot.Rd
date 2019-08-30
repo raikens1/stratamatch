@@ -4,18 +4,17 @@
 \alias{make_resid_plot}
 \title{Make Residual Plot}
 \usage{
-make_resid_plot(auto_strata)
+make_resid_plot(x)
 }
 \arguments{
-\item{auto_strata}{an \code{auto_strata} object}
+\item{x}{a \code{strata} object returned by \code{\link{auto_stratify}} or
+\code{\link{manual_stratify}}}
 }
 \value{
 Returns the (partial) residual plot(s)
 }
 \description{
-Produces partial residual plots for the prognostic score models
-}
-\details{
 Not yet implemented.  Not meant to be called externally. Helper plot function
-for \code{strata} object with type = "residual"
+for \code{strata} object with type = "residual" Produces partial residual
+plots for the prognostic score models
 }
