@@ -28,8 +28,9 @@ match_one <- function(dat, propensity_model, treat, k = 1){
 #' Make Distance Matrix
 #'
 #' Not meant to be called externally. Makes the distance matrix to be passed to
-#' pairmatch. Similar to match_on.glm in optmatch except that the model need not
-#' have been fit on the data we are matching
+#' pairmatch. Similar to \code{match_on.glm} in \code{optmatch} except that the model need not
+#' have been fit on the data we are matching.  Much of this code is copied and 
+#' pasted from the \code{optmatch} package.
 #'
 #' @param dat a data.frame of observations to be matched
 #' @param propensity_model a \code{glm} object modeling propensity scores
@@ -55,11 +56,12 @@ make_distance_matrix <- function(dat, propensity_model, treat){
 #' Still in development. Match within strata in parallel by calling match_one
 #' with dopar. Doesn't work right now.
 #'
-#' @param strat a strata object
-#' @param propensity_formula a formula for the propensity score.  If
-#'   unspecified, all columns except outcome and strata are used.
+#' @inheritParams big_match
 #' @return a data.frame with pair assignments
-big_match_dopar <- function(strat, propensity_formula = NULL) {
+big_match_dopar <- function(strat, propensity_formula = NULL, k = 1) {
+  
+  check_inputs_matcher(strat, propensity_formula, k)
+  
   if (is.null(propensity_formula)){
     propensity_formula <- formula(paste(c(strat$treat, "~ . -", strat$outcome,
                                           "- stratum"), collapse = ""))
@@ -88,12 +90,13 @@ big_match_dopar <- function(strat, propensity_formula = NULL) {
 #' Still in development. Match within strata in parallel by calling match_one
 #' with multidplyr.  Currently buggy, but returns a result.
 #'
-#' @param strat a strata object
-#' @param propensity_formula the formula for the propensity score
-#' @param k the number of control individuals to match to each treated
-#'   individual
+#' @inheritParams big_match
+#' 
 #' @return a data.frame like dat with pair assignments
 big_match_multidplyr <- function(strat, propensity_formula = NULL, k = 1) {
+  
+  check_inputs_matcher(strat, propensity_formula, k)
+  
   t1 <- proc.time()
   if (is.null(propensity_formula)){
     propensity_formula <- formula(paste(c(strat$treat, "~ . -", strat$outcome,
@@ -155,6 +158,9 @@ big_match_multidplyr <- function(strat, propensity_formula = NULL, k = 1) {
 #' @return a named factor with matching assignments
 #' @export
 big_match <- function(strat, propensity_formula = NULL, k = 1){
+
+  check_inputs_matcher(strat, propensity_formula, k)
+
   if (is.null(propensity_formula)){
     # match on all variables, stratified by stratum
     propensity_formula <- formula(paste(strat$treat, "~ . -", strat$outcome,
@@ -192,6 +198,9 @@ big_match <- function(strat, propensity_formula = NULL, k = 1){
 #' @return a named factor with matching assignments
 #' @export
 big_match_nstrat <- function(strat, propensity_formula = NULL, k = 1){
+
+  check_inputs_matcher(strat, propensity_formula, k)
+
   if (is.null(propensity_formula)){
     # match on all variables, stratified by stratum
     propensity_formula <- formula(paste(strat$treat, "~ . -", strat$outcome,
@@ -209,4 +218,22 @@ big_match_nstrat <- function(strat, propensity_formula = NULL, k = 1){
   return(optmatch::pairmatch(propensity_model,
                              data = strat$analysis_set,
                              controls = k))
+}
+
+#' Check inputs to any matching function
+#'
+#' @inheritParams big_match
+#'
+#' @return nothing
+check_inputs_matcher <- function(strat, propensity_formula, k){
+  if (!is.strata(strat)) {
+    stop("strat must be a strata object.  See ?manual_stratify or ?auto_stratify")
+  }
+  if (!is.null(propensity_formula)) {
+    if (!inherits(propensity_formula, "formula")) {
+      stop("propensity_formula must be a formula")
+    }
+  }
+  if (is.na(suppressWarnings(as.integer(k)))) stop("k must be an integer")
+  if (k < 1) stop("k must be 1 or greater")
 }
