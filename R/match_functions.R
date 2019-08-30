@@ -59,9 +59,9 @@ make_distance_matrix <- function(dat, propensity_model, treat){
 #' @inheritParams big_match
 #' @return a data.frame with pair assignments
 big_match_dopar <- function(strat, propensity_formula = NULL, k = 1) {
-  
+
   check_inputs_matcher(strat, propensity_formula, k)
-  
+
   if (is.null(propensity_formula)){
     propensity_formula <- formula(paste(c(strat$treat, "~ . -", strat$outcome,
                                           "- stratum"), collapse = ""))
@@ -94,9 +94,9 @@ big_match_dopar <- function(strat, propensity_formula = NULL, k = 1) {
 #' 
 #' @return a data.frame like dat with pair assignments
 big_match_multidplyr <- function(strat, propensity_formula = NULL, k = 1) {
-  
+
   check_inputs_matcher(strat, propensity_formula, k)
-  
+
   t1 <- proc.time()
   if (is.null(propensity_formula)){
     propensity_formula <- formula(paste(c(strat$treat, "~ . -", strat$outcome,
