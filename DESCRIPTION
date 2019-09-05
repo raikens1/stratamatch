@@ -30,7 +30,6 @@ Imports:
   survival(>= 2.44.1.1)
 Depends: 
   R (>= 3.6.0),
-  multidplyr
 Suggests:
     ggplot2 (>= 3.2.1),
     ggrepel (>= 0.8.1),
