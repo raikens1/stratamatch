@@ -52,7 +52,7 @@ head(dat)
 
 ## Manual Stratification
 
-Suppose we wanted to stratify the data manually based on covariates that our experts have selected. Importantly, we can only stratify the data based on categorical variables.  This means that we cannot use `X2` (unless of course we made `X2` categorical by binning).  If we did try and stratify by `X2`, we would get a warning or an error.  Instead, I'm going to make a new variable `X2_pos` which is 1 if `X2` is positive and 0 otherwise.  
+Suppose we wanted to stratify the data manually based on covariates that our experts have selected. Importantly, we can only stratify the data based on categorical variables.  This means that we cannot use `X2` directly;  If we did try and stratify by `X2`, we would get a warning or an error.  Instead, I'm going to make a new categorical variable `X2_pos` which is 1 if `X2` is positive and 0 otherwise.  
 
 ```{r}
 dat <- dplyr::mutate(dat, X2_pos = ifelse(X2 > 0, 1, 0))
@@ -77,13 +77,13 @@ head(m.strat$analysis_set)
 
 Since we didn't use a pilot design for this example, our analysis set just has all of the data that we put in to `manual_stratify`.  Now, there is an additional column `stratum`, which says which stratum each individual has been sorted into.
 
-The other important pieces of info in `m.strat` are the the strata table and the issue table.  The strata table gives the definitions which are used to assign each individual to a stratum:
+The other important pieces of info in `m.strat` are the the strata table and the issue table.  The strata table gives the definitions which are used to assign each individual to a stratum.  For example, below we see that stratum 1 contains all individuals who have `X1` = 1 and `X2_pos` = 0:
 
 ```{r}
 m.strat$strata_table
 ```
 
-Here we see each of the eight strata that we've divided our data into.  This is a toy example, so each of our strata are very small.
+We can also see the size of each stratum.  This is a toy example, so it's okay that each of our strata are a bit small.  In practice, data sets of about 4000 start to take a long time to match, so that's about the maximum size we would like for our strata.
 
 ### Stratification Diagnostics
 
@@ -93,17 +93,25 @@ The last important piece of information stored in `m.strat` is the issue table:
 m.strat$issue_table
 ```
 
-This table shows each of our strata and some of the potential issues we may face when trying to match within these strata.  In particular, stratum 6 is 84% control individuals.  This means that there are proportionally many fewer treated individuals in this stratum.
+This table shows each of our strata and some of the potential issues we may face when trying to match within these strata.  In particular, we see here that stratum 6 is 84% control individuals.  This means that there are proportionally many fewer treated individuals in this stratum.
 
 Another useful diagnostic is a stratification plot.  This plots each stratum in the analysis set based on its size and the percentage of control observations.  If a stratum is too small or is very imbalanced in its treat:control ratio, finding quality matches may be difficult.  If a stratum is too large, matching may be very computationally taxing.  We can see here that stratum 6 is in the yellow region because it is > 75% controls.
 
 ```{r}
 plot(m.strat)
+# plot(m.strat, type = "scatter") will give the same output
 ```
+
+Another plot we can make to diagnose issues with our strata is an overlap histogram.  Below, I've made an overlap histogram for stratum 6.  This shows the propensity score distributions of the treated and control populations.  In order to make this histogram, we must tell plot what the propensity scores are for our data set by specifying the `propensity`arguement.  `propensity` can be a propensity score formula (which will then be fit on the analysis set), a `glm` modeling propensity score, or a vector of propensity scores.  Here' I just pass in a formula.
+
+```{r}
+plot(m.strat, type = "hist", propensity = treat ~ X1 + X2, stratum = 1)
+```
+
 
 ## Automatic Stratification
 
-Another option is to use `auto_stratify` to automatically create the stratification.  In this process, we specify what model we want to use for the prognostic score and what percent of the control reserve we want to use to do the fitting.  We also need to tell `auto_stratify` which columns of our data set designate the treatment assignment and outcomes.  The final arguement, size, specifies about how large we would like our strata to be.
+Another option is to use `auto_stratify` to automatically create the stratified data set.  In this process, we specify what model we want to use for the prognostic score and what percent of the control reserve we want to use to do the fitting.  We also need to tell `auto_stratify` which columns of our data set designate the treatment assignment and outcomes.  The final arguement, size, specifies about how large we would like our strata to be.
 
 ```{r}
 # cast X1 as factor so that it is recognized as categorical, not numeric
@@ -138,6 +146,11 @@ Finally, we can make the same plots as before:
 plot(a.strat)
 ```
 
+```{r}
+plot(a.strat, type = "hist", propensity = treat ~ X1 + X2, stratum = 5)
+```
+
+
 Last but not least, `a.strat` stores a copy of the prognostic score model we estimated on the pilot data set.  By extracting the prognostic model, we can run diagnostics to check how well we fit our prognostic score.
 
 ```{r}
@@ -151,7 +164,8 @@ Based on the coefficients from the prognostic model, we can tell that our progno
 All of the usual diagnostics for a `glm` in R can be run on the prognostic model we obtained from `a.strat`.  For example, we can run `plot` on the prognostic model to obtain the usual residual, leverage, and q-q plots. 
 
 ```{r}
-plot(progmod)
+plot(a.strat, type = "residual")
+# plot(progmod) with the extracted model will do the same thing
 ```
 
 ## Alternative methods for automatic stratification.
