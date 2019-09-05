@@ -59,6 +59,7 @@ test_that("Plot errors work", {
                "Prognostic score residual plots are only valid for auto-stratified data.")
   expect_error(plot(a.strat, type = "residual"),
                "Cannot make prognostic model residual plots since prog_scores were provided.")
+  skip("FM plots not yet implemented")
   expect_error(plot(m.strat, type = "FM"),
                "Cannot make Fisher-Mill plots on manually stratified data.")
 })
