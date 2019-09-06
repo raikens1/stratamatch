@@ -18,5 +18,7 @@ vector of prognostic scores
 Tries to make prognostic scores.  If successfull, returns them, otherwise
 throws an error message.  Common failure mode is that the prognostic score is
 built on some categorical variable that takes on some values in the analysis
-set that are never seen in the pilot set.
+set that are never seen in the pilot set.  Outputs are on the response scale,
+(rather than the linear predictor), so the score is the expected value of the
+outcome under the control assignement based on the observed covariates.
 }

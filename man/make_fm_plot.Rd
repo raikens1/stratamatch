@@ -4,7 +4,7 @@
 \alias{make_fm_plot}
 \title{Make Fisher-Mill plot}
 \usage{
-make_fm_plot(x, propensity, stratum)
+make_fm_plot(x, propensity, s)
 }
 \arguments{
 \item{x}{a \code{strata} object returned by \code{\link{auto_stratify}} or
@@ -13,9 +13,6 @@ make_fm_plot(x, propensity, stratum)
 \item{propensity}{either a vector if propensity scores, a model for
 propensity scores, or a formula for fitting a propensity score model.
 Required for "hist" and "FM plots.  Otherwise ignored}
-
-\item{stratum}{the number of the stratum to be plotted.  Required for "hist"
-and "FM" plots. Otherwise ignored}
 }
 \value{
 Returns a histogram of propensity scores with strata

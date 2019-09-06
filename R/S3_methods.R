@@ -171,7 +171,7 @@ summarize_balance <- function(data, treat){
 #' histogram of propensity scores within a stratum 
 #' \item "FM" - produces a
 #' Fisher-Mill plot of individuals within a stratum 
-#' \item "resid" - produces a
+#' \item "residual" - produces a
 #' residual plot for the prognostic model (not supported for \code{manual
 #' strata} objects)}
 #'
@@ -183,9 +183,9 @@ summarize_balance <- function(data, treat){
 #'   problematic strata are labeled in the scatter plot
 #' @param propensity either a vector if propensity scores, a model for
 #'   propensity scores, or a formula for fitting a propensity score model.
-#'   Required for "hist" and "FM plots.  Otherwise ignored
+#'   Required for "hist" and "FM" plots.  Otherwise ignored.
 #' @param stratum the number of the stratum to be plotted.  Required for "hist"
-#'   and "FM" plots. Otherwise ignored
+#'   and "FM" plots. Otherwise ignored.
 #' @param ... other arguments
 #' @return a plot of the specified type
 #' @export
@@ -218,6 +218,17 @@ make_scatter_plot <- function(x, label) {
       make_scatter_plot_gg(x$issue_table, FALSE)
     }
   }
+  
+  # set parameters
+  CONTROL_MIN <- 0.2
+  CONTROL_MAX <- 0.8
+  SIZE_MIN <- 75
+  SIZE_MAX <- 4000
+  
+  # identify strata that are too large/small/imbalanced
+  problem_strata <- issue_table %>% dplyr::filter(Potential_Issues != "none")
+  
+  xmax <- max(issue_table$Total, SIZE_MAX * 1.05)
 }
 
 #' Make Scatter Plot (GGplot installed)
@@ -295,7 +306,7 @@ make_hist_plot <- function(x, propensity, s){
   a_set <- x$analysis_set
   
   if(!is.element(s, unique(a_set$stratum))){
-    stop("stratum number does not exist in analysis set")
+    stop("Stratum number does not exist in analysis set")
   }
   
   plt_data <- a_set %>%
@@ -308,9 +319,9 @@ make_hist_plot <- function(x, propensity, s){
   hc <- dplyr::filter(plt_data, treat == 0)$prop_score
   
   title <- paste("Histogram of propensity scores in stratum", s)
-    
-  hist(ht, col = rgb(1,0,0,0.5), main = title, xlab = "propensity score")
-  hist(hc, col = rgb(0,0,1,0.5), add = TRUE)
+  
+  hist(hc, col = rgb(0,0,1,0.5), main = title, xlab = "propensity score")
+  hist(ht, col = rgb(1,0,0,0.5), add = TRUE)
   legend("topright", inset=c(-0.2,0), legend = c("treated", "control"),
          col = c(rgb(1,0,0,0.5), rgb(0,0,1,0.5)))
 }
@@ -325,9 +336,30 @@ make_hist_plot <- function(x, propensity, s){
 #' @seealso Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
 #'   Section 3.2 for an explaination of Fisher-Mill plots
 #' @return Returns a histogram of propensity scores with strata
-make_fm_plot <- function(x, propensity, stratum){
-  warning("not yet implemented")
-  return(0)
+make_fm_plot <- function(x, propensity, s){
+  if(!is.auto_strata(x)){
+    stop("Cannot make Fisher-Mill plots on manually stratified data.")
+  }
+  
+  a_set <- x$analysis_set
+  
+  if(!is.element(s, unique(a_set$stratum))){
+    stop("Stratum number does not exist in analysis set")
+  }
+  names(a_set)[names(a_set) == x$treat] <- "treat"
+  
+  plt_data <- a_set %>%
+    dplyr::mutate(prop_score = get_prop_scores(propensity, a_set),
+                  prog_score = x$prog_scores,
+                  color = ifelse(treat == 1, "red", "blue")) %>%
+    dplyr::filter(stratum == s) 
+  
+  plot(plt_data$prop_score, plt_data$prog_score, col = plt_data$color,
+       main = paste("Fisher-Mill plot for stratum", s),
+       xlab = "Estimated propensity score",
+       ylab = "Estimated prognostic score")
+  legend("topleft", legend = c("treated", "control"), fill = c("red", "blue"),
+         box.lty = 0)
 }
 
 #' Make Residual Plot
@@ -353,10 +385,13 @@ make_resid_plot <- function(x){
 #' Parse \code{propensity} input to obtain propensity scores
 #'
 #' the \code{propensity} input to \code{plot.strata} can be propensity scores, a
-#' propensity model, or a formula for propensity score.  This function figures 
+#' propensity model, or a formula for propensity score.  This function figures
 #' out which type \code{propensity} is and returns the propensity scores.
+#' Returns the propensity score on the response scale (rather than the linear
+#' predictor), so the scores are the predited probabilities of treatment.
 #'
-#' @param propensity either a vector of propensity scores, a model for propensity, or a formula for propensity scores
+#' @param propensity either a vector of propensity scores, a model for
+#'   propensity, or a formula for propensity scores
 #' @param data, the analysis set data within a stratum
 #'
 #' @return vector of propensity scores
@@ -369,7 +404,7 @@ get_prop_scores <- function(propensity, data){
   # if it is a formula
   if (inherits(propensity, "formula")){
     prop_model <- glm(propensity, data, family = "binomial")
-    return(predict(prop_model))
+    return(predict(prop_model, type = "response"))
   }
   
   # if it is a model for propensity, predict on data

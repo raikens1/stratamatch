@@ -7,7 +7,8 @@
 get_prop_scores(propensity, data)
 }
 \arguments{
-\item{propensity}{either a vector of propensity scores, a model for propensity, or a formula for propensity scores}
+\item{propensity}{either a vector of propensity scores, a model for
+propensity, or a formula for propensity scores}
 
 \item{data, }{the analysis set data within a stratum}
 }
@@ -16,6 +17,8 @@ vector of propensity scores
 }
 \description{
 the \code{propensity} input to \code{plot.strata} can be propensity scores, a
-propensity model, or a formula for propensity score.  This function figures 
+propensity model, or a formula for propensity score.  This function figures
 out which type \code{propensity} is and returns the propensity scores.
+Returns the propensity score on the response scale (rather than the linear
+predictor), so the scores are the predited probabilities of treatment.
 }
