@@ -50,8 +50,7 @@ dim(dat)
 As a simple example, we can choose to stratify manually by race, sex, and hospital state.  This is done as shown below and gives the following strata sizes:
 
 ```{r}
-m.strat <- manual_stratify(dat, treat = "treat",
-                           covariates = c("Male", "race", "hosp_state"))
+m.strat <- manual_stratify(dat, treat ~ Male + race + hosp_state)
 
 print(m.strat)
 ```
@@ -165,7 +164,7 @@ Now, perform a big match within prognostic score strata.  When propensity score 
 
 ```{r}
 t2 <- proc.time()
-mymatch <-   big_match_multidplyr(a.strat, propensity_formula = treat ~ totalct + hosp_state + 
+mymatch <-   big_match(a.strat, propensity_formula = treat ~ totalct + hosp_state + 
               AMI_7 + COPD_7 + ISCHEMICHEART_7 + STROKE_TIA_7 + ATRIAL_FIB_7 +
               CHRONICKIDNEY_7 + DIABETES_7 + ALZH_DEMEN_7 + Male + race)
 match_time <- proc.time() - t1

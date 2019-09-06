@@ -18,6 +18,4 @@ a scatter plot of strata by size and control proportion
 }
 \description{
 Not meant to be called externally.  Helper plot function for \code{strata}.
-Checks dependencies and dispatches to \code{\link{make_scatter_plot_gg}} if
-able.  Otherwise makes a plot in base R.
 }

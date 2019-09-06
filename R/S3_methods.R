@@ -203,21 +203,12 @@ plot.strata <- function(x, type = "scatter", label = FALSE,
 #' Make scatter plot
 #' 
 #' Not meant to be called externally.  Helper plot function for \code{strata}.
-#' Checks dependencies and dispatches to \code{\link{make_scatter_plot_gg}} if
-#' able.  Otherwise makes a plot in base R.
 #'
 #' @inheritParams plot.strata
 #'
 #' @return a scatter plot of strata by size and control proportion
 make_scatter_plot <- function(x, label) {
-  if (requireNamespace("ggplot2", quietly = T)){
-    if (label == FALSE | requireNamespace("ggrepel", quietly = T)) {
-      make_scatter_plot_gg(x$issue_table, label)
-    } else {
-      warning("Cannot add labels without ggrepel.  Ignoring label = TRUE.")
-      make_scatter_plot_gg(x$issue_table, FALSE)
-    }
-  }
+  issue_table <- x$issue_table
   
   # set parameters
   CONTROL_MIN <- 0.2
@@ -225,71 +216,20 @@ make_scatter_plot <- function(x, label) {
   SIZE_MIN <- 75
   SIZE_MAX <- 4000
   
-  # identify strata that are too large/small/imbalanced
-  problem_strata <- issue_table %>% dplyr::filter(Potential_Issues != "none")
+  xmax <- max(issue_table$Total, SIZE_MAX * 1.05)
   
-  xmax <- max(issue_table$Total, SIZE_MAX * 1.05)
-}
-
-#' Make Scatter Plot (GGplot installed)
-#'
-#' Not meant to be called externally. Helper plot function for \code{strata}
-#' object with type = "scatter." Generates a scatter plot of all strata by size
-#' and treat:control ratio, using \code{ggplot} and \code{ggrepel}.  Highlights
-#' strata which may be problematic.
-#'
-#' @param issue_table the \code{issue_table} from a \code{strata} object
-#' @param label, if true, label problematic strata.  Not recommended if there
-#'   are many problematic strata.
-#' @seealso \code{\link{make_issue_table}}
-#' @return Returns the scatterplot
-make_scatter_plot_gg <- function(issue_table, label){
-
-  # set parameters
-  CONTROL_MIN <- 0.2
-  CONTROL_MAX <- 0.8
-  SIZE_MIN <- 75
-  SIZE_MAX <- 4000
-
-  # identify strata that are too large/small/imbalanced
-  problem_strata <- issue_table %>% dplyr::filter(Potential_Issues != "none")
-
-  xmax <- max(issue_table$Total, SIZE_MAX * 1.05)
-
-  g <- ggplot2::ggplot(issue_table,
-                       ggplot2::aes(x = Total, y = Control_Proportion)) +
-    ggplot2::labs(x = "Stratum Size",
-         y = "Fraction Control Observations") +
-    ggplot2::ylim(c(0, 1)) + ggplot2::xlim(c(0, xmax)) +
-    ggplot2::geom_rect(ggplot2::aes(ymin = 0, ymax = CONTROL_MIN,
-                  xmin = 0, xmax = Inf),
-              fill = "lightgoldenrod2", alpha = 0.1) +
-    ggplot2::geom_rect(ggplot2::aes(ymin = CONTROL_MAX, ymax = 1,
-                  xmin = 0, xmax = Inf),
-              fill = "lightgoldenrod2", alpha = 0.1) +
-    ggplot2::geom_rect(ggplot2::aes(ymin = 0, ymax = 1,
-                  xmin = 0, xmax = SIZE_MIN),
-              fill = ggplot2::alpha("firebrick1", 0.1)) +
-    ggplot2::geom_rect(ggplot2::aes(ymin = 0, ymax = 1,
-                  xmin = SIZE_MAX, xmax = Inf),
-              fill = ggplot2::alpha("firebrick1", 0.1)) +
-    ggplot2::geom_point() +
-    ggplot2::geom_vline(xintercept = SIZE_MAX, colour = "firebrick") +
-    ggplot2::geom_vline(xintercept = SIZE_MIN, colour = "firebrick") +
-    ggplot2::geom_hline(yintercept = CONTROL_MAX, colour = "goldenrod1") +
-    ggplot2::geom_hline(yintercept = CONTROL_MIN, colour = "goldenrod1") +
-    ggplot2::geom_hline(yintercept = 0.5, colour = "black", linetype = 2) +
-    ggplot2::theme(legend.position = "none")
-
-  if (label){
-    g <- g +
-      ggrepel::geom_label_repel(data = problem_strata,
-                                ggplot2::aes(Total,
-                                             Control_Proportion,
-                                             label = Stratum),
-                                size = 2.5, color = "firebrick")
+  plot(x = issue_table$Total, y = issue_table$Control_Proportion, pch = 16,
+       xlim = c(0, xmax), ylim = c(0, 1), 
+       xlab = "Stratum Size", ylab = "Fraction Control Observations")
+  rect(0, 0, xmax, CONTROL_MIN, col = rgb(1, 1, 0, 0.25), border = NA)
+  rect(0, CONTROL_MAX, xmax, 1, col = rgb(1, 1, 0, 0.25), border = NA)
+  rect(0, 0, SIZE_MIN, 1, col = rgb(1, 0, 0, 0.25), border = NA)
+  rect(SIZE_MAX, 0, xmax, 1, col = rgb(1, 0, 0, 0.25), border = NA)
+  
+  if(label == TRUE){
+    identify(x = issue_table$Total, y = issue_table$Control_Proportion,
+             labels = issue_table$Stratum, offset = 0.5) 
   }
-  print(g)
 }
 
 #' Make histogram plot
@@ -333,6 +273,7 @@ make_hist_plot <- function(x, propensity, s){
 #' stratum.
 #'
 #' @inheritParams plot.strata
+#' @param s the number code of the strata to be plotted
 #' @seealso Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
 #'   Section 3.2 for an explaination of Fisher-Mill plots
 #' @return Returns a histogram of propensity scores with strata

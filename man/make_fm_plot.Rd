@@ -12,7 +12,9 @@ make_fm_plot(x, propensity, s)
 
 \item{propensity}{either a vector if propensity scores, a model for
 propensity scores, or a formula for fitting a propensity score model.
-Required for "hist" and "FM plots.  Otherwise ignored}
+Required for "hist" and "FM" plots.  Otherwise ignored.}
+
+\item{s}{the number code of the strata to be plotted}
 }
 \value{
 Returns a histogram of propensity scores with strata

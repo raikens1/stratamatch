@@ -31,8 +31,6 @@ Imports:
 Depends: 
   R (>= 3.6.0),
 Suggests:
-    ggplot2 (>= 3.2.1),
-    ggrepel (>= 0.8.1),
     knitr,
     rmarkdown,
     testthat (>= 2.1.0)

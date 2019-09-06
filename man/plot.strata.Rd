@@ -19,10 +19,10 @@ problematic strata are labeled in the scatter plot}
 
 \item{propensity}{either a vector if propensity scores, a model for
 propensity scores, or a formula for fitting a propensity score model.
-Required for "hist" and "FM plots.  Otherwise ignored}
+Required for "hist" and "FM" plots.  Otherwise ignored.}
 
 \item{stratum}{the number of the stratum to be plotted.  Required for "hist"
-and "FM" plots. Otherwise ignored}
+and "FM" plots. Otherwise ignored.}
 
 \item{...}{other arguments}
 }
@@ -39,7 +39,7 @@ plot of strata by size and treat:control ratio
 histogram of propensity scores within a stratum 
 \item "FM" - produces a
 Fisher-Mill plot of individuals within a stratum 
-\item "resid" - produces a
+\item "residual" - produces a
 residual plot for the prognostic model (not supported for \code{manual
 strata} objects)}
 }
