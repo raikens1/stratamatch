@@ -54,7 +54,7 @@ test_that("Plot errors work", {
                            "treat",
                            "outcome",
                            prog_scores = test_dat$cont)
-  
+
   # bad plot type
   expect_error(plot(m.strat, type = "qq"))
 
@@ -63,17 +63,20 @@ test_that("Plot errors work", {
                "Prognostic score residual plots are only valid for auto-stratified data.")
   expect_error(plot(a.strat, type = "residual"),
                "Cannot make prognostic model residual plots since prog_scores were provided.")
-  
+
   # FM plots
-  expect_error(plot(m.strat, type = "FM", propensity = treat ~ X1 + X2, stratum = 1),
+  expect_error(plot(m.strat, type = "FM",
+                    propensity = treat ~ X1 + X2, stratum = 1),
                "Cannot make Fisher-Mill plots on manually stratified data.")
-  expect_error(plot(a.strat, type = "FM", propensity = treat ~ X1 + X2, stratum = 200),
+  expect_error(plot(a.strat, type = "FM",
+                    propensity = treat ~ X1 + X2, stratum = 200),
                "Stratum number does not exist in analysis set")
-  
+
   # overlap plots
-  expect_error(plot(a.strat, type = "hist", propensity = "soup", stratum = 200),
+  expect_error(plot(a.strat, type = "hist",
+                    propensity = "soup", stratum = 200),
                "Stratum number does not exist in analysis set")
-  
+
   # These aren't working yet; skipping for now while running CRAN checks
   skip("Trycatch errors aren't working correctly.  See issue #88 on Github")
   expect_error(plot(a.strat, type = "hist", propensity = "soup", stratum = 1),

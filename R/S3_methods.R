@@ -189,7 +189,7 @@ summarize_balance <- function(data, treat){
 #' @param ... other arguments
 #' @return a plot of the specified type
 #' @export
-plot.strata <- function(x, type = "scatter", label = FALSE, 
+plot.strata <- function(x, type = "scatter", label = FALSE,
                         propensity, stratum, ...){
   if (type == "scatter") make_scatter_plot(x, label)
   else if (type == "hist") make_hist_plot(x, propensity, stratum)
@@ -209,26 +209,26 @@ plot.strata <- function(x, type = "scatter", label = FALSE,
 #' @return a scatter plot of strata by size and control proportion
 make_scatter_plot <- function(x, label) {
   issue_table <- x$issue_table
-  
+
   # set parameters
   CONTROL_MIN <- 0.2
   CONTROL_MAX <- 0.8
   SIZE_MIN <- 75
   SIZE_MAX <- 4000
-  
+
   xmax <- max(issue_table$Total, SIZE_MAX * 1.05)
-  
+
   plot(x = issue_table$Total, y = issue_table$Control_Proportion, pch = 16,
-       xlim = c(0, xmax), ylim = c(0, 1), 
+       xlim = c(0, xmax), ylim = c(0, 1),
        xlab = "Stratum Size", ylab = "Fraction Control Observations")
   rect(0, 0, xmax, CONTROL_MIN, col = rgb(1, 1, 0, 0.25), border = NA)
   rect(0, CONTROL_MAX, xmax, 1, col = rgb(1, 1, 0, 0.25), border = NA)
   rect(0, 0, SIZE_MIN, 1, col = rgb(1, 0, 0, 0.25), border = NA)
   rect(SIZE_MAX, 0, xmax, 1, col = rgb(1, 0, 0, 0.25), border = NA)
-  
-  if(label == TRUE){
+
+  if (label == TRUE){
     identify(x = issue_table$Total, y = issue_table$Control_Proportion,
-             labels = issue_table$Stratum, offset = 0.5) 
+             labels = issue_table$Stratum, offset = 0.5)
   }
 }
 
@@ -244,26 +244,37 @@ make_scatter_plot <- function(x, label) {
 #' @return Returns a histogram of propensity scores with strata
 make_hist_plot <- function(x, propensity, s){
   a_set <- x$analysis_set
-  
-  if(!is.element(s, unique(a_set$stratum))){
+
+  if (!is.element(s, unique(a_set$stratum))){
     stop("Stratum number does not exist in analysis set")
   }
-  
+
   plt_data <- a_set %>%
     dplyr::mutate(prop_score = get_prop_scores(propensity, a_set)) %>%
     dplyr::filter(stratum == s)
-  
+
   names(plt_data)[names(plt_data) == x$treat] <- "treat"
-  
+
   ht <- dplyr::filter(plt_data, treat == 1)$prop_score
   hc <- dplyr::filter(plt_data, treat == 0)$prop_score
-  
-  title <- paste("Histogram of propensity scores in stratum", s)
-  
-  hist(hc, col = rgb(0,0,1,0.5), main = title, xlab = "propensity score")
-  hist(ht, col = rgb(1,0,0,0.5), add = TRUE)
-  legend("topright", inset=c(-0.2,0), legend = c("treated", "control"),
-         col = c(rgb(1,0,0,0.5), rgb(0,0,1,0.5)))
+
+  # workaround to get plot area correct
+  # make separate histograms, then use the info in the histogram objects
+  # to determine x and y axis limits
+  histt <- hist(ht)
+  histc <- hist(hc)
+  ymax <- max(histt$counts, histc$counts)
+  xmin <- min(histt$breaks, histc$breaks)
+  xmax <- max(histt$breaks, histc$breaks)
+  nbreaks <- max(length(histt$breaks), length(histc$breaks))
+
+  # plot final overlayed histogram
+  hist(hc, col = rgb(0, 0, 1, 0.5), xlim = c(xmin, xmax), ylim = c(0, ymax),
+       main = paste("Histogram of propensity scores in stratum", s),
+       xlab = "Propensity Score", breaks = nbreaks)
+  hist(ht, col = rgb(1, 0, 0, 0.5), add = TRUE, breaks = nbreaks)
+  legend("topright", legend = c("treated", "control"),
+         fill = c(rgb(1, 0, 0, 0.5), rgb(0, 0, 1, 0.5)))
 }
 
 #' Make Fisher-Mill plot
@@ -278,23 +289,23 @@ make_hist_plot <- function(x, propensity, s){
 #'   Section 3.2 for an explaination of Fisher-Mill plots
 #' @return Returns a histogram of propensity scores with strata
 make_fm_plot <- function(x, propensity, s){
-  if(!is.auto_strata(x)){
+  if (!is.auto_strata(x)){
     stop("Cannot make Fisher-Mill plots on manually stratified data.")
   }
-  
+
   a_set <- x$analysis_set
-  
-  if(!is.element(s, unique(a_set$stratum))){
+
+  if (!is.element(s, unique(a_set$stratum))){
     stop("Stratum number does not exist in analysis set")
   }
   names(a_set)[names(a_set) == x$treat] <- "treat"
-  
+
   plt_data <- a_set %>%
     dplyr::mutate(prop_score = get_prop_scores(propensity, a_set),
                   prog_score = x$prog_scores,
                   color = ifelse(treat == 1, "red", "blue")) %>%
-    dplyr::filter(stratum == s) 
-  
+    dplyr::filter(stratum == s)
+
   plot(plt_data$prop_score, plt_data$prog_score, col = plt_data$color,
        main = paste("Fisher-Mill plot for stratum", s),
        xlab = "Estimated propensity score",
@@ -341,13 +352,13 @@ get_prop_scores <- function(propensity, data){
   if (is.numeric(propensity) & length(propensity) == dim(data)[1]){
     return(propensity)
   }
-  
+
   # if it is a formula
   if (inherits(propensity, "formula")){
     prop_model <- glm(propensity, data, family = "binomial")
     return(predict(prop_model, type = "response"))
   }
-  
+
   # if it is a model for propensity, predict on data
   # This error handling doesn't work
   return(tryCatch(predict(propensity, newdata = data, type = "response"),

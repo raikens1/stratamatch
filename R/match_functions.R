@@ -85,8 +85,6 @@ big_match_dopar <- function(strat, propensity_formula = NULL, k = 1) {
   stopImplicitCluster()
 }
 
-
-
 #' Big Match
 #'
 #' Match within strata in series using optmatch.  Probably needs to be renamed.
