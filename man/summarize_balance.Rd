@@ -4,13 +4,16 @@
 \alias{summarize_balance}
 \title{Calculate balance measures over a dataframe}
 \usage{
-summarize_balance(data, treat)
+summarize_balance(data, treat, outcome)
 }
 \arguments{
 \item{data, }{a \code{data.frame} from a \code{strata} object}
 
 \item{treat, }{a string giving the name of the treatment assignment column in
 the dataframe}
+
+\item{outcome, }{a string giving the name of the outcome column in the
+dataframe}
 }
 \value{
 Returns a data.frame of balance measures

@@ -121,7 +121,8 @@ summary.strata <- function(object, ...){
                  class = "summary.strata") # necessary to make a new class?
 
   strata_summary$sum_before <- summarize_balance(object$analysis_set,
-                                                 object$treat)
+                                                 object$treat,
+                                                 object$outcome)
 
   return(strata_summary)
 }
@@ -134,25 +135,26 @@ summary.strata <- function(object, ...){
 #' @param data, a \code{data.frame} from a \code{strata} object
 #' @param treat, a string giving the name of the treatment assignment column in
 #'   the dataframe
+#' @param outcome, a string giving the name of the outcome column in the
+#'   dataframe
 #' @return Returns a data.frame of balance measures
-summarize_balance <- function(data, treat){
-
-  # remove strata and outcome columns?
+summarize_balance <- function(data, treat, outcome){
 
   names(data)[names(data) == treat] <- "treat"
+  names(data)[names(data) == outcome] <- "outcome"
 
   # TODO: rownames for data frames will be deprecated soon,
   # which means this will have to change.
   result <- data %>%
     dplyr::group_by(treat) %>%
+    dplyr::select(-c(stratum, outcome)) %>%
+    dplyr::select_if(function(col) is.numeric(col) | is.logical(col)) %>%
     dplyr::summarize_all(mean) %>%
+    dplyr::select(-treat) %>%
     t()
 
   colnames(result) <- c("Treat_Mean", "Contol_Mean")
-
-  # TODO: Finish this.
-  # May want to split into a treat dataframe and a control data frame
-
+  
   return(result)
 }
 
