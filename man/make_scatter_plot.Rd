@@ -10,12 +10,12 @@ make_scatter_plot(x, label)
 \item{x}{a \code{strata} object returned by \code{\link{auto_stratify}} or
 \code{\link{manual_stratify}}}
 
-\item{label}{ignored unless \code{type = "scatter"}. If \code{TRUE}, then
-problematic strata are labeled in the scatter plot}
-}
-\value{
-a scatter plot of strata by size and control proportion
+\item{label}{ignored unless \code{type = "scatter"}. If \code{TRUE}, a
+clickable plot is produced. The user may click on any number of strata and
+press "finish" to have those strata labeled.  Note: uses \code{\link{identify}},
+which may not be supported on some devices}
 }
 \description{
 Not meant to be called externally.  Helper plot function for \code{strata}.
+Produces a scatter plot of strata by size and control proportion.
 }

@@ -10,11 +10,8 @@ make_resid_plot(x)
 \item{x}{a \code{strata} object returned by \code{\link{auto_stratify}} or
 \code{\link{manual_stratify}}}
 }
-\value{
-Returns the (partial) residual plot(s)
-}
 \description{
 Not yet implemented.  Not meant to be called externally. Helper plot function
-for \code{strata} object with type = "residual" Produces partial residual
-plots for the prognostic score models
+for \code{strata} object with type = "residual". Produces the diagnostic
+plots for the prognostic score model
 }

@@ -14,32 +14,33 @@
 \item{type}{string giving the plot type (default = \code{"scatter"}).  Other
 options are \code{"hist"}, \code{"FM"} and \code{"residual"}}
 
-\item{label}{ignored unless \code{type = "scatter"}. If \code{TRUE}, then
-problematic strata are labeled in the scatter plot}
+\item{label}{ignored unless \code{type = "scatter"}. If \code{TRUE}, a
+clickable plot is produced. The user may click on any number of strata and
+press "finish" to have those strata labeled.  Note: uses \code{\link{identify}},
+which may not be supported on some devices}
 
-\item{propensity}{either a vector if propensity scores, a model for
-propensity scores, or a formula for fitting a propensity score model.
-Required for "hist" and "FM" plots.  Otherwise ignored.}
+\item{propensity}{ignored unless \code{type = "hist} or \code{type = "FM}.
+Specifies propensity score information for plots where this is required.
+Accepts either a vector of propensity scores, a \code{glm} model for
+propensity scores, or a formula for fitting a propensity score model.}
 
-\item{stratum}{the number of the stratum to be plotted.  Required for "hist"
-and "FM" plots. Otherwise ignored.}
+\item{stratum}{ignored unless \code{type = "hist} or \code{type = "FM}. A
+number specifying which stratum to plot.}
 
 \item{...}{other arguments}
-}
-\value{
-a plot of the specified type
 }
 \description{
 Generates diagnostic plots for the product of a stratification by
 \code{\link{auto_stratify}} or \code{\link{manual_stratify}}.  There are
-three plot types: \enumerate{ 
-\item "scatter" (default) - produces a scatter
-plot of strata by size and treat:control ratio 
-\item "hist" - produces a
-histogram of propensity scores within a stratum 
-\item "FM" - produces a
-Fisher-Mill plot of individuals within a stratum 
-\item "residual" - produces a
+three plot types: \enumerate{ \item \code{"scatter"} (default) - produces a
+scatter plot of strata by size and treat:control ratio \item \code{"hist"} -
+produces a histogram of propensity scores within a stratum \item \code{"FM"}
+- produces a Fisher-Mill plot of individuals within a stratum  (not supported
+for \code{manual strata} objects) \item \code{"residual"} - produces a
 residual plot for the prognostic model (not supported for \code{manual
 strata} objects)}
+}
+\seealso{
+Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
+  Section 3.2 for an explaination of Fisher-Mill plots
 }

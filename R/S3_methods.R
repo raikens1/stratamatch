@@ -164,14 +164,11 @@ summarize_balance <- function(data, treat){
 #'
 #' Generates diagnostic plots for the product of a stratification by
 #' \code{\link{auto_stratify}} or \code{\link{manual_stratify}}.  There are
-#' three plot types: \enumerate{ 
-#' \item "scatter" (default) - produces a scatter
-#' plot of strata by size and treat:control ratio 
-#' \item "hist" - produces a
-#' histogram of propensity scores within a stratum 
-#' \item "FM" - produces a
-#' Fisher-Mill plot of individuals within a stratum 
-#' \item "residual" - produces a
+#' three plot types: \enumerate{ \item \code{"scatter"} (default) - produces a
+#' scatter plot of strata by size and treat:control ratio \item \code{"hist"} -
+#' produces a histogram of propensity scores within a stratum \item \code{"FM"}
+#' - produces a Fisher-Mill plot of individuals within a stratum  (not supported
+#' for \code{manual strata} objects) \item \code{"residual"} - produces a
 #' residual plot for the prognostic model (not supported for \code{manual
 #' strata} objects)}
 #'
@@ -179,15 +176,19 @@ summarize_balance <- function(data, treat){
 #'   \code{\link{manual_stratify}}
 #' @param type string giving the plot type (default = \code{"scatter"}).  Other
 #'   options are \code{"hist"}, \code{"FM"} and \code{"residual"}
-#' @param label ignored unless \code{type = "scatter"}. If \code{TRUE}, then
-#'   problematic strata are labeled in the scatter plot
-#' @param propensity either a vector if propensity scores, a model for
+#' @param label ignored unless \code{type = "scatter"}. If \code{TRUE}, a
+#'   clickable plot is produced. The user may click on any number of strata and
+#'   press "finish" to have those strata labeled.  Note: uses \code{\link{identify}},
+#'   which may not be supported on some devices
+#' @param propensity ignored unless \code{type = "hist} or \code{type = "FM}.
+#'   Specifies propensity score information for plots where this is required.
+#'   Accepts either a vector of propensity scores, a \code{glm} model for
 #'   propensity scores, or a formula for fitting a propensity score model.
-#'   Required for "hist" and "FM" plots.  Otherwise ignored.
-#' @param stratum the number of the stratum to be plotted.  Required for "hist"
-#'   and "FM" plots. Otherwise ignored.
+#' @param stratum ignored unless \code{type = "hist} or \code{type = "FM}. A
+#'   number specifying which stratum to plot.
 #' @param ... other arguments
-#' @return a plot of the specified type
+#' @seealso Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
+#'   Section 3.2 for an explaination of Fisher-Mill plots
 #' @export
 plot.strata <- function(x, type = "scatter", label = FALSE,
                         propensity, stratum, ...){
@@ -201,12 +202,11 @@ plot.strata <- function(x, type = "scatter", label = FALSE,
 }
 
 #' Make scatter plot
-#' 
+#'
 #' Not meant to be called externally.  Helper plot function for \code{strata}.
+#' Produces a scatter plot of strata by size and control proportion.
 #'
 #' @inheritParams plot.strata
-#'
-#' @return a scatter plot of strata by size and control proportion
 make_scatter_plot <- function(x, label) {
   issue_table <- x$issue_table
 
@@ -235,13 +235,11 @@ make_scatter_plot <- function(x, label) {
 #' Make histogram plot
 #'
 #' Not meant to be called externally.  Helper plot function for \code{strata}
-#' object with type = "hist".  Produces a histogram of propensity scores
-#' across strata. 
-#' 
+#' object with type = "hist". Produces a histogram of propensity scores within a
+#' stratum
+#'
 #' @inheritParams plot.strata
 #' @param s the number code of the strata to be plotted
-#' 
-#' @return Returns a histogram of propensity scores with strata
 make_hist_plot <- function(x, propensity, s){
   a_set <- x$analysis_set
 
@@ -261,18 +259,20 @@ make_hist_plot <- function(x, propensity, s){
   # workaround to get plot area correct
   # make separate histograms, then use the info in the histogram objects
   # to determine x and y axis limits
-  histt <- hist(ht)
-  histc <- hist(hc)
+  histt <- hist(ht, plot = FALSE)
+  histc <- hist(hc, plot = FALSE)
   ymax <- max(histt$counts, histc$counts)
   xmin <- min(histt$breaks, histc$breaks)
   xmax <- max(histt$breaks, histc$breaks)
+
   nbreaks <- max(length(histt$breaks), length(histc$breaks))
 
   # plot final overlayed histogram
-  hist(hc, col = rgb(0, 0, 1, 0.5), xlim = c(xmin, xmax), ylim = c(0, ymax),
+  hist(hc, breaks = nbreaks,
+       col = rgb(0, 0, 1, 0.5), xlim = c(xmin, xmax), ylim = c(0, ymax),
        main = paste("Histogram of propensity scores in stratum", s),
-       xlab = "Propensity Score", breaks = nbreaks)
-  hist(ht, col = rgb(1, 0, 0, 0.5), add = TRUE, breaks = nbreaks)
+       xlab = "Propensity Score")
+  hist(ht, breaks = nbreaks, col = rgb(1, 0, 0, 0.5), add = TRUE)
   legend("topright", legend = c("treated", "control"),
          fill = c(rgb(1, 0, 0, 0.5), rgb(0, 0, 1, 0.5)))
 }
@@ -280,14 +280,12 @@ make_hist_plot <- function(x, propensity, s){
 #' Make Fisher-Mill plot
 #'
 #' Not meant to be called externally.  Helper plot function for \code{strata}
-#' object with type = "FM".  Produces Fisher-Mill plot for individuals within a
-#' stratum.
+#' object with type = "FM". Produces a Fisher-Mill plot of stratum \code{s}
 #'
 #' @inheritParams plot.strata
 #' @param s the number code of the strata to be plotted
 #' @seealso Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
 #'   Section 3.2 for an explaination of Fisher-Mill plots
-#' @return Returns a histogram of propensity scores with strata
 make_fm_plot <- function(x, propensity, s){
   if (!is.auto_strata(x)){
     stop("Cannot make Fisher-Mill plots on manually stratified data.")
@@ -317,11 +315,10 @@ make_fm_plot <- function(x, propensity, s){
 #' Make Residual Plot
 #'
 #' Not yet implemented.  Not meant to be called externally. Helper plot function
-#' for \code{strata} object with type = "residual" Produces partial residual
-#' plots for the prognostic score models
-#' 
+#' for \code{strata} object with type = "residual". Produces the diagnostic
+#' plots for the prognostic score model
+#'
 #' @inheritParams plot.strata
-#' @return Returns the (partial) residual plot(s)
 make_resid_plot <- function(x){
   if (!is.auto_strata(x)){
     stop("Prognostic score residual plots are only valid for auto-stratified data.")

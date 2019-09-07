@@ -87,6 +87,8 @@ We can also see the size of each stratum.  This is a toy example, so it's okay t
 
 ### Stratification Diagnostics
 
+#### Tables
+
 The last important piece of information stored in `m.strat` is the issue table:
 
 ```{r}
@@ -95,14 +97,17 @@ m.strat$issue_table
 
 This table shows each of our strata and some of the potential issues we may face when trying to match within these strata.  In particular, we see here that stratum 6 is 84% control individuals.  This means that there are proportionally many fewer treated individuals in this stratum.
 
-Another useful diagnostic is a stratification plot.  This plots each stratum in the analysis set based on its size and the percentage of control observations.  If a stratum is too small or is very imbalanced in its treat:control ratio, finding quality matches may be difficult.  If a stratum is too large, matching may be very computationally taxing.  We can see here that stratum 6 is in the yellow region because it is > 75% controls.
+#### Plots
+
+There are two types of plots that we can make automatically with a `manual_strata` object.  The first is a stratification plot.  This plots each stratum in the analysis set based on its size and the percentage of control observations.  If a stratum is too small or is very imbalanced in its treat:control ratio, finding quality matches may be difficult.  If a stratum is too large, matching may be very computationally taxing.  We can see here that stratum 6 is in the yellow region because it is > 75% controls.
 
 ```{r}
 plot(m.strat)
 # plot(m.strat, type = "scatter") will give the same output
+# plot(m.strat, label = TRUE) will allow the user to click points to label them
 ```
 
-Another plot we can make to diagnose issues with our strata is an overlap histogram.  Below, I've made an overlap histogram for stratum 6.  This shows the propensity score distributions of the treated and control populations.  In order to make this histogram, we must tell plot what the propensity scores are for our data set by specifying the `propensity`arguement.  `propensity` can be a propensity score formula (which will then be fit on the analysis set), a `glm` modeling propensity score, or a vector of propensity scores.  Here' I just pass in a formula.
+The second plot we can make to diagnose issues with our strata is an overlap histogram.  Below, I've made an overlap histogram for stratum 6.  This shows the propensity score distributions of the treated and control populations.  In order to make this histogram, we must tell plot what the propensity scores are for our data set by specifying the `propensity`arguement.  `propensity` can be a propensity score formula (which will then be fit on the analysis set), a `glm` modeling propensity score, or a vector of propensity scores.  Here' I just pass in a formula.
 
 ```{r}
 plot(m.strat, type = "hist", propensity = treat ~ X1 + X2, stratum = 1)
@@ -128,7 +133,9 @@ Now we can see that `auto_stratify` created our `auto_strata` object.  An `auto_
 
 We can access the pilot set and the analysis set using `$` with `a.strat`.  `a.strat$analysis_set` gives the analysis set and `a.strat$pilot_set` gives the pilot set.
 
-## Diagnostics for automatic stratification.
+### Diagnostics for automatic stratification.
+
+#### Tables
 
 Like `m.strat`, `a.strat` contains an `issue_table` and a `strata_table`.
 
@@ -140,7 +147,9 @@ a.strat$strata_table
 
 The strata table for `a.strat` shows what prognostic score quantiles were used to divide the strata.  For example, individuals in stratum 1 have a prognostic score of 0.01 to 0.272.  This means that, if they were in the control group, we would predict them to have a very low probability of having the outcome, based solely on their values of `X1` and `X2`.  We can view the prognostic score estimates for the individuals in the analysis set with `a.strat$prog_scores`
 
-Finally, we can make the same plots as before:
+#### Plots
+
+Any `auto_strata` object supports the same plots types as the `manual_strata` objects:
 
 ```{r}
 plot(a.strat)
@@ -150,8 +159,24 @@ plot(a.strat)
 plot(a.strat, type = "hist", propensity = treat ~ X1 + X2, stratum = 5)
 ```
 
+However, we additionally have two ploting types for `auto_strata` objects only: `"residual"` and `"FM"`.
 
-Last but not least, `a.strat` stores a copy of the prognostic score model we estimated on the pilot data set.  By extracting the prognostic model, we can run diagnostics to check how well we fit our prognostic score.
+Setting `type = "FM"` in the plot command produces a Fisher-Mill plot for a given stratum.  This shows each individual in the stratum in terms of their estimated propensity score and their estimated prognostic score.  This allows us to check how well the treated and control samples overlap not only in their probability of treatment but in their expected outcome under the control assignment. Just as with the overlap histograms, we need to provide a stratum number and information on the propensity score.  Below, I use the same propensity formula as in the histogram above.
+
+```{r}
+plot(a.strat, type = "FM", propensity = treat ~ X1 + X2, stratum = 5)
+```
+
+Finally, if we fit a prognostic model, then we can run diagnostics on that prognostic model with `type = "residual"`.  This is essentially just a wrapper for the `glm` plotting method.
+
+```{r}
+plot(a.strat, type = "residual")
+# plot(a.strat$prog_model) will do the same thing, see below
+```
+
+#### Prognostic Model
+
+If we want to run extra diagnostics on our prognostic model, we can do that too. Our `a.strat` stores a copy of the prognostic score model we estimated on the pilot data set.  By extracting the prognostic model, we can run any of the usual diagnostics for our glm.
 
 ```{r}
 # extract prognostic model from a.strat
@@ -161,17 +186,9 @@ summary(progmod)
 ```
 Based on the coefficients from the prognostic model, we can tell that our prognostic score estimates are primarily determined by each individual's `X2` baseline value.
 
-All of the usual diagnostics for a `glm` in R can be run on the prognostic model we obtained from `a.strat`.  For example, we can run `plot` on the prognostic model to obtain the usual residual, leverage, and q-q plots. 
-
-```{r}
-plot(a.strat, type = "residual")
-# plot(progmod) with the extracted model will do the same thing
-```
-
 ## Alternative methods for automatic stratification.
 
-Above, we showed the default method used my `auto_stratify`.  By providing other arguements, it is possible to construct the strata using various other methods.  For example, one could fit the prognostic scores for the analysis set separately and provide them as an arguement to `auto_stratify`.  Alternatively, the researcher could specify their own pilot set that they would like to use to build the prognostic model.
-
+Above, we showed the default method used my `auto_stratify`.  By providing other arguments, it is possible to construct the strata using various other methods.  For example, one could fit the prognostic scores for the analysis set separately and provide them as an argument to `auto_stratify`.  Alternatively, the researcher could specify their own pilot set that they would like to use to build the prognostic model.
 
 ## Matching
 
@@ -187,7 +204,7 @@ mymatch <- big_match(a.strat, treat ~ X1 + X2, k = 2)
 summary(mymatch)
 ```
 
-This function in turn calls `optmatch` to do the matching, stratified by the strata assignments.  It returns an optmatch matching.  Inessence, each individual is given an identified for its match.  `<NA>` indicates that the individual was not matched, and an identifier such as `3.15` indicates that this individual was in stratum 3 and it was placed in match 15.
+This function in turn calls `optmatch` to do the matching, stratified by the strata assignments.  It returns an optmatch matching.  Inessence, each individual is given an identification code for its match.  `<NA>` indicates that the individual was not matched, and an identifier such as `3.15` indicates that this individual was in stratum 3 and it was placed in match 15.
 
 ```{r}
 # add match information as a column in the data set
