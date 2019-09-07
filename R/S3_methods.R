@@ -270,7 +270,7 @@ make_hist_plot <- function(x, propensity, s){
   # plot final overlayed histogram
   hist(hc, breaks = nbreaks,
        col = rgb(0, 0, 1, 0.5), xlim = c(xmin, xmax), ylim = c(0, ymax),
-       main = paste("Histogram of propensity scores in stratum", s),
+       main = paste("Propensity scores in stratum", s),
        xlab = "Propensity Score")
   hist(ht, breaks = nbreaks, col = rgb(1, 0, 0, 0.5), add = TRUE)
   legend("topright", legend = c("treated", "control"),

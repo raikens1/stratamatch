@@ -1,13 +1,18 @@
 ---
 title: "Introduction to BigMatch"
 author: "Rachael C. Aikens"
-date: "` r Sys.Date()`"
+date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Introduction to BigMatch}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
+
+
+```{r, warning=FALSE, message = FALSE, include = FALSE}
+knitr::opts_chunk$set(warning = TRUE, message = TRUE, fig.align = "center", fig.height = 4, fig.width = 4)
+```
 
 `BigMatch` is designed to automate stratification and matching of observational data. The design of this procedure is built around two main ideas from experimental study design: the pilot study and the blocked randomized controlled trial.  BigMatch extends these concepts to the observational setting.
 
@@ -48,7 +53,7 @@ dat <- make_sample_data(n = 1000, p = 0.25)
 head(dat)
 ```
 
-# Stratification.
+# Stratification
 
 ## Manual Stratification
 
@@ -202,7 +207,7 @@ Above, we showed the default method used my `auto_stratify`.  By providing other
 
 Now that we have stratified the data, we can match the individuals within each stratum. 
 
-The most flexible, albeit the most work intensive, solution is for the researcher to do this step by hand, using the strata designations in the analysis set returned by either one of the stratification methods. If the researcher plans to do something very specific or nuanced in the matching process, this may be the best approach.  For example, users proficient with the matching package `optmatch` will note that adding `+ strata(stratum)` to the matching formula supplied to optmatch will request that optmatch perform the matching within each stratum in the analysis set (see the [optmatch documentation](https://cran.r-project.org/web/packages/optmatch/optmatch.pdf) for further details). Another approach is to divide the `analysis_set` into separate data frames and match on those individually, perhaps distributing over serval computing clusters or using a different matching scheme in each stratum (for example different $k$ in $1:k$ matching)
+The most flexible - albeit the most work intensive - strategy is for the researcher to do this step by hand, using the strata designations in the analysis set returned by either one of the stratification methods. If the researcher plans to do something very specific or nuanced in the matching process, this may be the best approach.  For example, users proficient with the matching package `optmatch` will note that adding `+ strata(stratum)` to the matching formula supplied to optmatch will request that optmatch perform the matching within each stratum in the analysis set (see the [optmatch documentation](https://cran.r-project.org/web/packages/optmatch/optmatch.pdf) for further details). Another approach is to divide the `analysis_set` into separate data frames and match on those individually, perhaps distributing over serval computing clusters or using a different matching scheme in each stratum (for example different $k$ in $1:k$ matching)
 
 If the goal is something more simple, i.e. a 1-to-1 or 1-to-$k$ optimal propensity score matching within strata, the `big_match` function can do that automatically on a single computer.  Below, I match two control individuals to each treatment individual within strata in my analysis set provided by a.strat.  I use the propensity score formula `treat ~ X1 + X2`.
 
