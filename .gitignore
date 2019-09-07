@@ -6,7 +6,7 @@
 *_cache
 BigMatch.Rproj
 demos/*
-*archive/*
+R/archive/*
 
 # Compiled source #
 ###################
