@@ -97,6 +97,14 @@ m.strat$issue_table
 
 This table shows each of our strata and some of the potential issues we may face when trying to match within these strata.  In particular, we see here that stratum 6 is 84% control individuals.  This means that there are proportionally many fewer treated individuals in this stratum.
 
+#### Summaries
+
+These still need to be implemented.  I could just make it so that `summary()` returns the issue table.
+
+```{r, execute = FALSE}
+summary(m.strat) # what should this return or do?
+```
+
 #### Plots
 
 There are two types of plots that we can make automatically with a `manual_strata` object.  The first is a stratification plot.  This plots each stratum in the analysis set based on its size and the percentage of control observations.  If a stratum is too small or is very imbalanced in its treat:control ratio, finding quality matches may be difficult.  If a stratum is too large, matching may be very computationally taxing.  We can see here that stratum 6 is in the yellow region because it is > 75% controls.
