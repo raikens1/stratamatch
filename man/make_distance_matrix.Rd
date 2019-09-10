@@ -18,7 +18,6 @@ a matrix of distances to be passed to opmatch::pairmatch()
 }
 \description{
 Not meant to be called externally. Makes the distance matrix to be passed to
-pairmatch. Similar to \code{match_on.glm} in \code{optmatch} except that the model need not
-have been fit on the data we are matching.  Much of this code is copied and 
-pasted from the \code{optmatch} package.
+pairmatch. Similar to \code{match_on.glm} in \code{optmatch} except that the
+model need not have been fit on the data we are matching.
 }

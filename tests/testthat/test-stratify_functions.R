@@ -73,91 +73,90 @@ test_that("manual stratify works", {
 test_that("auto_stratify errors work", {
   test_dat <- make_test_data()
 
+  # bad data
   expect_error(auto_stratify(92,
                              treat = "treat",
                              outcome = "outcome",
                              prognosis = test_dat$cont),
                "data must be a data.frame")
-
+  
+  # bad treat
   expect_error(auto_stratify(test_dat,
                              treat = c("treat", "control"),
                              outcome = "outcome",
                              prognosis = test_dat$cont),
                "treat must be a single string")
-
   expect_error(auto_stratify(test_dat,
                              treat = "zombies",
                              outcome = "outcome",
                              prognosis = test_dat$cont),
                "treat must be the name of a column in data")
-
+  
+  # bad prognostic scores
   expect_error(auto_stratify(test_dat,
                              treat = "treat",
                              outcome = "outcome",
                              prognosis = 0:3),
                "prognostic scores must be the same length as the data")
-
   expect_error(auto_stratify(test_dat,
                              treat = "treat",
                              prognosis = test_dat$cont),
                "If specifying prognostic scores, outcome must be specified")
-
-  expect_error(auto_stratify(test_dat,
-                             treat = "treat",
-                             prognosis = test_dat$cont),
-               "If specifying prognostic scores, outcome must be specified")
-
+  
+  # bad prognostic formula
   expect_error(auto_stratify(test_dat,
                              treat = "treat",
                              prognosis = outcome ~ socks),
                "not all variables in prognosis formula appear in data")
-
   expect_error(auto_stratify(test_dat,
                              treat = "treat",
                              prognosis = treat ~ cont),
                "prognostic formula must model outcome, not treatment")
-
   expect_error(auto_stratify(test_dat,
                              treat = "treat",
                              outcome = "outcome",
                              prognosis = cont ~ cat),
                "prognostic formula must model outcome")
-
   expect_error(auto_stratify(test_dat,
                              treat = "treat",
-                             prognosis = outcome ~ cont,
-                             held_frac = "socks"),
-               "held_frac must be numeric")
-
-  expect_error(auto_stratify(test_dat,
-                             treat = "treat",
-                             prognosis = outcome ~ cont,
-                             held_frac = -1),
-               "held_frac must be between 0 and 1")
-
-  expect_error(auto_stratify(test_dat,
-                             treat = "treat",
-                             prognosis = outcome ~ cont,
-                             held_sample = -1),
-               "held_sample must be a data.frame")
-
-  expect_error(auto_stratify(test_dat,
-                             treat = "treat",
-                             prognosis = outcome ~ cont,
-                             held_sample = dplyr::select(test_dat, -cont)),
-               "All variables in prognostic score formula must be in held_sample")
-
+                             prognosis = outcome ~ cont + treat),
+               "prognostic formula must model the outcome in the absence of treatment; the treatment assignment may not be a predictor for the prognostic score model")
+  
+  # bad prognostic model
   expect_error(auto_stratify(test_dat,
                              treat = "treat",
                              prognosis = glm(outcome ~ cont,
                                              test_dat,
                                              family = "binomial")),
                "If specifying a prognostic score model, outcome must be specified")
-
+  
+  # bad arg for prognosis
   expect_error(auto_stratify(test_dat,
                              treat = "treat",
-                             prognosis = outcome ~ cont + treat),
-               "prognostic formula must model the outcome in the absence of treatment; the treatment assignment may not be a predictor for the prognostic score model")
+                             prognosis = "rocks"),
+               "prognosis type not recognized")
+  
+  # bad pilot set options
+  expect_error(auto_stratify(test_dat,
+                             treat = "treat",
+                             prognosis = outcome ~ cont,
+                             held_frac = "socks"),
+               "held_frac must be numeric")
+  expect_error(auto_stratify(test_dat,
+                             treat = "treat",
+                             prognosis = outcome ~ cont,
+                             held_frac = -1),
+               "held_frac must be between 0 and 1")
+  expect_error(auto_stratify(test_dat,
+                             treat = "treat",
+                             prognosis = outcome ~ cont,
+                             held_sample = -1),
+               "held_sample must be a data.frame")
+  expect_error(auto_stratify(test_dat,
+                             treat = "treat",
+                             prognosis = outcome ~ cont,
+                             held_sample = dplyr::select(test_dat, -cont)),
+               "All variables in prognostic score formula must be in held_sample")
 })
 
 test_that("auto_stratify with prognostic scores works", {
