@@ -141,18 +141,22 @@ build_prog_scores <- function(data, treat, prognosis,
     prog_scores <- make_prog_scores(prog_model, analysis_set)
   }
 
-  # prognosis is a model
-  else if (TRUE){ # TODO: should enter here if predict does not throw an error?
+  # prognosis is a model, or it is unrecognized
+  else { 
+    # try to predict.  If successful, prognosis was a model.
+    # otherwise, throw an error: prognosis type not recognized
+    prog_scores <- tryCatch(predict(prognosis,
+                                    newdata = data,
+                                    type = "response"),
+                            error = function(c) {
+                              stop("Error: prognosis type not recognized")
+                              })
     if (is.null(outcome)) {
       stop("If specifying a prognostic score model, outcome must be specified")
     }
-    prog_scores <- predict(prognosis, newdata = data, type = "response")
     analysis_set <- data
     pilot_set <- NULL
     prog_model <- prognosis
-  }
-  else {
-    stop("Error: prognosis type not recognized.")
   }
 
   return(list(analysis_set = analysis_set, prog_scores = prog_scores,
@@ -212,8 +216,7 @@ split_pilot_set <- function(data, treat, held_frac, held_sample){
 #'
 #' @return vector of prognostic scores
 make_prog_scores <- function(prog_model, analysis_set){
-  tryCatch(predict(prog_model, analysis_set,
-                   type = "response"),
+  tryCatch(predict(prog_model, analysis_set, type = "response"),
            error = function(e) {
              if (e$call == "model.frame.default(Terms, newdata, na.action = na.action, xlev = object$xlevels)"){
                e$print <- paste("Error applying prognostic model:

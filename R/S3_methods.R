@@ -248,9 +248,11 @@ make_hist_plot <- function(x, propensity, s){
   if (!is.element(s, unique(a_set$stratum))){
     stop("Stratum number does not exist in analysis set")
   }
+  
+  prop_scores = get_prop_scores(propensity, a_set, x$treat)
 
   plt_data <- a_set %>%
-    dplyr::mutate(prop_score = get_prop_scores(propensity, a_set, x$treat)) %>%
+    dplyr::mutate(prop_score = prop_scores) %>%
     dplyr::filter(stratum == s)
 
   names(plt_data)[names(plt_data) == x$treat] <- "treat"
@@ -349,6 +351,7 @@ make_resid_plot <- function(x){
 #' @param treat, the name of the treatment assignment column
 #'
 #' @return vector of propensity scores
+#' @export
 get_prop_scores <- function(propensity, data, treat){
   # if it is a vector of propensity scores, check and return it
   if (is.numeric(propensity)){
@@ -368,7 +371,9 @@ get_prop_scores <- function(propensity, data, treat){
   # if it is a model for propensity, predict on data
   # This error handling doesn't work
   return(tryCatch(predict(propensity, newdata = data, type = "response"),
-                          error = function(c) "Error: propensity type not recognized"))
+                          error = function(c) {
+                            stop("Error: propensity type not recognized")
+                            }))
 }
 
 #' Check Propensity Formula
