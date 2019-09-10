@@ -58,9 +58,9 @@
 auto_stratify <- function(data, treat, prognosis,
                           outcome = NULL, size = 2500,
                           held_frac = 0.1, held_sample = NULL) {
-  
+
   check_inputs_auto_stratify(data, treat, outcome)
-  
+
   build <- build_prog_scores(data, treat, prognosis,
                              outcome, held_frac, held_sample)
 
@@ -69,7 +69,7 @@ auto_stratify <- function(data, treat, prognosis,
   pilot_set <- build$pilot_set
   prog_model <- build$prog_model
   outcome <- build$outcome
-  
+
   # Create strata from prognostic score quantiles
   n_bins <- ceiling(dim(analysis_set)[1] / size)
   qcut <- Hmisc::cut2(prog_scores, g = n_bins)
@@ -123,12 +123,13 @@ build_prog_scores <- function(data, treat, prognosis,
     pilot_set <- NULL
     prog_model <- NULL
   }
-  
+
   # prognosis is a formula
   else if (inherits(prognosis, "formula")){
     check_prog_formula(prognosis, data, outcome, treat)
     split <- split_pilot_set(data, treat, held_frac, held_sample)
-    if (!is.null(held_sample) & !all(is.element(all.vars(prognosis), colnames(held_sample)))) {
+    if (!is.null(held_sample) &
+        !all(is.element(all.vars(prognosis), colnames(held_sample)))) {
       stop("All variables in prognostic score formula must be in held_sample")
     }
     pilot_set <- split$pilot_set
@@ -139,7 +140,7 @@ build_prog_scores <- function(data, treat, prognosis,
     prog_model <- glm(prognosis, data = pilot_set, family = "binomial")
     prog_scores <- make_prog_scores(prog_model, analysis_set)
   }
-  
+
   # prognosis is a model
   else if (TRUE){ # TODO: should enter here if predict does not throw an error?
     if (is.null(outcome)) {
@@ -150,7 +151,9 @@ build_prog_scores <- function(data, treat, prognosis,
     pilot_set <- NULL
     prog_model <- prognosis
   }
-  else {stop("Error: prognosis type not recognized.")}
+  else {
+    stop("Error: prognosis type not recognized.")
+  }
 
   return(list(analysis_set = analysis_set, prog_scores = prog_scores,
               pilot_set = pilot_set, prog_model = prog_model,
@@ -172,13 +175,13 @@ build_prog_scores <- function(data, treat, prognosis,
 split_pilot_set <- function(data, treat, held_frac, held_sample){
   check_pilot_set_options(held_sample, held_frac)
   pilot_set <- NULL
-  
+
   # if held_sample is specified use that to build score
   if (!is.null(held_sample)){
     message("Using user-specified set for prognostic score modeling.")
     pilot_set <- held_sample
     analysis_set <- data
-    
+
   } else {
     # otherwise, construct a pilot set
     message("Constructing a pilot set via subsampling.")
@@ -191,7 +194,7 @@ split_pilot_set <- function(data, treat, held_frac, held_sample){
       dplyr::select(-BigMatch_id)
     pilot_set$BigMatch_id <- NULL
   }
-  
+
   return(list(analysis_set = analysis_set, pilot_set = pilot_set))
 }
 

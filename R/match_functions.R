@@ -99,6 +99,9 @@ big_match <- function(strat, propensity_formula = NULL, k = 1){
 
   check_inputs_matcher(strat, propensity_formula, k)
 
+  message("This function makes essential use of the optmatch package, which has an academic license.")
+  message("For more information, run optmatch::relaxinfo()")
+
   if (is.null(propensity_formula)){
     # match on all variables, stratified by stratum
     propensity_formula <- formula(paste(strat$treat, "~ . -", strat$outcome,
@@ -165,12 +168,13 @@ big_match_nstrat <- function(strat, propensity_formula = NULL, k = 1){
 #' @return nothing
 check_inputs_matcher <- function(strat, propensity_formula, k){
   if (!is.strata(strat)) {
-    stop("strat must be a strata object.  See ?manual_stratify or ?auto_stratify")
+    stop("strat must be a strata object")
   }
   if (!is.null(propensity_formula)) {
     if (!inherits(propensity_formula, "formula")) {
       stop("propensity_formula must be a formula")
     }
+    check_prop_formula(propensity_formula, strat$analysis_set, strat$treat)
   }
   if (is.na(suppressWarnings(as.integer(k)))) stop("k must be an integer")
   if (k < 1) stop("k must be 1 or greater")

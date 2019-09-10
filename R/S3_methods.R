@@ -154,7 +154,7 @@ summarize_balance <- function(data, treat, outcome){
     t()
 
   colnames(result) <- c("Treat_Mean", "Contol_Mean")
-  
+
   return(result)
 }
 
@@ -305,8 +305,8 @@ make_fm_plot <- function(x, propensity, s){
     dplyr::filter(stratum == s)
 
   names(plt_data)[names(plt_data) == x$treat] <- "treat"
-  
-  plt_data$color <- ifelse(treat == 1, "red", "blue")
+
+  plt_data$color <- ifelse(plt_data$treat == 1, "red", "blue")
 
   plot(plt_data$prop_score, plt_data$prog_score, col = plt_data$color,
        main = paste("Fisher-Mill plot for stratum", s),
@@ -374,6 +374,7 @@ get_prop_scores <- function(propensity, data, treat){
 #' Check Propensity Formula
 #'
 #' @inheritParams get_prop_scores
+#' @param prop_formula a formula
 #' 
 #' @return nothing
 check_prop_formula <- function(prop_formula, data, treat){
