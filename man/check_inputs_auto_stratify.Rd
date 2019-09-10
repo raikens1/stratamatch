@@ -4,8 +4,7 @@
 \alias{check_inputs_auto_stratify}
 \title{Check inputs from auto_stratify}
 \usage{
-check_inputs_auto_stratify(data, treat, outcome, prog_formula, prog_scores,
-  size, held_frac, held_sample)
+check_inputs_auto_stratify(data, treat, outcome)
 }
 \arguments{
 \item{data}{\code{data.frame} with observations as rows, features as columns}
@@ -16,24 +15,11 @@ assignment}
 \item{outcome}{string giving the name of column with outcome information.
 Required if prog_scores is specified.  Otherwise it will be inferred from
 prog_formula}
-
-\item{prog_formula}{formula for building prognostic score model}
-
-\item{prog_scores}{vector of prognostic scores for all individuals in the
-data set. Should be in the same order as the rows of \code{data}.}
-
-\item{size}{numeric, desired size of strata (default = 2500)}
-
-\item{held_frac}{numeric between 0 and 1 giving the proportion of controls to
-be allotted for building the prognostic score (default = 0.1)}
-
-\item{held_sample}{a data.frame of held aside samples for building prognostic
-score model.}
 }
 \value{
 nothing; produces errors and warnings if anything is wrong
 }
 \description{
-Not meant to be called externally.  Throws errors if auto_stratify inputs are
-incorrect.
+Not meant to be called externally.  Throws errors if basic auto_stratify 
+inputs are incorrect.
 }

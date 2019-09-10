@@ -4,13 +4,15 @@
 \alias{get_prop_scores}
 \title{Parse \code{propensity} input to obtain propensity scores}
 \usage{
-get_prop_scores(propensity, data)
+get_prop_scores(propensity, data, treat)
 }
 \arguments{
 \item{propensity}{either a vector of propensity scores, a model for
 propensity, or a formula for propensity scores}
 
 \item{data, }{the analysis set data within a stratum}
+
+\item{treat, }{the name of the treatment assignment column}
 }
 \value{
 vector of propensity scores

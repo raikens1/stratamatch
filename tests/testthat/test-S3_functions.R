@@ -30,9 +30,8 @@ test_that("Print manual strata works", {
 test_that("Print auto strata works", {
   test_dat <- make_test_data()
   a.strat <- auto_stratify(test_dat,
-                           "treat",
-                           "outcome",
-                           prog_scores = test_dat$cont)
+                           "treat", prognosis = test_dat$cont,
+                           outcome = "outcome")
 
   expect_known_output(print(a.strat), file = "ref_astrat_print", update = F)
 })
@@ -51,9 +50,8 @@ test_that("Plot errors work", {
   test_dat <- make_test_data()
   m.strat <- manual_stratify(test_dat, treat ~ cat)
   a.strat <- auto_stratify(test_dat,
-                           "treat",
-                           "outcome",
-                           prog_scores = test_dat$cont)
+                           "treat", prognosis = test_dat$cont,
+                           outcome = "outcome")
 
   # bad plot type
   expect_error(plot(m.strat, type = "qq"))
@@ -74,8 +72,20 @@ test_that("Plot errors work", {
 
   # overlap plots
   expect_error(plot(a.strat, type = "hist",
-                    propensity = "soup", stratum = 200),
+                    propensity = treat ~ X1 + X2, stratum = 200),
                "Stratum number does not exist in analysis set")
+
+  expect_error(plot(a.strat, type = "hist",
+                    propensity = 1:3, stratum = 1),
+               "propensity scores must be the same length as the data")
+
+  expect_error(plot(a.strat, type = "hist",
+                    propensity = treat ~ socks, stratum = 1),
+               "not all variables in propensity formula appear in data")
+
+  expect_error(plot(a.strat, type = "hist",
+                    propensity = outcome ~ cont, stratum = 1),
+               "propensity formula must model treatment assignment")
 
   # These aren't working yet; skipping for now while running CRAN checks
   skip("Trycatch errors aren't working correctly.  See issue #88 on Github")

@@ -154,7 +154,7 @@ summarize_balance <- function(data, treat, outcome){
     t()
 
   colnames(result) <- c("Treat_Mean", "Contol_Mean")
-  
+
   return(result)
 }
 
@@ -248,9 +248,11 @@ make_hist_plot <- function(x, propensity, s){
   if (!is.element(s, unique(a_set$stratum))){
     stop("Stratum number does not exist in analysis set")
   }
+  
+  prop_scores = get_prop_scores(propensity, a_set, x$treat)
 
   plt_data <- a_set %>%
-    dplyr::mutate(prop_score = get_prop_scores(propensity, a_set)) %>%
+    dplyr::mutate(prop_score = prop_scores) %>%
     dplyr::filter(stratum == s)
 
   names(plt_data)[names(plt_data) == x$treat] <- "treat"
@@ -298,13 +300,15 @@ make_fm_plot <- function(x, propensity, s){
   if (!is.element(s, unique(a_set$stratum))){
     stop("Stratum number does not exist in analysis set")
   }
-  names(a_set)[names(a_set) == x$treat] <- "treat"
 
   plt_data <- a_set %>%
-    dplyr::mutate(prop_score = get_prop_scores(propensity, a_set),
-                  prog_score = x$prog_scores,
-                  color = ifelse(treat == 1, "red", "blue")) %>%
+    dplyr::mutate(prop_score = get_prop_scores(propensity, a_set, x$treat),
+                  prog_score = x$prog_scores) %>%
     dplyr::filter(stratum == s)
+
+  names(plt_data)[names(plt_data) == x$treat] <- "treat"
+
+  plt_data$color <- ifelse(plt_data$treat == 1, "red", "blue")
 
   plot(plt_data$prop_score, plt_data$prog_score, col = plt_data$color,
        main = paste("Fisher-Mill plot for stratum", s),
@@ -344,16 +348,22 @@ make_resid_plot <- function(x){
 #' @param propensity either a vector of propensity scores, a model for
 #'   propensity, or a formula for propensity scores
 #' @param data, the analysis set data within a stratum
+#' @param treat, the name of the treatment assignment column
 #'
 #' @return vector of propensity scores
-get_prop_scores <- function(propensity, data){
-  # if it is a vector of propensity scores, return it
-  if (is.numeric(propensity) & length(propensity) == dim(data)[1]){
+#' @export
+get_prop_scores <- function(propensity, data, treat){
+  # if it is a vector of propensity scores, check and return it
+  if (is.numeric(propensity)){
+    if (length(propensity) != dim(data)[1]){
+      stop("propensity scores must be the same length as the data")
+    }
     return(propensity)
   }
 
   # if it is a formula
   if (inherits(propensity, "formula")){
+    check_prop_formula(propensity, data, treat)
     prop_model <- glm(propensity, data, family = "binomial")
     return(predict(prop_model, type = "response"))
   }
@@ -361,5 +371,22 @@ get_prop_scores <- function(propensity, data){
   # if it is a model for propensity, predict on data
   # This error handling doesn't work
   return(tryCatch(predict(propensity, newdata = data, type = "response"),
-                          error = function(c) "Error: propensity type not recognized"))
+                          error = function(c) {
+                            stop("Error: propensity type not recognized")
+                            }))
+}
+
+#' Check Propensity Formula
+#'
+#' @inheritParams get_prop_scores
+#' @param prop_formula a formula
+#' 
+#' @return nothing
+check_prop_formula <- function(prop_formula, data, treat){
+  if (!all(is.element(all.vars(prop_formula), colnames(data)))) {
+    stop("not all variables in propensity formula appear in data")
+  }
+  if (!(treat == all.vars(prop_formula)[1])) {
+    stop("propensity formula must model treatment assignment")
+  }
 }

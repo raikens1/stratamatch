@@ -19,7 +19,7 @@ Description: This package employs a "Pilot Matching" design to automatically
     (see Hansen (2008)) on the pilot set, and stratifying the data set based
     on prognostic score quantiles.  The `big_match` function then does optimal
     matching of the data set in parallel within strata.
-License: GPL (>= 2)
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Imports: 

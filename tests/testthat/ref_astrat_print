@@ -1,8 +1,8 @@
 auto_strata object from package big_match.
 
 Function call:
-auto_stratify(data = test_dat, treat = "treat", outcome = "outcome", 
-    prog_scores = test_dat$cont)
+auto_stratify(data = test_dat, treat = "treat", prognosis = test_dat$cont, 
+    outcome = "outcome")
 
 Analysis set dimensions: 16 X 5
 
