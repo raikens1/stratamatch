@@ -20,5 +20,5 @@ assignment}
 nothing
 }
 \description{
-Checks that outcome is a string and is provided when scores are provided
+Checks that outcome is a string which is a column in the data
 }

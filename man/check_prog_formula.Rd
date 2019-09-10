@@ -7,7 +7,7 @@
 check_prog_formula(prog_formula, data, outcome, treat)
 }
 \arguments{
-\item{prog_formula}{formula for building prognostic score model}
+\item{prog_formula}{a formula for prognostic score}
 
 \item{data}{\code{data.frame} with observations as rows, features as columns}
 

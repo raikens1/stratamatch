@@ -7,8 +7,7 @@
 check_scores(prog_scores, data)
 }
 \arguments{
-\item{prog_scores}{vector of prognostic scores for all individuals in the
-data set. Should be in the same order as the rows of \code{data}.}
+\item{prog_scores, }{a numeric vector}
 
 \item{data}{\code{data.frame} with observations as rows, features as columns}
 }

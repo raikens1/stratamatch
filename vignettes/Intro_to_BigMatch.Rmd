@@ -129,15 +129,14 @@ plot(m.strat, type = "hist", propensity = treat ~ X1 + X2, stratum = 1)
 
 ## Automatic Stratification
 
-Another option is to use `auto_stratify` to automatically create the stratified data set.  In this process, we specify what model we want to use for the prognostic score and what percent of the control reserve we want to use to do the fitting.  We also need to tell `auto_stratify` which columns of our data set designate the treatment assignment and outcomes.  The final arguement, size, specifies about how large we would like our strata to be.
+Another option is to use `auto_stratify` to automatically create the stratified data set.  In this process, we specify what model we want to use for the prognostic score and what percent of the control reserve we want to use to do the fitting.  We also need to tell `auto_stratify` which column of our data set designates the treatment assignment.  The final arguement, size, specifies about how large we would like our strata to be.
 
 ```{r}
 # cast X1 as factor so that it is recognized as categorical, not numeric
 dat$X1 <- as.factor(dat$X1)
 
-a.strat <- auto_stratify(dat, treat = "treat", outcome = "outcome",
-                         prog_formula = outcome ~ X1 + X2, held_frac = 0.1, 
-                         size = 200)
+a.strat <- auto_stratify(dat, treat = "treat", prognosis = outcome ~ X1 + X2,
+                         held_frac = 0.1, size = 200)
 
 a.strat
 ```

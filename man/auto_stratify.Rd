@@ -4,9 +4,8 @@
 \alias{auto_stratify}
 \title{Auto Stratify}
 \usage{
-auto_stratify(data, treat, outcome = NULL, prog_formula = NULL,
-  prog_scores = NULL, size = 2500, held_frac = 0.1,
-  held_sample = NULL)
+auto_stratify(data, treat, prognosis, outcome = NULL, size = 2500,
+  held_frac = 0.1, held_sample = NULL)
 }
 \arguments{
 \item{data}{\code{data.frame} with observations as rows, features as columns}
@@ -14,14 +13,15 @@ auto_stratify(data, treat, outcome = NULL, prog_formula = NULL,
 \item{treat}{string giving the name of column designating treatment
 assignment}
 
+\item{prognosis}{information on how to build prognostic scores.  Three
+different input types are allowed: \enumerate{ \item vector of prognostic
+scores for all individuals in the data set. Should be in the same order as
+the rows of \code{data}. \item a \code{formula} for fitting a prognostic
+model \item an already-fit prognostic score model}}
+
 \item{outcome}{string giving the name of column with outcome information.
 Required if prog_scores is specified.  Otherwise it will be inferred from
 prog_formula}
-
-\item{prog_formula}{formula for building prognostic score model}
-
-\item{prog_scores}{vector of prognostic scores for all individuals in the
-data set. Should be in the same order as the rows of \code{data}.}
 
 \item{size}{numeric, desired size of strata (default = 2500)}
 
@@ -46,18 +46,23 @@ Stratifying by prognostic score quantiles can be more effective than manually
 stratifying a data set because the prognostic score is continuous, thus the
 strata produced tend to be of equal size with similar prognosis.
 
-There are two main methods:
-
-\enumerate{ \item Prespecify a vector of prognostic scores
-(\code{prog_scores}) that you would like to use. \item Provide a prognostic
-formula (\code{prog_formula}) and allow \code{auto_stratify} to partition a
-'pilot' data set of controls on which to fit a prognostic score.  The
-individuals from the pilot set will be removed from the rest of the data (the
-analysis set). There are various methods for specifying how to partition the
-pilot set. }
-
-At least one of these two methods must be used. As a result, at least one of
-\code{prog_scores} or \code{prog_formula} must be supplied.
+Automatic stratification requires information on how the prognostic scores
+should be derived.  This is primarily determined by the specifciation of the
+\code{prognosis} argument.  Three main forms of input for \code{prognosis}
+are allowed: \enumerate{ \item A vector of prognostic scores. This vector
+should be the same length and order of the rows in the data set.  If this
+method is used, the \code{outcome} argument must also be specified; this is
+simply a string giving the name of the column which contains outcome
+information. \item A formula for prognosis (e.g. \code{outcome ~ X1 + X2}).
+If this method is used, \code{auto_stratify} will automatically split the
+data set into a \code{pilot_set} and an \code{analysis_set}.  The pilot set
+will be used to fit a logistic regression model for outcome in the absence of
+treatment, and this model will be used to estimate prognostic scores on the
+analysis set.  The analysis set will then be stratified based on the
+estimated prognostic scores.  In this case the \code{outcome} argument need
+not be specified since it can be inferred from the input formula. \item A
+model for prognosis (e.g. a \code{glm} object).  If this method is used, the
+\code{outcome} argument must also be specified}
 }
 \seealso{
 \code{\link{manual_stratify}}, \code{\link{new_auto_strata}}

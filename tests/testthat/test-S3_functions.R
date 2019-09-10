@@ -30,9 +30,8 @@ test_that("Print manual strata works", {
 test_that("Print auto strata works", {
   test_dat <- make_test_data()
   a.strat <- auto_stratify(test_dat,
-                           "treat",
-                           "outcome",
-                           prog_scores = test_dat$cont)
+                           "treat", prognosis = test_dat$cont,
+                           outcome = "outcome")
 
   expect_known_output(print(a.strat), file = "ref_astrat_print", update = F)
 })
@@ -51,9 +50,8 @@ test_that("Plot errors work", {
   test_dat <- make_test_data()
   m.strat <- manual_stratify(test_dat, treat ~ cat)
   a.strat <- auto_stratify(test_dat,
-                           "treat",
-                           "outcome",
-                           prog_scores = test_dat$cont)
+                           "treat", prognosis = test_dat$cont,
+                           outcome = "outcome")
 
   # bad plot type
   expect_error(plot(m.strat, type = "qq"))
