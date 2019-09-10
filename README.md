@@ -1,4 +1,8 @@
-# big_match
+# BigMatch
+<!-- badges: start -->
+[![CRAN
+status](https://www.r-pkg.org/badges/version/BigMatch)](https://cran.r-project.org/package=BigMatch)
+<!-- badges: end -->
 **Creators:** Rachael Caelie "Rocky" Aikens and Michael Baiocchi
 
 ## Objective
