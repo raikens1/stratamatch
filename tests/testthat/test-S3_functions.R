@@ -69,28 +69,22 @@ test_that("Plot errors work", {
   expect_error(plot(a.strat, type = "FM",
                     propensity = treat ~ X1 + X2, stratum = 200),
                "Stratum number does not exist in analysis set")
-
+  expect_error(plot(a.strat, type = "FM", propensity = "soup", stratum = 1),
+               "propensity type not recognized")
+  
   # overlap plots
   expect_error(plot(a.strat, type = "hist",
                     propensity = treat ~ X1 + X2, stratum = 200),
                "Stratum number does not exist in analysis set")
-
   expect_error(plot(a.strat, type = "hist",
                     propensity = 1:3, stratum = 1),
                "propensity scores must be the same length as the data")
-
   expect_error(plot(a.strat, type = "hist",
                     propensity = treat ~ socks, stratum = 1),
                "not all variables in propensity formula appear in data")
-
   expect_error(plot(a.strat, type = "hist",
                     propensity = outcome ~ cont, stratum = 1),
                "propensity formula must model treatment assignment")
-
-  # These aren't working yet; skipping for now while running CRAN checks
-  skip("Trycatch errors aren't working correctly.  See issue #88 on Github")
   expect_error(plot(a.strat, type = "hist", propensity = "soup", stratum = 1),
-               "Error: propensity type not recognized")
-  expect_error(plot(a.strat, type = "FM", propensity = "soup", stratum = 1),
-               "Error: propensity type not recognized")
+               "propensity type not recognized")
 })

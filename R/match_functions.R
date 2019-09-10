@@ -28,9 +28,9 @@ match_one <- function(dat, propensity_model, treat, k){
 #' Make Distance Matrix
 #'
 #' Not meant to be called externally. Makes the distance matrix to be passed to
-#' pairmatch. Similar to \code{match_on.glm} in \code{optmatch} except that the model need not
-#' have been fit on the data we are matching.  Much of this code is copied and 
-#' pasted from the \code{optmatch} package.
+#' pairmatch. Similar to \code{match_on.glm} in \code{optmatch} except that the
+#' model need not have been fit on the data we are matching.  Much of this code
+#' is copied and pasted from the \code{optmatch} package.
 #'
 #' @param dat a data.frame of observations to be matched
 #' @param propensity_model a \code{glm} object modeling propensity scores

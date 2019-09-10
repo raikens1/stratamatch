@@ -149,7 +149,7 @@ build_prog_scores <- function(data, treat, prognosis,
                                     newdata = data,
                                     type = "response"),
                             error = function(c) {
-                              stop("Error: prognosis type not recognized")
+                              stop("prognosis type not recognized")
                               })
     if (is.null(outcome)) {
       stop("If specifying a prognostic score model, outcome must be specified")
