@@ -220,15 +220,8 @@ split_pilot_set <- function(data, treat, held_frac, held_sample){
 make_prog_scores <- function(prog_model, analysis_set){
   tryCatch(predict(prog_model, analysis_set, type = "response"),
            error = function(e) {
-             if (e$call == "model.frame.default(Terms, newdata, na.action = na.action, xlev = object$xlevels)"){
-               e$print <- paste("Error applying prognostic model:
-                                Some categorical variable value(s) in
-                                the analysis set do not appear in the
-                                modeling set. Consider stratifying by
-                                these variable(s).",
-                                "GLM error:", e$print)
-               stop(e)
-             }
+             message("Encountered an error while estimating prognostic scores from the prognostic model. Error text below:")
+             stop(e)
            })
 }
 
