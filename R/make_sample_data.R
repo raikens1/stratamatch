@@ -12,10 +12,10 @@
 make_sample_data <- function(n = 16, p_treat = 0.5){
   set.seed(123)
 
-  data.frame(treat = rbinom(n = n, size = 1, p = p_treat),
+  data.frame(treat = rbinom(n = n, size = 1, prob = p_treat),
              X1 = sample(1:4, size = n, replace = T),
              X2 = rnorm(n = n)) %>%
     dplyr::mutate(outcome = rbinom(n = n,
                                    size = 1,
-                                   p = 1 / (1 + exp(treat + X2))))
+                                   prob = 1 / (1 + exp(treat + X2))))
 }

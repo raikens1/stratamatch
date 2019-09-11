@@ -81,7 +81,7 @@ manual_stratify <- function(data, strat_formula, force = FALSE){
 #' @param n, the number of rows in the data set
 #' @return Does not return anything
 warn_if_continuous <- function(column, name, force, n){
-  if (is.factor(column)){
+  if (is.factor(column) | !is.numeric(column)){
     return() # assume all factors are discrete
   } else {
     values <- length(unique(column))

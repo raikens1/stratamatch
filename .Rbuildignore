@@ -4,5 +4,6 @@
 ^demos$
 ^testing$
 ^R/archive$
+^R/parallel_match_functions.R$
 ^doc$
 ^Meta$
