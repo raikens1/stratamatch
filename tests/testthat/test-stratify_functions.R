@@ -8,12 +8,12 @@ make_test_data <- function(){
   n <- 16
   set.seed(123)
 
-  data.frame(treat = rep(c(0, 1), n / 2),
+  data.frame(treated = rep(c(0, 1), n / 2),
              cat = rep(c(0, 1, 2, 3), each = n / 4),
              cont = seq(from = 0, to = 1, length.out = n)) %>%
     dplyr::mutate(outcome = rbinom(n = n,
                                    size = 1,
-                                   p = 1 / (1 + exp(treat + cont))))
+                                   p = 1 / (1 + exp(treated + cont))))
 }
 
 #----------------------------------------------------------
@@ -23,10 +23,10 @@ make_test_data <- function(){
 test_that("manual_stratify errors work", {
   test_dat <- make_test_data()
 
-  expect_error(manual_stratify(test_dat, strat_formula = treat ~ cat + cont),
+  expect_error(manual_stratify(test_dat, strat_formula = treated ~ cat + cont),
                "There are 16 distinct values for cont. Is it continuous?")
 
-  expect_warning(manual_stratify(test_dat, strat_formula = treat ~ cat + cont,
+  expect_warning(manual_stratify(test_dat, strat_formula = treated ~ cat + cont,
                                force = TRUE),
                "There are 16 distinct values for cont. Is it continuous?")
 })
@@ -34,7 +34,7 @@ test_that("manual_stratify errors work", {
 test_that("manual stratify works", {
   test_dat <- make_test_data()
 
-  m.strat <- manual_stratify(test_dat, treat ~ cat)
+  m.strat <- manual_stratify(test_dat, treated ~ cat)
 
   expect_is(m.strat, "manual_strata")
   expect_is(m.strat, "strata")
@@ -42,10 +42,10 @@ test_that("manual stratify works", {
   expect_equal(m.strat$analysis_set,
                dplyr::mutate(test_dat, stratum = as.integer(cat + 1)))
 
-  expect_equal(m.strat$treat, "treat")
+  expect_equal(m.strat$treat, "treated")
 
   expect_equal(toString(m.strat$call),
-               "manual_stratify, test_dat, treat ~ cat")
+               "manual_stratify, test_dat, treated ~ cat")
 
   exp_issue_table <- data.frame(Stratum = 1:4,
                             Treat = rep(2, 4),
@@ -75,14 +75,14 @@ test_that("auto_stratify errors work", {
 
   # bad data
   expect_error(auto_stratify(92,
-                             treat = "treat",
+                             treat = "treated",
                              outcome = "outcome",
                              prognosis = test_dat$cont),
                "data must be a data.frame")
   
   # bad treat
   expect_error(auto_stratify(test_dat,
-                             treat = c("treat", "control"),
+                             treat = c("treated", "control"),
                              outcome = "outcome",
                              prognosis = test_dat$cont),
                "treat must be a single string")
@@ -94,37 +94,37 @@ test_that("auto_stratify errors work", {
   
   # bad prognostic scores
   expect_error(auto_stratify(test_dat,
-                             treat = "treat",
+                             treat = "treated",
                              outcome = "outcome",
                              prognosis = 0:3),
                "prognostic scores must be the same length as the data")
   expect_error(auto_stratify(test_dat,
-                             treat = "treat",
+                             treat = "treated",
                              prognosis = test_dat$cont),
                "If specifying prognostic scores, outcome must be specified")
   
   # bad prognostic formula
   expect_error(auto_stratify(test_dat,
-                             treat = "treat",
+                             treat = "treated",
                              prognosis = outcome ~ socks),
                "not all variables in prognosis formula appear in data")
   expect_error(auto_stratify(test_dat,
-                             treat = "treat",
-                             prognosis = treat ~ cont),
+                             treat = "treated",
+                             prognosis = treated ~ cont),
                "prognostic formula must model outcome, not treatment")
   expect_error(auto_stratify(test_dat,
-                             treat = "treat",
+                             treat = "treated",
                              outcome = "outcome",
                              prognosis = cont ~ cat),
                "prognostic formula must model outcome")
   expect_error(auto_stratify(test_dat,
-                             treat = "treat",
-                             prognosis = outcome ~ cont + treat),
+                             treat = "treated",
+                             prognosis = outcome ~ cont + treated),
                "prognostic formula must model the outcome in the absence of treatment; the treatment assignment may not be a predictor for the prognostic score model")
   
   # bad prognostic model
   expect_error(auto_stratify(test_dat,
-                             treat = "treat",
+                             treat = "treated",
                              prognosis = glm(outcome ~ cont,
                                              test_dat,
                                              family = "binomial")),
@@ -132,28 +132,28 @@ test_that("auto_stratify errors work", {
   
   # bad arg for prognosis
   expect_error(auto_stratify(test_dat,
-                             treat = "treat",
+                             treat = "treated",
                              prognosis = "rocks"),
                "prognosis type not recognized")
   
   # bad pilot set options
   expect_error(auto_stratify(test_dat,
-                             treat = "treat",
+                             treat = "treated",
                              prognosis = outcome ~ cont,
                              held_frac = "socks"),
                "held_frac must be numeric")
   expect_error(auto_stratify(test_dat,
-                             treat = "treat",
+                             treat = "treated",
                              prognosis = outcome ~ cont,
                              held_frac = -1),
                "held_frac must be between 0 and 1")
   expect_error(auto_stratify(test_dat,
-                             treat = "treat",
+                             treat = "treated",
                              prognosis = outcome ~ cont,
                              held_sample = -1),
                "held_sample must be a data.frame")
   expect_error(auto_stratify(test_dat,
-                             treat = "treat",
+                             treat = "treated",
                              prognosis = outcome ~ cont,
                              held_sample = dplyr::select(test_dat, -cont)),
                "All variables in prognostic score formula must be in held_sample")
@@ -163,7 +163,7 @@ test_that("auto_stratify with prognostic scores works", {
   test_dat <- make_test_data()
 
   a.strat <- auto_stratify(test_dat,
-                           treat = "treat",
+                           treat = "treated",
                            outcome = "outcome",
                            prognosis = test_dat$cont,
                            size = 4)
@@ -174,10 +174,10 @@ test_that("auto_stratify with prognostic scores works", {
                dplyr::mutate(test_dat,
                              stratum = as.integer(rep(c(1:4), each = 4))))
 
-  expect_equal(a.strat$treat, "treat")
+  expect_equal(a.strat$treat, "treated")
 
   expect_equal(toString(a.strat$call),
-               "auto_stratify, test_dat, treat, test_dat$cont, outcome, 4")
+               "auto_stratify, test_dat, treated, test_dat$cont, outcome, 4")
 
   exp_issue_table <- data.frame(Stratum = 1:4,
                                 Treat = rep(2, 4),
@@ -213,7 +213,7 @@ test_that("auto_stratify with prognostic formula + held_frac works", {
 
   set.seed(5)
   a.strat <- auto_stratify(test_dat,
-                           treat = "treat",
+                           treat = "treated",
                            outcome = "outcome",
                            prognosis = outcome ~ cont,
                            held_frac = 0.5, # way too large in practice
@@ -233,10 +233,10 @@ test_that("auto_stratify with prognostic formula + held_frac works", {
 
   expect_equal(a.strat$analysis_set, exp_analysis_set)
 
-  expect_equal(a.strat$treat, "treat")
+  expect_equal(a.strat$treat, "treated")
 
   expect_equal(toString(a.strat$call),
-               "auto_stratify, test_dat, treat, outcome ~ cont, outcome, 4, 0.5")
+               "auto_stratify, test_dat, treated, outcome ~ cont, outcome, 4, 0.5")
 
   exp_issue_table <- data.frame(Stratum = 1:3,
                                 Treat = c(3, 2, 3),
@@ -276,7 +276,7 @@ test_that("auto_stratify with prognostic formula + held_sample works", {
   test_dat <- make_test_data()
 
   a.strat <- auto_stratify(test_dat,
-                           treat = "treat",
+                           treat = "treated",
                            outcome = "outcome",
                            prognosis = outcome ~ cont,
                            held_sample = test_dat, # bad practice; ok for tests
@@ -290,10 +290,10 @@ test_that("auto_stratify with prognostic formula + held_sample works", {
 
   expect_equal(a.strat$analysis_set, exp_analysis_set)
 
-  expect_equal(a.strat$treat, "treat")
+  expect_equal(a.strat$treat, "treated")
 
   expect_equal(toString(a.strat$call),
-               "auto_stratify, test_dat, treat, outcome ~ cont, outcome, 4, test_dat")
+               "auto_stratify, test_dat, treated, outcome ~ cont, outcome, 4, test_dat")
 
   exp_issue_table <- data.frame(Stratum = 1:4,
                                 Treat = rep(2, 4),
@@ -331,7 +331,7 @@ test_that("auto_stratify with prognostic model works", {
   progmod <- glm(outcome ~ cont, test_dat, family = "binomial")
 
   a.strat <- auto_stratify(test_dat,
-                           treat = "treat",
+                           treat = "treated",
                            outcome = "outcome",
                            prognosis = progmod,
                            size = 4)
@@ -344,10 +344,10 @@ test_that("auto_stratify with prognostic model works", {
 
   expect_equal(a.strat$analysis_set, exp_analysis_set)
 
-  expect_equal(a.strat$treat, "treat")
+  expect_equal(a.strat$treat, "treated")
 
   expect_equal(toString(a.strat$call),
-               "auto_stratify, test_dat, treat, progmod, outcome, 4")
+               "auto_stratify, test_dat, treated, progmod, outcome, 4")
 
   exp_issue_table <- data.frame(Stratum = 1:4,
                                 Treat = rep(2, 4),
