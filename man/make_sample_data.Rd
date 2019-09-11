@@ -4,18 +4,17 @@
 \alias{make_sample_data}
 \title{Make sample data}
 \usage{
-make_sample_data(n = 16, p_treat = 0.5)
+make_sample_data(n = 100)
 }
 \arguments{
 \item{n}{the size of the desired data set}
-
-\item{p_treat}{the probability of treatment}
 }
 \description{
-Makes a simple data frame with treat (binary), outcome (binary), and two
-covariates: X1 (categorical) and X2 (continuous). Probability outcome = 1 is
-sigmoid(treat + X2)
+Makes a simple data frame with treat (binary), outcome (binary), and five
+covariates: X1 (continuous), X2 (continuous), B1 (binary), B2 (binary), and
+C1 (categorical). Probability outcome = 1 is sigmoid(treat + X1).
+Probability treatment = 1 is sigmoid(- 0.2 * X1 + X2 - B1 + 2 * B2)
 }
 \examples{
-  dat <- make_sample_data(n = 50, p_treat = 0.3)
+  dat <- make_sample_data(n = 50)
 }

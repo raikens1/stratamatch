@@ -16,11 +16,11 @@ knitr::opts_chunk$set(warning = TRUE, message = TRUE, fig.align = "center", fig.
 
 `BigMatch` is designed to automate stratification and matching of observational data. The design of this procedure is built around two main ideas from experimental study design: the pilot study and the blocked randomized controlled trial.  BigMatch extends these concepts to the observational setting.
 
-In a fully-randomized controlled experiment, treatment assignments are made independently of each individual's baseline covariates, allowing for unbiased estimation of the treatment effect. Matching individuals based on their propensity for treatment in an observational study (i.e. 'Propensity score matching') attempts to recapitulate this study design in the experimental setting.  Importantly, however, propensity score matching can only address bias to due _measured_ baseline covariates. Imbalances in unmeasured baseline covariates may still bias the effect estimate after propensity score matching.  For this reason, researchers often carry out a sensitivity analysis to address concerns about unmeasured confounding.
+In a fully-randomized controlled experiment, treatment assignments are made independently of each individual's baseline covariates, allowing for unbiased estimation of the treatment effect. Matching individuals based on their propensity for treatment in an observational study (i.e. 'propensity score matching') attempts to recapitulate this study design in the experimental setting.  Importantly, however, propensity score matching can only address bias to due _measured_ baseline covariates. Imbalances in unmeasured baseline covariates may still bias the effect estimate after propensity score matching.  For this reason, researchers often carry out a sensitivity analysis to address concerns about unmeasured confounding.
 
 The fully-randomized experiment is not the only experimental study design.  In a _block-randomized controlled experiment_, subjects are stratified based on important covariates (e.g. sex, age group) before randomization into treatment groups.  This helps diminish the heterogeneity between treatment and control groups. In the experimental context, diminishing heterogeneity between compared individuals helps to reduce the variance of the effect estimator.  In observational settings however, reducing the heterogeneity between compared treated and untreated individuals has the added benefit of reducing the sensitivity of the study results to unobserved confounding (see Rosenbaum 2005, "Heterogeneity and Causality").  Moreover, if the sample size of an observational study is very large, stratifying the sample and matching separately within the strata may be much faster than matching the entire sample at once.  BigMatch helps to facilitate this process by supplying functions to stratify an observational dataset and match within each stratum, thereby emulating an observational version of the block-randomized controlled trial.
 
-The question becomes: how should strata be determined?  One option is to select the covariates on which to stratify by hand based on expert knowledge.  This option extends readily to the observational setting, and is implemented by BigMatch as `manual_stratify`.  Another option is to use knowledge from previous experiments to select the best substrata.  In the experimental setting, this may be done with a _pilot study_.  Using this approach, researchers set aside some of their resources before running the main experiment for the purpose of running a smaller, 'pilot' experiment. By examining the outcomes of the pilot study, they can gather information which they can use to inform the design of the main experiment.  Importantly, after the pilot study is run, the individuals in the pilot study are not reused in the main experiment, so the results from this earlier analysis are not allowed to bias the results of the main study.  
+Once we have decided to stratify our data set, the question becomes: how should strata be determined?  One option is to select the covariates on which to stratify by hand based on expert knowledge.  This option extends readily to the observational setting, and is implemented by BigMatch as `manual_stratify`.  Another option is to use knowledge from previous experiments to select the best substrata.  In the experimental setting, this may be done with a _pilot study_.  Using this approach, researchers set aside some of their resources before running the main experiment for the purpose of running a smaller, 'pilot' experiment. By examining the outcomes of the pilot study, they can gather information which they can use to inform the design of the main experiment.  Importantly, after the pilot study is run, the individuals in the pilot study are not reused in the main experiment, so the results from this earlier analysis are not allowed to bias the results of the main study.  
 
 Aikens et al. (in submission; preprint available at https://arxiv.org/abs/1908.09077) extend the idea of the pilot study to the observational setting.  Using an observational _pilot design_, the researchers may set aside a 'pilot set' of their data.  Outcome information on this pilot set can be observed, and the information gained can be used to inform the study design. Subsequently, in order to preserve the separation of the study design from the study analysis, the observations from the pilot set are omitted from the main analysis.
 
@@ -40,38 +40,37 @@ Once the data set has been stratified (either manually or automatically) they ca
 
 # A Toy Example
 
-We can first demonstrate the functionality of BigMatch with a toy example.  The `BigMatch` package contains its own function, `make_sample_data`, for just this purpose. Data from `make_sample_data` contain only the bare essentials: one binary column representing treatment, one binary column representing outcome, and two covariates, `X1` and `X2`.  For illustration, `X1` is a categorical covariate taking on values 1, 2, 3, and 4, while `X2` is a continuous, normally distributed covariate
+We can first demonstrate the functionality of BigMatch with a toy example.  The `BigMatch` package contains its own function, `make_sample_data`, for just this purpose. 
 
 ```{r}
 library(BigMatch)
 set.seed(125)
 
-# make sample data set of 1000 observations with about 25% individuals 
-# having recieved the treatment
-dat <- make_sample_data(n = 1000, p = 0.25)
+# make sample data set of 5000 observations
+dat <- make_sample_data(n = 5000)
 
 head(dat)
 ```
+
+Let's assume that the data in `dat` are an observational data set, and we would like to effect of some binary treatment on a binary outcome.  Suppose the column `treat` in this data gives the treatment assigment (where a `0` means untreated and a `1` means treated), and the column `outcome` gives information on who got the outcome and who didn't.  However, since this is an observational data set, we didn't get to choose who got the treatment.  Instead, individuals self-select into treatment or control groups, perhaps in some way which is influenced by their background. Additionally, the presence or absence of the outcome may be influenced by the treatment or by other baseline factors.  We have measured five baseline covariates for each individual: `X1`, `X2`, `B1`, `B2`, and `C1`.  `X1` and `X2` are continuous, `B1` and `B2` are binary, and `C1` is a categorical variable which takes on possible values `"a"`, `"b"`, and `"c"`.
+
+We should also note that `dat` is a fairly large data set (5000 observations), but only about 1/5 of the individuals in the data set recieved the treatment.
 
 # Stratification
 
 ## Manual Stratification
 
-Suppose we wanted to stratify the data manually based on covariates that our experts have selected. Importantly, we can only stratify the data based on categorical variables.  This means that we cannot use `X2` directly;  If we did try and stratify by `X2`, we would get a warning or an error.  Instead, I'm going to make a new categorical variable `X2_pos` which is 1 if `X2` is positive and 0 otherwise.  
-
-```{r}
-dat <- dplyr::mutate(dat, X2_pos = ifelse(X2 > 0, 1, 0))
-```
+Suppose we wanted to stratify the data manually based on covariates that our experts have selected. Importantly, we can only stratify the data based on categorical or binary variables.  This means that we cannot use `X1` or `X2` directly. Below, I stratify the data set based on `C1`, `B1`, and `B2`.
 
 Below, I stratify our data by the categorical variable, `X1`, and our new variable `X2_pos`.
 
 ```{r}
-m.strat <- manual_stratify(data = dat, treat ~ X1 + X2_pos)
+m.strat <- manual_stratify(data = dat, treat ~ B1 + B2 + C1)
 
 m.strat
 ```
 
-Above, we see that `manual_stratify` returns a `manual strata` object. We can extract important information from `m.strat` with `$`. 
+Above, we see that `manual_stratify` returns a `manual strata` object. The printed summary above shows that `manual_stratify` has divided our dataset according to our instructions and produced 12 strata. We can extract important information from `m.strat` with `$`. 
 
 The most important piece of `m.strat` is the analysis set, which is the data set that we can further match or subclassify and then use to make our effect estimate.
 
@@ -82,13 +81,13 @@ head(m.strat$analysis_set)
 
 Since we didn't use a pilot design for this example, our analysis set just has all of the data that we put in to `manual_stratify`.  Now, there is an additional column `stratum`, which says which stratum each individual has been sorted into.
 
-The other important pieces of info in `m.strat` are the the strata table and the issue table.  The strata table gives the definitions which are used to assign each individual to a stratum.  For example, below we see that stratum 1 contains all individuals who have `X1` = 1 and `X2_pos` = 0:
+The other important pieces of info in `m.strat` are the the strata table and the issue table.  The strata table gives the definitions which are used to assign each individual to a stratum.  For example, below we see that stratum 1 contains all individuals who have `B1 = 0` and `B2 = 0`, and `C1 = "a"` :
 
 ```{r}
 m.strat$strata_table
 ```
 
-We can also see the size of each stratum.  This is a toy example, so it's okay that each of our strata are a bit small.  In practice, data sets of about 4000 start to take a long time to match, so that's about the maximum size we would like for our strata.
+We can also see the size of each stratum.  Some of the strata here are quite a bit larger than others. In practice, data sets of about 4000 start to take a long time to match, so that's about the maximum size we would like for our strata.  In data sets of fewer than 100 individuals, it can be hard to find good matches between our treated and control individuals.
 
 ### Stratification Diagnostics
 
@@ -100,19 +99,11 @@ The last important piece of information stored in `m.strat` is the issue table:
 m.strat$issue_table
 ```
 
-This table shows each of our strata and some of the potential issues we may face when trying to match within these strata.  In particular, we see here that stratum 6 is 84% control individuals.  This means that there are proportionally many fewer treated individuals in this stratum.
-
-#### Summaries
-
-These still need to be implemented.  I could just make it so that `summary()` returns the issue table.
-
-```{r, execute = FALSE}
-summary(m.strat) # what should this return or do?
-```
+This table shows each of our strata and some of the potential issues we may face when trying to match within these strata.  In particular, this table highlights some strata which are too small, and some which have many more treated individuals than controls.
 
 #### Plots
 
-There are two types of plots that we can make automatically with a `manual_strata` object.  The first is a stratification plot.  This plots each stratum in the analysis set based on its size and the percentage of control observations.  If a stratum is too small or is very imbalanced in its treat:control ratio, finding quality matches may be difficult.  If a stratum is too large, matching may be very computationally taxing.  We can see here that stratum 6 is in the yellow region because it is > 75% controls.
+Plots are an important way that we can check how our statification went.  There are two types of plots that we can make automatically with a `manual_strata` object.  The first is a stratification plot.  This plots each stratum in the analysis set based on its size and the percentage of control observations.  If a stratum is too small or is very imbalanced in its treat:control ratio, finding quality matches may be difficult.  If a stratum is too large, matching may be very computationally taxing. We can see here that a few strata are quite small, and some have nearly entirely control individuals.
 
 ```{r}
 plot(m.strat)
@@ -120,23 +111,20 @@ plot(m.strat)
 # plot(m.strat, label = TRUE) will allow the user to click points to label them
 ```
 
-The second plot we can make to diagnose issues with our strata is an overlap histogram.  Below, I've made an overlap histogram for stratum 6.  This shows the propensity score distributions of the treated and control populations.  In order to make this histogram, we must tell plot what the propensity scores are for our data set by specifying the `propensity`arguement.  `propensity` can be a propensity score formula (which will then be fit on the analysis set), a `glm` modeling propensity score, or a vector of propensity scores.  Here' I just pass in a formula.
+The second plot we can make to diagnose issues with our strata is an overlap histogram.  Below, I've made an overlap histogram for stratum 1.  This shows the propensity score distributions of the treated and control populations.  In order to make this histogram, we must tell plot what the propensity scores are for our data set by specifying the `propensity`arguement.  `propensity` can be a propensity score formula (which will then be fit on the analysis set), a `glm` modeling propensity score, or a vector of propensity scores.  Here, I just pass in a formula.
 
 ```{r}
-plot(m.strat, type = "hist", propensity = treat ~ X1 + X2, stratum = 1)
+plot(m.strat, type = "hist", propensity = treat ~ X2 + X1 + B1 + B2, stratum = 1)
 ```
 
 
 ## Automatic Stratification
 
-Another option is to use `auto_stratify` to automatically create the stratified data set.  In this process, we specify what model we want to use for the prognostic score and what percent of the control reserve we want to use to do the fitting.  We also need to tell `auto_stratify` which column of our data set designates the treatment assignment.  The final arguement, size, specifies about how large we would like our strata to be.
+Another option is to use `auto_stratify` to automatically create the stratified data set.  In this process, we specify what model we want to use for the prognostic score and what percent of the control reserve we want to use to do the fitting.  We also need to tell `auto_stratify` which column of our data set designates the treatment assignment.  The final arguement, size, specifies about how large we would like our strata to be.  I pick `size = 400` here so that we get roughly the same number of strata as when we manually stratified our data set.
 
 ```{r}
-# cast X1 as factor so that it is recognized as categorical, not numeric
-dat$X1 <- as.factor(dat$X1)
-
 a.strat <- auto_stratify(dat, treat = "treat", prognosis = outcome ~ X1 + X2,
-                         held_frac = 0.1, size = 200)
+                         held_frac = 0.1, size = 400)
 
 a.strat
 ```
@@ -157,26 +145,28 @@ a.strat$issue_table
 a.strat$strata_table
 ```
 
-The strata table for `a.strat` shows what prognostic score quantiles were used to divide the strata.  For example, individuals in stratum 1 have a prognostic score of 0.01 to 0.272.  This means that, if they were in the control group, we would predict them to have a very low probability of having the outcome, based solely on their values of `X1` and `X2`.  We can view the prognostic score estimates for the individuals in the analysis set with `a.strat$prog_scores`
+The strata table for `a.strat` shows what prognostic score quantiles were used to divide the strata.  For example, individuals in stratum 1 have the lowest 8% or so of all prognostic scores. This means that, if the individuals in stratum 1 were in the control group, we would predict them to have a very low probability of having the outcome, based solely on their values of `X1` and `X2`.  We can view the prognostic score estimates for the individuals in the analysis set with `a.strat$prog_scores`.
 
 #### Plots
 
-Any `auto_strata` object supports the same plots types as the `manual_strata` objects:
+Any `auto_strata` object supports the same plot types as the `manual_strata` objects:
 
 ```{r}
 plot(a.strat)
 ```
 
+This plot clearly shows that the strata generated by auto_stratify are all about the same size.  Some of the strata still have a treat:control ratio much less than 1:1.  Some of this is unavoidable because our data set naturally had a treat:control ratio of about 1:5. However, we should try to avoid having very extreme treat:control ratios in any of our strata.
+
 ```{r}
-plot(a.strat, type = "hist", propensity = treat ~ X1 + X2, stratum = 5)
+plot(a.strat, type = "hist", propensity = treat ~ X2 + X1 + B1 + B2, stratum = 1)
 ```
 
 However, we additionally have two ploting types for `auto_strata` objects only: `"residual"` and `"FM"`.
 
-Setting `type = "FM"` in the plot command produces a Fisher-Mill plot for a given stratum.  This shows each individual in the stratum in terms of their estimated propensity score and their estimated prognostic score.  This allows us to check how well the treated and control samples overlap not only in their probability of treatment but in their expected outcome under the control assignment. Just as with the overlap histograms, we need to provide a stratum number and information on the propensity score.  Below, I use the same propensity formula as in the histogram above.
+Setting `type = "FM"` in the plot command produces a Fisher-Mill plot for a given stratum.  This shows each individual in the stratum in terms of their estimated propensity score and their estimated prognostic score (for more details, see Aikens et al. https://arxiv.org/abs/1908.09077).  This allows us to check how well the treated and control samples overlap not only in their probability for treatment but in their expected outcome under the control assignment. Just as with the overlap histograms, we need to provide a stratum number and information on the propensity score.  Below, I use the same propensity formula as in the histogram above.
 
 ```{r}
-plot(a.strat, type = "FM", propensity = treat ~ X1 + X2, stratum = 5)
+plot(a.strat, type = "FM", propensity = treat ~ X1 + X2, stratum = 1)
 ```
 
 Finally, if we fit a prognostic model, then we can run diagnostics on that prognostic model with `type = "residual"`.  This is essentially just a wrapper for the `glm` plotting method.
@@ -200,7 +190,7 @@ Based on the coefficients from the prognostic model, we can tell that our progno
 
 ## Alternative methods for automatic stratification.
 
-Above, we showed the default method used my `auto_stratify`.  By providing other arguments, it is possible to construct the strata using various other methods.  For example, one could fit the prognostic scores for the analysis set separately and provide them as an argument to `auto_stratify`.  Alternatively, the researcher could specify their own pilot set that they would like to use to build the prognostic model.
+Above, we showed the default method used by `auto_stratify`.  By providing other arguments, it is possible to construct the strata using various other methods.  For example, one could fit the prognostic scores for the analysis set separately and provide them as an argument to `auto_stratify`.  Alternatively, the researcher could specify their own pilot set that they would like to use to build the prognostic model.
 
 ## Matching
 
@@ -208,10 +198,10 @@ Now that we have stratified the data, we can match the individuals within each s
 
 The most flexible - albeit the most work intensive - strategy is for the researcher to do this step by hand, using the strata designations in the analysis set returned by either one of the stratification methods. If the researcher plans to do something very specific or nuanced in the matching process, this may be the best approach.  For example, users proficient with the matching package `optmatch` will note that adding `+ strata(stratum)` to the matching formula supplied to optmatch will request that optmatch perform the matching within each stratum in the analysis set (see the [optmatch documentation](https://cran.r-project.org/web/packages/optmatch/optmatch.pdf) for further details). Another approach is to divide the `analysis_set` into separate data frames and match on those individually, perhaps distributing over serval computing clusters or using a different matching scheme in each stratum (for example different $k$ in $1:k$ matching)
 
-If the goal is something more simple, i.e. a 1-to-1 or 1-to-$k$ optimal propensity score matching within strata, the `big_match` function can do that automatically on a single computer.  Below, I match two control individuals to each treatment individual within strata in my analysis set provided by a.strat.  I use the propensity score formula `treat ~ X1 + X2`.
+If the goal is something more simple, i.e. a 1-to-1 or 1-to-$k$ optimal propensity score matching within strata, the `big_match` function can do that automatically.  Below, I match two control individuals to each treatment individual within strata in my analysis set provided by a.strat.  I use the propensity score formula `treat ~ X1 + X2 + B1 + B2`.
 
 ```{r}
-mymatch <- big_match(a.strat, treat ~ X1 + X2, k = 2)
+mymatch <- big_match(a.strat, treat ~ X1 + X2 + B1 + B2, k = 1)
 
 summary(mymatch)
 ```
