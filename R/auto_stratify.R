@@ -137,7 +137,15 @@ build_prog_scores <- function(data, treat, prognosis,
     outcome <- all.vars(prognosis)[1]
     message(paste("Fitting prognostic model:",
                   Reduce(paste, deparse(prognosis))))
-    prog_model <- glm(prognosis, data = pilot_set, family = "binomial")
+    prog_model <- tryCatch(glm(prognosis, data = pilot_set, family = "binomial"), 
+                           error = function(e) {
+                             message("Encountered an error while fitting the prognostic model. Error text below:")
+                             stop(e)
+                           }, 
+                           warning = function(w) {
+                             message("Warning while fitting the prognostic model. Text below:")
+                             stop(w)
+                           })
     prog_scores <- make_prog_scores(prog_model, analysis_set)
   }
 
