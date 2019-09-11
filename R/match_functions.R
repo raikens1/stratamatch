@@ -31,8 +31,7 @@ big_match <- function(strat, propensity_formula = NULL, k = 1){
     propensity_formula <- formula(paste(orig_form,
                                         "+ strata(stratum)"))
   }
-
-  print(propensity_formula)
+  
   # build propensity model
   propensity_model <- glm(propensity_formula,
                           data = strat$analysis_set,
@@ -68,7 +67,6 @@ big_match_nstrat <- function(strat, propensity_formula = NULL, k = 1){
     # do not modify original formula to append "+ strata(stratum)"
   }
 
-  print(propensity_formula)
   # build propensity model
   propensity_model <- glm(propensity_formula,
                           data = strat$analysis_set,
