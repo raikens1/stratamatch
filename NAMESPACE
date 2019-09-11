@@ -3,7 +3,6 @@
 S3method(plot,strata)
 S3method(print,auto_strata)
 S3method(print,manual_strata)
-S3method(summary,strata)
 export("%>%")
 export(auto_stratify)
 export(big_match)

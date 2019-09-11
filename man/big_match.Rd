@@ -4,12 +4,14 @@
 \alias{big_match}
 \title{Big Match}
 \usage{
-big_match(strat, propensity_formula = NULL, k = 1)
+big_match(strat, propensity = NULL, k = 1)
 }
 \arguments{
 \item{strat}{a strata object}
 
-\item{propensity_formula}{(optional) formula for propensity score}
+\item{propensity}{(optional) formula for propensity score.  If left
+blank, all columns of the dataset will be used as covariates (except
+outcome, treatment and stratum)}
 
 \item{k}{numeric, the number of control individuals to be matched to each
 treated individual}

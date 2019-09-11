@@ -75,6 +75,10 @@
 #'
 #'   } }
 #'
+#'   Other errors or warnings can occur if the pilot set is too small and the
+#'   prognostic formula is too complicated.  Always make sure that the number of
+#'   observations in the pilot set is large enough that you can confidently fit
+#'   a prognostic model with the number of covariates you want. 
 #'
 #' @param data \code{data.frame} with observations as rows, features as columns
 #' @param treat string giving the name of column designating treatment
@@ -184,7 +188,8 @@ build_prog_scores <- function(data, treat, prognosis,
                              stop(e)
                            }, 
                            warning = function(w) {
-                             message("Warning while fitting the prognostic model. Text below:")
+                             message("Warning while fitting the prognostic model.")
+                             message("For troubleshooting help, run help(\"auto_stratify\")")
                              stop(w)
                            })
     prog_scores <- make_prog_scores(prog_model, analysis_set)

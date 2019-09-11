@@ -41,7 +41,7 @@ test_that("matching errors work", {
   m.strat <- manual_stratify(test_dat, treat ~ cat)
 
   expect_error(big_match(m.strat, "soup", k = 1),
-               "propensity_formula must be a formula")
+               "propensity must be a formula")
   expect_error(big_match(m.strat, zombies ~ cat + cont, k = 1),
                "not all variables in propensity formula appear in data")
   expect_error(big_match(m.strat, cat ~ treat + cont, k = 1),

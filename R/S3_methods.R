@@ -107,58 +107,6 @@ print.manual_strata <- function(x, ...) {
 }
 
 #----------------------------------------------------------
-### SUMMARY METHODS
-#----------------------------------------------------------
-#' Summary method for strata object
-#' 
-#' @param object a \code{strata} object
-#' @param ... other arguments
-#' @export
-summary.strata <- function(object, ...){
-  strata_summary <- structure(list(call = object$call,
-                                   issue_table = object$issue_table,
-                                   sum_before = NULL),
-                 class = "summary.strata") # necessary to make a new class?
-
-  strata_summary$sum_before <- summarize_balance(object$analysis_set,
-                                                 object$treat,
-                                                 object$outcome)
-
-  return(strata_summary)
-}
-
-#' Calculate balance measures over a dataframe
-#'
-#' Still under development. Calculate mean of each covariate over Treat and
-#' Control groups, and difference in means between groups.
-#'
-#' @param data, a \code{data.frame} from a \code{strata} object
-#' @param treat, a string giving the name of the treatment assignment column in
-#'   the dataframe
-#' @param outcome, a string giving the name of the outcome column in the
-#'   dataframe
-#' @return Returns a data.frame of balance measures
-summarize_balance <- function(data, treat, outcome){
-
-  names(data)[names(data) == treat] <- "treat"
-  names(data)[names(data) == outcome] <- "outcome"
-
-  # TODO: rownames for data frames will be deprecated soon,
-  # which means this will have to change.
-  result <- data %>%
-    dplyr::group_by(treat) %>%
-    dplyr::select(-c(stratum, outcome)) %>%
-    dplyr::select_if(function(col) is.numeric(col) | is.logical(col)) %>%
-    dplyr::summarize_all(mean) %>%
-    dplyr::select(-treat) %>%
-    t()
-
-  colnames(result) <- c("Treat_Mean", "Contol_Mean")
-
-  return(result)
-}
-
-#----------------------------------------------------------
 ### PLOT METHODS
 #----------------------------------------------------------
 

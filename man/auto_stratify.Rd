@@ -103,6 +103,11 @@ model for prognosis (e.g. a \code{glm} object).  If this method is used, the
   results.
 
   } }
+
+  Other errors or warnings can occur if the pilot set is too small and the
+  prognostic formula is too complicated.  Always make sure that the number of
+  observations in the pilot set is large enough that you can confidently fit
+  a prognostic model with the number of covariates you want.
 }
 
 \seealso{

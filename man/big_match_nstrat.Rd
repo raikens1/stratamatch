@@ -4,12 +4,12 @@
 \alias{big_match_nstrat}
 \title{Big Match - Not Stratified}
 \usage{
-big_match_nstrat(strat, propensity_formula = NULL, k = 1)
+big_match_nstrat(strat, propensity = NULL, k = 1)
 }
 \arguments{
 \item{strat}{a strata object}
 
-\item{propensity_formula}{(optional) formula for propensity score}
+\item{propensity}{(optional) formula for propensity score}
 
 \item{k}{numeric, the number of control individuals to be matched to each
 treated individual}

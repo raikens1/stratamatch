@@ -4,12 +4,14 @@
 \alias{check_inputs_matcher}
 \title{Check inputs to any matching function}
 \usage{
-check_inputs_matcher(strat, propensity_formula, k)
+check_inputs_matcher(strat, propensity, k)
 }
 \arguments{
 \item{strat}{a strata object}
 
-\item{propensity_formula}{(optional) formula for propensity score}
+\item{propensity}{(optional) formula for propensity score.  If left
+blank, all columns of the dataset will be used as covariates (except
+outcome, treatment and stratum)}
 
 \item{k}{numeric, the number of control individuals to be matched to each
 treated individual}
