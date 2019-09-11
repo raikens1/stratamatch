@@ -36,6 +36,46 @@
 #' model for prognosis (e.g. a \code{glm} object).  If this method is used, the
 #' \code{outcome} argument must also be specified}
 #'
+#' @section Troubleshooting:
+#'
+#'   This section suggests fixes for common errors that appear while fitting the
+#'   prognostic score or using it to estimate prognostic scores on the analysis
+#'   set.
+#'
+#'   \itemize{
+#'
+#'   \item \code{Encountered an error while fitting the prognostic model...
+#'   numeric probabilities 0 or 1 produced}. This error means that the
+#'   prognostic model can perfectly separate positive from negative outcomes.
+#'   Estimating a treatment effect in this case is unwise since an individual's
+#'   baseline characteristics perfectly determine their outcome, regardless of
+#'   whether they recieve the treatment.  This error may also appear on rare
+#'   occaisions when your pilot set is very small (number of observations
+#'   approximately <= number of covariates in the prognostic model), so that
+#'   perfect separation happens by chance.
+#'
+#'   \item \code{Encountered an error while estimating prognostic scores ...
+#'   factor X has new levels ... } This may indicate that some value(s) of one
+#'   or more categorical variables appear in the analysis set which were not
+#'   seen in the pilot set. This means that when we try to obtain prognostic
+#'   scores for our analysis set, we run into some new value that our prognostic
+#'   model was not prepared to handle.  There are a few options we have to
+#'   troubleshoot this problem: \itemize{
+#'
+#'   \item \strong{Rejection sampling.}  Run \code{auto_stratify} again with the
+#'   same arguments until this error does not occur (i.e. until some
+#'   observations with the missing value are randomly selected into the pilot
+#'   set)
+#'
+#'   \item \strong{Eliminate this covariate from the prognostic formula.}
+#'
+#'   \item \strong{Remove observations with the rare covariate value from the
+#'   entire data set.} Consider carefully how this exclusion might affect your
+#'   results.
+#'
+#'   } }
+#'
+#'
 #' @param data \code{data.frame} with observations as rows, features as columns
 #' @param treat string giving the name of column designating treatment
 #'   assignment
@@ -139,7 +179,8 @@ build_prog_scores <- function(data, treat, prognosis,
                   Reduce(paste, deparse(prognosis))))
     prog_model <- tryCatch(glm(prognosis, data = pilot_set, family = "binomial"), 
                            error = function(e) {
-                             message("Encountered an error while fitting the prognostic model. Error text below:")
+                             message("Encountered an error while fitting the prognostic model.")
+                             message("For troubleshooting help, run help(\"auto_stratify\")")
                              stop(e)
                            }, 
                            warning = function(w) {
@@ -228,7 +269,8 @@ split_pilot_set <- function(data, treat, held_frac, held_sample){
 make_prog_scores <- function(prog_model, analysis_set){
   tryCatch(predict(prog_model, analysis_set, type = "response"),
            error = function(e) {
-             message("Encountered an error while estimating prognostic scores from the prognostic model. Error text below:")
+             message("Encountered an error while estimating prognostic scores from the prognostic model.")
+             message("For troubleshooting help, run help(\"auto_stratify\")")
              stop(e)
            })
 }
@@ -263,7 +305,7 @@ make_strata_table <- function(qcut){
 check_inputs_auto_stratify <- function(data, treat, outcome){
   # general checks
   if (!is.data.frame(data)) stop("data must be a data.frame")
-  if ( !(is.character(treat) & length(treat) == 1)){
+  if (!(is.character(treat) & length(treat) == 1)){
     stop("treat must be a single string")
   }
   if (!is.element(treat, colnames(data))){
@@ -340,3 +382,9 @@ check_pilot_set_options <- function(held_sample, held_frac){
     stop("held_sample must be a data.frame")
   }
 }
+
+# check_is_binary <- function(col, name) {
+#   if (is.logical(col)) return()
+#   if (all(is.element(na.omit(col), 0:1))) return()
+#   else {stop(paste(name, "is not binary or logical"))}
+# }

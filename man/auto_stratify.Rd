@@ -64,6 +64,47 @@ not be specified since it can be inferred from the input formula. \item A
 model for prognosis (e.g. a \code{glm} object).  If this method is used, the
 \code{outcome} argument must also be specified}
 }
+\section{Troubleshooting}{
+
+
+  This section suggests fixes for common errors that appear while fitting the
+  prognostic score or using it to estimate prognostic scores on the analysis
+  set.
+
+  \itemize{
+
+  \item \code{Encountered an error while fitting the prognostic model...
+  numeric probabilities 0 or 1 produced}. This error means that the
+  prognostic model can perfectly separate positive from negative outcomes.
+  Estimating a treatment effect in this case is unwise since an individual's
+  baseline characteristics perfectly determine their outcome, regardless of
+  whether they recieve the treatment.  This error may also appear on rare
+  occaisions when your pilot set is very small (number of observations
+  approximately <= number of covariates in the prognostic model), so that
+  perfect separation happens by chance.
+
+  \item \code{Encountered an error while estimating prognostic scores ...
+  factor X has new levels ... } This may indicate that some value(s) of one
+  or more categorical variables appear in the analysis set which were not
+  seen in the pilot set. This means that when we try to obtain prognostic
+  scores for our analysis set, we run into some new value that our prognostic
+  model was not prepared to handle.  There are a few options we have to
+  troubleshoot this problem: \itemize{
+
+  \item \strong{Rejection sampling.}  Run \code{auto_stratify} again with the
+  same arguments until this error does not occur (i.e. until some
+  observations with the missing value are randomly selected into the pilot
+  set)
+
+  \item \strong{Eliminate this covariate from the prognostic formula.}
+
+  \item \strong{Remove observations with the rare covariate value from the
+  entire data set.} Consider carefully how this exclusion might affect your
+  results.
+
+  } }
+}
+
 \seealso{
 \code{\link{manual_stratify}}, \code{\link{new_auto_strata}}
 }

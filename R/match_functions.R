@@ -8,7 +8,9 @@
 #' Match within strata in series using optmatch.  Probably needs to be renamed.
 #'
 #' @param strat a strata object
-#' @param propensity_formula (optional) formula for propensity score
+#' @param propensity_formula (optional) formula for propensity score.  If left
+#'   blank, all columns of the dataset will be used as covariates (except
+#'   outcome, treatment and stratum)
 #' @param k numeric, the number of control individuals to be matched to each
 #'   treated individual
 #' @return a named factor with matching assignments
