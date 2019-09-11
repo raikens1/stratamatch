@@ -257,11 +257,16 @@ make_fm_plot <- function(x, propensity, s){
   names(plt_data)[names(plt_data) == x$treat] <- "treat"
 
   plt_data$color <- ifelse(plt_data$treat == 1, "red", "blue")
+  
+  propscore_span = max(plt_data$prop_score) - min(plt_data$prop_score)
+  progscore_span = max(plt_data$prog_score) - min(plt_data$prog_score)
 
   plot(plt_data$prop_score, plt_data$prog_score, col = plt_data$color,
        main = paste("Fisher-Mill plot for stratum", s),
        xlab = "Estimated propensity score",
-       ylab = "Estimated prognostic score")
+       ylab = "Estimated prognostic score",
+       xlim = range(plt_data$prop_score) + c(-0.25, 0.25) * propscore_span,
+       ylim = range(plt_data$prog_score) + c(-0.25, 0.25) * progscore_span)
   legend("topleft", legend = c("treated", "control"), fill = c("red", "blue"),
          box.lty = 0)
 }
