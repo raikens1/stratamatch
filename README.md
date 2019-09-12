@@ -5,6 +5,13 @@ status](https://www.r-pkg.org/badges/version/BigMatch)](https://cran.r-project.o
 <!-- badges: end -->
 **Creators:** Rachael Caelie "Rocky" Aikens and Michael Baiocchi
 
+Development version avaiable for download with `devtools`
+
+```r
+install.packages("devtools")
+devtools::install_github("raikens1/BigMatch")
+```
+
 ## Objective
 **Goal:** The purpose of BigMatch is to provide user-friendly software and tutorials in R to support scientists to perform matching for "big data" observational studies. 
 
