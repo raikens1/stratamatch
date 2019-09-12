@@ -4,7 +4,7 @@
 \alias{split_pilot_set}
 \title{Split data into pilot and analysis sets}
 \usage{
-split_pilot_set(data, treat, held_frac, held_sample)
+split_pilot_set(data, treat, pilot_fraction, pilot_sample)
 }
 \arguments{
 \item{data}{\code{data.frame} with observations as rows, features as columns}
@@ -12,10 +12,10 @@ split_pilot_set(data, treat, held_frac, held_sample)
 \item{treat}{string giving the name of column designating treatment
 assignment}
 
-\item{held_frac}{numeric between 0 and 1 giving the proportion of controls to
+\item{pilot_fraction}{numeric between 0 and 1 giving the proportion of controls to
 be allotted for building the prognostic score (default = 0.1)}
 
-\item{held_sample}{a data.frame of held aside samples for building prognostic
+\item{pilot_sample}{a data.frame of held aside samples for building prognostic
 score model.}
 }
 \value{

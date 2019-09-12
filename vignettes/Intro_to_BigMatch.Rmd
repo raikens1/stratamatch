@@ -14,21 +14,34 @@ vignette: >
 knitr::opts_chunk$set(warning = TRUE, message = TRUE, fig.align = "center", fig.height = 4, fig.width = 4)
 ```
 
-`BigMatch` is designed to automate stratification and matching of observational data. The design of this procedure is built around two main ideas from experimental study design: the pilot study and the blocked randomized controlled trial.  BigMatch extends these concepts to the observational setting.
 
-# Background 
+**Summary:** In a block-randomized controlled trial, the individuals in a study are divided based on important characteristics (for example age group, sex, or smoking status).  By stratifying the data in this way prior to randomization, the researchers can reduce the heterogeneity of their treatment and control groups, thereby reducing the variance of their estimate of the effect of their treatment.  The `BigMatch` package is designed to extend this approach to the observational setting by providing functions to allow users to easily divide an observational data set into strata of observations with similar baseline characteristics.  The treated and control individuals within each stratum of the data can then by matched (for example, based on propensity score), in order to recapitulate the block-randomized trial from observational data.  In order to select an effective stratification scheme for the data, `BigMatch` applies a "pilot design" approach to estimate a quantity called the prognostic score, and divides the data into blocks of individuals with similar scores. The potential benefits of such an approach are twofold. First, stratifying the data effectively allows for more computationally efficient matching of large data sets.  Second, early studies of the prognostic score show that using the prognostic score to inform the matching process may help reduce the variance in the estimated treatment effect and increase the robustness of an observational study to bias from unmeasured confounding factors.
 
-In a fully-randomized controlled experiment, treatment assignments are made independently of each individual's baseline covariates, allowing for unbiased estimation of the treatment effect. Matching individuals based on their propensity for treatment in an observational study (i.e. 'propensity score matching') attempts to recapitulate this study design in the experimental setting.  Importantly, however, propensity score matching can only address bias to due _measured_ baseline covariates. Imbalances in unmeasured baseline covariates may still bias the effect estimate after propensity score matching.  For this reason, researchers often carry out a sensitivity analysis to address concerns about unmeasured confounding.
+# Contents
 
-The fully-randomized experiment is not the only experimental study design.  In a _block-randomized controlled experiment_, subjects are stratified based on important covariates (e.g. sex, age group) before randomization into treatment groups.  This helps diminish the heterogeneity between treatment and control groups. In the experimental context, diminishing heterogeneity between compared individuals helps to reduce the variance of the effect estimator.  In observational settings however, reducing the heterogeneity between compared treated and untreated individuals has the added benefit of reducing the sensitivity of the study results to unobserved confounding (see Rosenbaum 2005, "Heterogeneity and Causality").  Moreover, if the sample size of an observational study is very large, stratifying the sample and matching separately within the strata may be much faster than matching the entire sample at once.  BigMatch helps to facilitate this process by supplying functions to stratify an observational dataset and match within each stratum, thereby emulating an observational version of the block-randomized controlled trial.
+This document contains the following sections
 
-Once we have decided to stratify our data set, the question becomes: how should strata be determined?  One option is to select the covariates on which to stratify by hand based on expert knowledge. Another option is to use knowledge from previous experiments to select the best substrata.  In the experimental setting, this may be done with a _pilot study_.  Using this approach, researchers set aside some of their resources before running the main experiment for the purpose of running a smaller, 'pilot' experiment. By examining the outcomes of the pilot study, they can gather information which they can use to inform the design of the main experiment.  Importantly, after the pilot study is run, the individuals in the pilot study are not reused in the main experiment, so the results from this earlier analysis are not allowed to bias the results of the main study.  
+ 1. Introduction and Background
+ 1. Generating an Example Data Set
+ 1. How to Stratify a Data Set
+ 1. Diagnostics for Stratified Data
+ 1. Matching Stratified Data
+ 
+After briefly introducing the goals of BigMatch and the approaches it implements on a statistical level, this document will walk through an example of how BigMatch might be used on a toy data set.  We will show how to stratify a data set, how to diagnose the quality of the stratification, and how to match a data set within strata.
+
+# Introduction and Background
+
+In a fully-randomized controlled experiment, treatment assignments are made independently of each individual's baseline covariates, allowing for unbiased estimation of the treatment effect. In observational studies, researchers may attempt to account for differences in their subject's baseline covariates by matching treated and control subjects with similar characteristics.  In particular, the popular approach of propenisty score matching pairs individuals who had similar estimated probabilities of recieving the treatment based on their baseline characteristics. By balancing the treated and control groups in this way, the propensity score matching approach attempts to coerce the data set into a form that resembles a randomized controlled trial.  Importantly, however, propensity score matching can only address bias to due _measured_ baseline covariates. Imbalances in unmeasured baseline covariates may still bias the effect estimate after propensity score matching. For this reason, researchers often carry out a sensitivity analysis to address concerns about unmeasured confounding.
+
+However, the fully-randomized experiment is not the only experimental study design.  In a _block-randomized controlled experiment_, subjects are stratified based on important covariates (e.g. sex, age group, smoking status) before randomization into treatment groups.  This helps reduce the heterogeneity between treatment and control groups. In the experimental context, reducing the heterogeneity between compared groups helps to reduce the variance of the effect estimator. In observational settings however, this reduction in heterogeneity has the added benefit of reducing the sensitivity of the study results to unobserved confounding (see Rosenbaum 2005, "Heterogeneity and Causality" for a great discussion on this point).  Moreover, if the sample size of an observational study is very large, stratifying the sample and matching separately within the strata in this way may be much faster than matching the entire sample at once. BigMatch helps to facilitate this process by supplying tools stratify an observational dataset and match within each stratum, thereby emulating an observational version of the block-randomized controlled trial.
+
+Once we have decided to stratify our data set, the question becomes: how should strata be determined?  One option is to select the covariates on which to stratify by hand based on expert knowledge. Another option is to use knowledge from previous experiments to select the best substrata.  In the experimental setting, this may be done with a _pilot study_.  Using this approach, researchers set aside some of their resources before running the main experiment for the purpose of running a smaller, 'pilot' experiment. By examining the outcomes of the pilot study, they can gather information which they can use to inform the design of the main experiment.  Importantly, after the pilot study is run, the individuals in the pilot experiment are not reused in the main experiment, so the observations of the outcomes from this earlier analysis are not allowed to bias the results of the main study.  
 
 Aikens et al. (in submission; preprint available at https://arxiv.org/abs/1908.09077) extend the idea of the pilot study to the observational setting.  Using an observational _pilot design_, the researchers may set aside a 'pilot set' of their data.  Outcome information on this pilot set can be observed, and the information gained can be used to inform the study design. Subsequently, in order to preserve the separation of the study design from the study analysis, the observations from the pilot set are omitted from the main analysis.
 
-# How BigMatch Works
+## How BigMatch Works
 
-BigMatch uses a pilot design to estimate a quantity called the prognostic score (see Hansen, 2008 "The Prognostic Analougue of the Propensity Score"), defined here as an individual's expected outcome under the control assignment, based on their baseline covariates. Balancing observational data sets based on the prognostic score will reduce heterogeneity between matched individuals, decreasing variance and diminishing the sensitivity of the study results to unobserved confounding (See Aikens et al.; Antonelli et al. 2017; and Leacy and Stuart 2014).  Moreover, since the prognostic score is often continuous, strata can be easily determined using prognostic score quantiles to select evenly sized "bins" for the data.  This cicumvents common problems with stratification based on expert knowledge, since that process often generates strata which are too large, too small, or too poorly balanced between treatment and control observations (although BigMatch does contain a function, `manual_stratify`, to facilitate this kind of stratification as well).
+BigMatch uses a pilot design to estimate a quantity called the prognostic score (see Hansen, 2008 "The Prognostic Analougue of the Propensity Score"), defined here as an individual's expected outcome under the control assignment, based on their baseline covariates. Balancing observational data sets based on the prognostic score can the reduce heterogeneity between matched individuals, decreasing variance and diminishing the sensitivity of the study results to unobserved confounding (See Aikens et al.; Antonelli et al. 2017; and Leacy and Stuart 2014).  Moreover, since the prognostic score is often continuous, strata can be easily determined using prognostic score quantiles to select evenly sized "bins" for the data.  This cicumvents common problems with stratification based on expert knowledge, since that process often generates strata which are too large, too small, or too poorly balanced between treatment and control observations.
 
 The BigMatch function, `auto_stratify`, carries out the prognostic score stratification pilot design described above.  Although there are many additional options available when running this function, the most basic procedure does the following: 
 
@@ -40,9 +53,9 @@ The BigMatch function, `auto_stratify`, carries out the prognostic score stratif
 
 1. Stratify the analysis set based on prognostic score quantiles.
 
-Once the data set has been stratified (either manually or automatically), the treatment and control individuals can then be matched.  At this point, the reader may choose to match the data set within each stratum using the `big_match` function, or they may select and implement their own matching scheme.
+Once the data set has been stratified, `BigMatch` suggests several diagnostic plots and tables that can be used to assess the size and balance of the strata produced. If the strata are satisfactory, the treatment and control individuals can then be matched.  At this point, the reader may choose to match the data set within each stratum using the `big_match` function, or they may select and implement their own matching scheme. 
 
-# A Toy Example
+# Generating an Example Data Set
 
 We demonstrate the functionality of BigMatch with a toy example.  The `BigMatch` package contains its own function, `make_sample_data`, for just this purpose. 
 
@@ -61,7 +74,7 @@ Let's assume that the data in `dat` are an observational data set, and we would 
 
 We should also note that `dat` is a fairly large data set (5000 observations), but only about 1/5 of the individuals in the data set recieved the treatment.
 
-# Stratification
+# How to Stratify a Data Set
 
 ## Manual Stratification
 
@@ -90,13 +103,13 @@ Since we didn't use a pilot design for this example, our analysis set just has a
 
 ## Automatic Stratification
 
-In contrast to `manual_stratify`, the `auto_stratify` function automatically creates the stratified data set based on estimated prognostic scores.  In this process, we specify what model we want to use for the prognostic score (the `prognosis` argument) and what percent of the control reserve we want to use to do the fitting (the `held_frac`) argument.  We also need to tell `auto_stratify` which column of our data set designates the treatment assignment (`treat`).  The final argument, `size,` specifies about how large we would like our strata to be.  I pick `size = 400` here so that we get roughly the same number of strata as when we manually stratified our data set.
+In contrast to `manual_stratify`, the `auto_stratify` function automatically creates the stratified data set based on estimated prognostic scores.  In this process, we specify what model we want to use for the prognostic score (the `prognosis` argument) and what percent of the control reserve we want to use to do the fitting (the `pilot_fraction`) argument.  We also need to tell `auto_stratify` which column of our data set designates the treatment assignment (`treat`).  The final argument, `size,` specifies about how large we would like our strata to be.  I pick `size = 400` here so that we get roughly the same number of strata as when we manually stratified our data set.
 
-In practice, `held_frac` and `size` have defaults, so we don't need to specify them every time.  Run `help(auto_stratify)` for more information.
+In practice, `pilot_fraction` and `size` have defaults, so we don't need to specify them every time.  Run `help(auto_stratify)` for more information.
 
 ```{r}
 a.strat <- auto_stratify(dat, treat = "treat", prognosis = outcome ~ X1 + X2,
-                         held_frac = 0.1, size = 400)
+                         pilot_fraction = 0.1, size = 400)
 
 # print the result from running auto_stratify
 a.strat
@@ -221,7 +234,7 @@ summary(progmod)
 ```
 Based on the coefficients from the prognostic model, we can tell that our prognostic score estimates are primarily determined by each individual's `X2` baseline value.
 
-# Matching
+# Matching Stratified Data
 
 Now that we have stratified the data, we can match the individuals within each stratum. 
 

@@ -5,7 +5,7 @@
 \title{Auto Stratify}
 \usage{
 auto_stratify(data, treat, prognosis, outcome = NULL, size = 2500,
-  held_frac = 0.1, held_sample = NULL)
+  pilot_fraction = 0.1, pilot_sample = NULL)
 }
 \arguments{
 \item{data}{\code{data.frame} with observations as rows, features as columns}
@@ -25,10 +25,10 @@ prog_formula}
 
 \item{size}{numeric, desired size of strata (default = 2500)}
 
-\item{held_frac}{numeric between 0 and 1 giving the proportion of controls to
+\item{pilot_fraction}{numeric between 0 and 1 giving the proportion of controls to
 be allotted for building the prognostic score (default = 0.1)}
 
-\item{held_sample}{a data.frame of held aside samples for building prognostic
+\item{pilot_sample}{a data.frame of held aside samples for building prognostic
 score model.}
 }
 \value{
