@@ -92,21 +92,21 @@
 #'   the rows of \code{data}. \item a \code{formula} for fitting a prognostic
 #'   model \item an already-fit prognostic score model}
 #' @param size numeric, desired size of strata (default = 2500)
-#' @param held_frac numeric between 0 and 1 giving the proportion of controls to
+#' @param pilot_fraction numeric between 0 and 1 giving the proportion of controls to
 #'   be allotted for building the prognostic score (default = 0.1)
-#' @param held_sample a data.frame of held aside samples for building prognostic
+#' @param pilot_sample a data.frame of held aside samples for building prognostic
 #'   score model.
 #' @return Returns a \code{strata} object
 #' @seealso \code{\link{manual_stratify}}, \code{\link{new_auto_strata}}
 #' @export
 auto_stratify <- function(data, treat, prognosis,
                           outcome = NULL, size = 2500,
-                          held_frac = 0.1, held_sample = NULL) {
+                          pilot_fraction = 0.1, pilot_sample = NULL) {
 
   check_inputs_auto_stratify(data, treat, outcome)
 
   build <- build_prog_scores(data, treat, prognosis,
-                             outcome, held_frac, held_sample)
+                             outcome, pilot_fraction, pilot_sample)
 
   analysis_set <- build$analysis_set
   prog_scores <- build$prog_scores
@@ -155,7 +155,7 @@ auto_stratify <- function(data, treat, prognosis,
 #' @return a list of: analysis set, prognostic scores, pilot set, prognostic
 #'   model, and outcome string
 build_prog_scores <- function(data, treat, prognosis,
-                              outcome, held_frac, held_sample){
+                              outcome, pilot_fraction, pilot_sample){
   # prognosis is a vector of prognostic scores
   if (is.numeric(prognosis)){
     check_scores(prognosis, data)
@@ -171,10 +171,10 @@ build_prog_scores <- function(data, treat, prognosis,
   # prognosis is a formula
   else if (inherits(prognosis, "formula")){
     check_prog_formula(prognosis, data, outcome, treat)
-    split <- split_pilot_set(data, treat, held_frac, held_sample)
-    if (!is.null(held_sample) &
-        !all(is.element(all.vars(prognosis), colnames(held_sample)))) {
-      stop("All variables in prognostic score formula must be in held_sample")
+    split <- split_pilot_set(data, treat, pilot_fraction, pilot_sample)
+    if (!is.null(pilot_sample) &
+        !all(is.element(all.vars(prognosis), colnames(pilot_sample)))) {
+      stop("All variables in prognostic score formula must be in pilot_sample")
     }
     pilot_set <- split$pilot_set
     analysis_set <- split$analysis_set
@@ -230,14 +230,14 @@ build_prog_scores <- function(data, treat, prognosis,
 #'
 #' @return a list with analaysis_set and pilot_set
 #' @export
-split_pilot_set <- function(data, treat, held_frac, held_sample){
-  check_pilot_set_options(held_sample, held_frac)
+split_pilot_set <- function(data, treat, pilot_fraction, pilot_sample){
+  check_pilot_set_options(pilot_sample, pilot_fraction)
   pilot_set <- NULL
 
-  # if held_sample is specified use that to build score
-  if (!is.null(held_sample)){
+  # if pilot_sample is specified use that to build score
+  if (!is.null(pilot_sample)){
     message("Using user-specified set for prognostic score modeling.")
-    pilot_set <- held_sample
+    pilot_set <- pilot_sample
     analysis_set <- data
 
   } else {
@@ -247,7 +247,7 @@ split_pilot_set <- function(data, treat, held_frac, held_sample){
     # Adds an id column and removes it
     data$BigMatch_id <- 1:nrow(data)
     pilot_set <- data %>% dplyr::filter(treat == 0) %>%
-      dplyr::sample_frac(held_frac, replace = FALSE)
+      dplyr::sample_frac(pilot_fraction, replace = FALSE)
     analysis_set <- dplyr::anti_join(data, pilot_set,
                                      by = "BigMatch_id") %>%
       dplyr::select(-BigMatch_id)
@@ -379,12 +379,12 @@ check_prog_formula <- function(prog_formula, data, outcome, treat){
 #' @inheritParams auto_stratify
 #' 
 #' @return nothing
-check_pilot_set_options <- function(held_sample, held_frac){
-  if (!is.numeric(held_frac)) stop("held_frac must be numeric")
-  if (held_frac >= 1 | held_frac <= 0) stop("held_frac must be between 0 and 1")
+check_pilot_set_options <- function(pilot_sample, pilot_fraction){
+  if (!is.numeric(pilot_fraction)) stop("pilot_fraction must be numeric")
+  if (pilot_fraction >= 1 | pilot_fraction <= 0) stop("pilot_fraction must be between 0 and 1")
 
-  if (!is.null(held_sample) & !is.data.frame(held_sample)){
-    stop("held_sample must be a data.frame")
+  if (!is.null(pilot_sample) & !is.data.frame(pilot_sample)){
+    stop("pilot_sample must be a data.frame")
   }
 }
 

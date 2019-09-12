@@ -140,23 +140,23 @@ test_that("auto_stratify errors work", {
   expect_error(auto_stratify(test_dat,
                              treat = "treated",
                              prognosis = outcome ~ cont,
-                             held_frac = "socks"),
-               "held_frac must be numeric")
+                             pilot_fraction = "socks"),
+               "pilot_fraction must be numeric")
   expect_error(auto_stratify(test_dat,
                              treat = "treated",
                              prognosis = outcome ~ cont,
-                             held_frac = -1),
-               "held_frac must be between 0 and 1")
+                             pilot_fraction = -1),
+               "pilot_fraction must be between 0 and 1")
   expect_error(auto_stratify(test_dat,
                              treat = "treated",
                              prognosis = outcome ~ cont,
-                             held_sample = -1),
-               "held_sample must be a data.frame")
+                             pilot_sample = -1),
+               "pilot_sample must be a data.frame")
   expect_error(auto_stratify(test_dat,
                              treat = "treated",
                              prognosis = outcome ~ cont,
-                             held_sample = dplyr::select(test_dat, -cont)),
-               "All variables in prognostic score formula must be in held_sample")
+                             pilot_sample = dplyr::select(test_dat, -cont)),
+               "All variables in prognostic score formula must be in pilot_sample")
 })
 
 test_that("auto_stratify with prognostic scores works", {
@@ -208,7 +208,7 @@ test_that("auto_stratify with prognostic scores works", {
 })
 
 
-test_that("auto_stratify with prognostic formula + held_frac works", {
+test_that("auto_stratify with prognostic formula + pilot_fraction works", {
   test_dat <- make_test_data()
 
   set.seed(5)
@@ -216,7 +216,7 @@ test_that("auto_stratify with prognostic formula + held_frac works", {
                            treat = "treated",
                            outcome = "outcome",
                            prognosis = outcome ~ cont,
-                           held_frac = 0.5, # way too large in practice
+                           pilot_fraction = 0.5, # way too large in practice
                            size = 4)
 
   pilot_inds <- c(3, 5, 1, 13)
@@ -272,14 +272,14 @@ test_that("auto_stratify with prognostic formula + held_frac works", {
   expect_equal(a.strat$pilot_set, exp_pilot_set)
 })
 
-test_that("auto_stratify with prognostic formula + held_sample works", {
+test_that("auto_stratify with prognostic formula + pilot_sample works", {
   test_dat <- make_test_data()
 
   a.strat <- auto_stratify(test_dat,
                            treat = "treated",
                            outcome = "outcome",
                            prognosis = outcome ~ cont,
-                           held_sample = test_dat, # bad practice; ok for tests
+                           pilot_sample = test_dat, # bad practice; ok for tests
                            size = 4)
 
   exp_analysis_set <- test_dat %>%
