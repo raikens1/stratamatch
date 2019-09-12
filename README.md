@@ -5,12 +5,19 @@ status](https://www.r-pkg.org/badges/version/BigMatch)](https://cran.r-project.o
 <!-- badges: end -->
 **Creators:** Rachael Caelie "Rocky" Aikens and Michael Baiocchi
 
-Development version 0.0.9000 is avaiable for download with `devtools`
+## Installation
+
+BigMatch requires R version 3.6.0 or higher.  In order to install this package, you may need to [update R](https://www.linkedin.com/pulse/3-methods-update-r-rstudio-windows-mac-woratana-ngarmtrakulchol)
+
+A development version of BigMatch (0.0.0.9000) can be downloaded using `devtools`
 
 ```r
 install.packages("devtools")
 devtools::install_github("raikens1/BigMatch")
 ```
+
+**Imports:**
+`dplyr` (data manipulation), `Hmisc` (quantile binning), `magrittr` (pipe operator), `optmatch` (matching), and `survival`(stratification)
 
 ## Objective
 **Goal:** The purpose of BigMatch is to provide user-friendly software and tutorials in R to support scientists to perform matching for "big data" observational studies. 
