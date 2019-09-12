@@ -7,7 +7,7 @@
 #'
 #' Match within strata in series using optmatch.  Probably needs to be renamed.
 #'
-#' @param strat a strata object
+#' @param object a strata object
 #' @param propensity (optional) formula for propensity score.  If left
 #'   blank, all columns of the dataset will be used as covariates (except
 #'   outcome, treatment and stratum)
@@ -15,16 +15,16 @@
 #'   treated individual
 #' @return a named factor with matching assignments
 #' @export
-big_match <- function(strat, propensity = NULL, k = 1){
+big_match <- function(object, propensity = NULL, k = 1){
 
-  check_inputs_matcher(strat, propensity, k)
+  check_inputs_matcher(object, propensity, k)
 
   message("This function makes essential use of the optmatch package, which has an academic license.")
   message("For more information, run optmatch::relaxinfo()")
 
   if (is.null(propensity)){
     # match on all variables, stratified by stratum
-    propensity <- formula(paste(strat$treat, "~ . -", strat$outcome,
+    propensity <- formula(paste(object$treat, "~ . -", object$outcome,
                                         "- stratum",
                                         "+ strata(stratum)"))
   } else {
@@ -39,11 +39,11 @@ big_match <- function(strat, propensity = NULL, k = 1){
   
   # build propensity model
   propensity_model <- glm(propensity,
-                          data = strat$analysis_set,
+                          data = object$analysis_set,
                           family = binomial())
 
   return(optmatch::pairmatch(propensity_model,
-                             data = strat$analysis_set,
+                             data = object$analysis_set,
                              controls = k))
 }
 
@@ -54,19 +54,19 @@ big_match <- function(strat, propensity = NULL, k = 1){
 #' speed of matching within strata to matching the entire dataset without
 #' stratification.
 #'
-#' @param strat a strata object
+#' @param object a strata object
 #' @param propensity (optional) formula for propensity score
 #' @param k numeric, the number of control individuals to be matched to each
 #'   treated individual
 #' @return a named factor with matching assignments
 #' @export
-big_match_nstrat <- function(strat, propensity = NULL, k = 1){
+big_match_nstrat <- function(object, propensity = NULL, k = 1){
 
-  check_inputs_matcher(strat, propensity, k)
+  check_inputs_matcher(object, propensity, k)
 
   if (is.null(propensity)){
     # match on all variables, stratified by stratum
-    propensity <- formula(paste(strat$treat, "~ . -", strat$outcome,
+    propensity <- formula(paste(object$treat, "~ . -", object$outcome,
                                         "- stratum"))
   } else {
     # do not modify original formula to append "+ strata(stratum)"
@@ -74,11 +74,11 @@ big_match_nstrat <- function(strat, propensity = NULL, k = 1){
 
   # build propensity model
   propensity_model <- glm(propensity,
-                          data = strat$analysis_set,
+                          data = object$analysis_set,
                           family = binomial())
 
   return(optmatch::pairmatch(propensity_model,
-                             data = strat$analysis_set,
+                             data = object$analysis_set,
                              controls = k))
 }
 
@@ -87,15 +87,15 @@ big_match_nstrat <- function(strat, propensity = NULL, k = 1){
 #' @inheritParams big_match
 #'
 #' @return nothing
-check_inputs_matcher <- function(strat, propensity, k){
-  if (!is.strata(strat)) {
+check_inputs_matcher <- function(object, propensity, k){
+  if (!is.strata(object)) {
     stop("strat must be a strata object")
   }
   if (!is.null(propensity)) {
     if (!inherits(propensity, "formula")) {
       stop("propensity must be a formula")
     }
-    check_prop_formula(propensity, strat$analysis_set, strat$treat)
+    check_prop_formula(propensity, object$analysis_set, object$treat)
   }
   if (is.na(suppressWarnings(as.integer(k)))) stop("k must be an integer")
   if (k < 1) stop("k must be 1 or greater")

@@ -4,10 +4,10 @@
 \alias{check_scores}
 \title{Check Scores}
 \usage{
-check_scores(prog_scores, data)
+check_scores(prognostic_scores, data)
 }
 \arguments{
-\item{prog_scores, }{a numeric vector}
+\item{prognostic_scores, }{a numeric vector}
 
 \item{data}{\code{data.frame} with observations as rows, features as columns}
 }

@@ -117,7 +117,7 @@ a.strat
 
 Our call to `auto_stratify` has created `auto_strata` object.  An `auto_strata` object is much like a `manual_strata` object, except that it contains somewhat more information, since the stratification process was done differently.  Importantly, `auto_strata` has partitioned 10% of the individuals in the control group to be in the pilot set.  These individuals were used to build the prognostic score, and were extracted from the analysis set. In order to prevent overfitting, the observations in the pilot set should not be included later analysis, and should not be reused when making the final effect estimate.
 
-We can access the pilot set and the analysis set using `$` with `a.strat`.  The command `a.strat$analysis_set` gives the analysis set and `a.strat$pilot_set` gives the pilot set.   We can also view the prognostic score estimates for the individuals in the analysis set with `a.strat$prog_scores`.
+We can access the pilot set and the analysis set using `$` with `a.strat`.  The command `a.strat$analysis_set` gives the analysis set and `a.strat$pilot_set` gives the pilot set.   We can also view the prognostic score estimates for the individuals in the analysis set with `a.strat$prognostic_scores`.
 
 ### Alternative methods for automatic stratification.
 
@@ -218,16 +218,16 @@ Finally, if we fit a prognostic model, then we can run diagnostics on that progn
 ```{r}
 # diagnostic plots for prognostic model
 plot(a.strat, type = "residual")
-# plot(a.strat$prog_model) will do the same thing - see below
+# plot(a.strat$prognostic_model) will do the same thing - see below
 ```
 
 ## Prognostic Model Diagnostics for Automatically Stratified Data
 
-The `plot` command with `type = "residual"` gives us a one-line command that shows us standard diagnostic plots for the prognostic score model that we fit on the pilot set. If we want to run extra diagnostics on our prognostic model, we can do that too. Our `a.strat` stores a copy of the prognostic score model, which we can extract in the usual way with `$`.  By extracting the prognostic model (`prog_model`), we can run any of the usual diagnostics for our fitted model.
+The `plot` command with `type = "residual"` gives us a one-line command that shows us standard diagnostic plots for the prognostic score model that we fit on the pilot set. If we want to run extra diagnostics on our prognostic model, we can do that too. Our `a.strat` stores a copy of the prognostic score model, which we can extract in the usual way with `$`.  By extracting the prognostic model (`prognostic_model`), we can run any of the usual diagnostics for our fitted model.
 
 ```{r}
 # extract prognostic model from a.strat
-progmod <- a.strat$prog_model
+progmod <- a.strat$prognostic_model
 
 # as an example, summarize model coefficients
 summary(progmod)

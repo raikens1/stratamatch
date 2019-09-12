@@ -23,10 +23,10 @@ make_test_data <- function(){
 test_that("manual_stratify errors work", {
   test_dat <- make_test_data()
 
-  expect_error(manual_stratify(test_dat, strat_formula = treated ~ cat + cont),
+  expect_error(manual_stratify(test_dat, strata_formula = treated ~ cat + cont),
                "There are 16 distinct values for cont. Is it continuous?")
 
-  expect_warning(manual_stratify(test_dat, strat_formula = treated ~ cat + cont,
+  expect_warning(manual_stratify(test_dat, strata_formula = treated ~ cat + cont,
                                force = TRUE),
                "There are 16 distinct values for cont. Is it continuous?")
 })
@@ -200,9 +200,9 @@ test_that("auto_stratify with prognostic scores works", {
 
   expect_equal(a.strat$outcome, "outcome")
 
-  expect_equal(a.strat$prog_scores, test_dat$cont)
+  expect_equal(a.strat$prognostic_scores, test_dat$cont)
 
-  expect_equal(a.strat$prog_model, NULL)
+  expect_equal(a.strat$prognostic_model, NULL)
 
   expect_equal(a.strat$pilot_set, NULL)
 })
@@ -258,16 +258,16 @@ test_that("auto_stratify with prognostic formula + pilot_fraction works", {
 
   expect_equal(a.strat$outcome, "outcome")
 
-  exp_prog_model <- glm(exp_pilot_set,
+  exp_prognostic_model <- glm(exp_pilot_set,
                         formula = outcome ~ cont,
                         family = binomial)
 
-  exp_prog_scores <- predict(exp_prog_model,
+  exp_prognostic_scores <- predict(exp_prognostic_model,
                              exp_analysis_set, type = "response")
 
-  expect_equal(a.strat$prog_scores, exp_prog_scores)
+  expect_equal(a.strat$prognostic_scores, exp_prognostic_scores)
 
-  expect_equal(coef(a.strat$prog_model), coef(exp_prog_model))
+  expect_equal(coef(a.strat$prognostic_model), coef(exp_prognostic_model))
 
   expect_equal(a.strat$pilot_set, exp_pilot_set)
 })
@@ -310,16 +310,16 @@ test_that("auto_stratify with prognostic formula + pilot_sample works", {
 
   expect_equal(a.strat$outcome, "outcome")
 
-  exp_prog_model <- glm(test_dat,
+  exp_prognostic_model <- glm(test_dat,
                         formula = outcome ~ cont,
                         family = binomial)
 
-  exp_prog_scores <- predict(exp_prog_model,
+  exp_prognostic_scores <- predict(exp_prognostic_model,
                              exp_analysis_set, type = "response")
 
-  expect_equal(a.strat$prog_scores, exp_prog_scores)
+  expect_equal(a.strat$prognostic_scores, exp_prognostic_scores)
 
-  expect_equal(coef(a.strat$prog_model), coef(exp_prog_model))
+  expect_equal(coef(a.strat$prognostic_model), coef(exp_prognostic_model))
 
   expect_equal(a.strat$pilot_set, test_dat)
 })
@@ -364,12 +364,12 @@ test_that("auto_stratify with prognostic model works", {
 
   expect_equal(a.strat$outcome, "outcome")
 
-  exp_prog_scores <- predict(progmod,
+  exp_prognostic_scores <- predict(progmod,
                              exp_analysis_set, type = "response")
 
-  expect_equal(a.strat$prog_scores, exp_prog_scores)
+  expect_equal(a.strat$prognostic_scores, exp_prognostic_scores)
 
-  expect_equal(coef(a.strat$prog_model), coef(progmod))
+  expect_equal(coef(a.strat$prognostic_model), coef(progmod))
 
   expect_equal(a.strat$pilot_set, NULL)
 })

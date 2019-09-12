@@ -67,13 +67,13 @@ print.auto_strata <- function(x, ...) {
                    dim(x$analysis_set)[1], "X",
                    dim(x$analysis_set)[2]))
 
-  if (!is.null(x$prog_model)) {
+  if (!is.null(x$prognostic_model)) {
     writeLines(paste("\nPilot set dimensions:",
                      dim(x$pilot_set)[1], "X",
                      dim(x$pilot_set)[2]))
 
     writeLines("\nPrognostic Score Formula:")
-    print(x$prog_model$formula)
+    print(x$prognostic_model$formula)
 
   } else {
     writeLines("\nPrognostic Scores prespecified.")
@@ -251,7 +251,7 @@ make_fm_plot <- function(x, propensity, s){
 
   plt_data <- a_set %>%
     dplyr::mutate(prop_score = get_prop_scores(propensity, a_set, x$treat),
-                  prog_score = x$prog_scores) %>%
+                  prog_score = x$prognostic_scores) %>%
     dplyr::filter(stratum == s)
 
   names(plt_data)[names(plt_data) == x$treat] <- "treat"
@@ -282,10 +282,10 @@ make_resid_plot <- function(x){
   if (!is.auto_strata(x)){
     stop("Prognostic score residual plots are only valid for auto-stratified data.")
   } else {
-    if (is.null(x$prog_model)){
-      stop("Cannot make prognostic model residual plots since prog_scores were provided.")
+    if (is.null(x$prognostic_model)){
+      stop("Cannot make prognostic model residual plots since prognostic scores were provided.")
     } else{
-      return(plot(x$prog_model))
+      return(plot(x$prognostic_model))
     }
   }
 }
@@ -304,7 +304,6 @@ make_resid_plot <- function(x){
 #' @param treat, the name of the treatment assignment column
 #'
 #' @return vector of propensity scores
-#' @export
 get_prop_scores <- function(propensity, data, treat){
   # if it is a vector of propensity scores, check and return it
   if (is.numeric(propensity)){

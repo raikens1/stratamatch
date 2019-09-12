@@ -4,12 +4,12 @@
 \alias{manual_stratify}
 \title{Manual Stratify}
 \usage{
-manual_stratify(data, strat_formula, force = FALSE)
+manual_stratify(data, strata_formula, force = FALSE)
 }
 \arguments{
 \item{data}{data.frame with observations as rows, features as columns}
 
-\item{strat_formula}{the formula to be used for stratification.  (e.g. `treat
+\item{strata_formula}{the formula to be used for stratification.  (e.g. `treat
 ~ X1`) the variable on the left is taken to be the name of the treatment
 assignment column, and the variables on the left are taken to be the
 variables by which the data should be stratified}

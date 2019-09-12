@@ -20,7 +20,7 @@ the rows of \code{data}. \item a \code{formula} for fitting a prognostic
 model \item an already-fit prognostic score model}}
 
 \item{outcome}{string giving the name of column with outcome information.
-Required if prog_scores is specified.  Otherwise it will be inferred from
+Required if prognostic_scores is specified.  Otherwise it will be inferred from
 prog_formula}
 
 \item{size}{numeric, desired size of strata (default = 2500)}

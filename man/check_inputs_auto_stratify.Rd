@@ -13,7 +13,7 @@ check_inputs_auto_stratify(data, treat, outcome)
 assignment}
 
 \item{outcome}{string giving the name of column with outcome information.
-Required if prog_scores is specified.  Otherwise it will be inferred from
+Required if prognostic_scores is specified.  Otherwise it will be inferred from
 prog_formula}
 }
 \value{

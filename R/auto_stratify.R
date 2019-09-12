@@ -84,7 +84,7 @@
 #' @param treat string giving the name of column designating treatment
 #'   assignment
 #' @param outcome string giving the name of column with outcome information.
-#'   Required if prog_scores is specified.  Otherwise it will be inferred from
+#'   Required if prognostic_scores is specified.  Otherwise it will be inferred from
 #'   prog_formula
 #' @param prognosis information on how to build prognostic scores.  Three
 #'   different input types are allowed: \enumerate{ \item vector of prognostic
@@ -105,18 +105,18 @@ auto_stratify <- function(data, treat, prognosis,
 
   check_inputs_auto_stratify(data, treat, outcome)
 
-  build <- build_prog_scores(data, treat, prognosis,
+  build <- build_prognostic_scores(data, treat, prognosis,
                              outcome, pilot_fraction, pilot_sample)
 
   analysis_set <- build$analysis_set
-  prog_scores <- build$prog_scores
+  prognostic_scores <- build$prognostic_scores
   pilot_set <- build$pilot_set
-  prog_model <- build$prog_model
+  prognostic_model <- build$prognostic_model
   outcome <- build$outcome
 
   # Create strata from prognostic score quantiles
   n_bins <- ceiling(dim(analysis_set)[1] / size)
-  qcut <- Hmisc::cut2(prog_scores, g = n_bins)
+  qcut <- Hmisc::cut2(prognostic_scores, g = n_bins)
 
   # make strata table
   strata_table <- make_strata_table(qcut)
@@ -129,8 +129,8 @@ auto_stratify <- function(data, treat, prognosis,
                             issue_table = make_issue_table(analysis_set, treat),
                             strata_table = strata_table,
                             outcome = outcome,
-                            prog_scores = prog_scores,
-                            prog_model = prog_model,
+                            prognostic_scores = prognostic_scores,
+                            prognostic_model = prognostic_model,
                             pilot_set = pilot_set)
 
   return(result)
@@ -154,7 +154,7 @@ auto_stratify <- function(data, treat, prognosis,
 #'
 #' @return a list of: analysis set, prognostic scores, pilot set, prognostic
 #'   model, and outcome string
-build_prog_scores <- function(data, treat, prognosis,
+build_prognostic_scores <- function(data, treat, prognosis,
                               outcome, pilot_fraction, pilot_sample){
   # prognosis is a vector of prognostic scores
   if (is.numeric(prognosis)){
@@ -162,10 +162,10 @@ build_prog_scores <- function(data, treat, prognosis,
     if (is.null(outcome)) {
       stop("If specifying prognostic scores, outcome must be specified")
     }
-    prog_scores <- prognosis
+    prognostic_scores <- prognosis
     analysis_set <- data
     pilot_set <- NULL
-    prog_model <- NULL
+    prognostic_model <- NULL
   }
 
   # prognosis is a formula
@@ -181,7 +181,7 @@ build_prog_scores <- function(data, treat, prognosis,
     outcome <- all.vars(prognosis)[1]
     message(paste("Fitting prognostic model:",
                   Reduce(paste, deparse(prognosis))))
-    prog_model <- tryCatch(glm(prognosis, data = pilot_set, family = "binomial"), 
+    prognostic_model <- tryCatch(glm(prognosis, data = pilot_set, family = "binomial"), 
                            error = function(e) {
                              message("Encountered an error while fitting the prognostic model.")
                              message("For troubleshooting help, run help(\"auto_stratify\")")
@@ -192,14 +192,14 @@ build_prog_scores <- function(data, treat, prognosis,
                              message("For troubleshooting help, run help(\"auto_stratify\")")
                              stop(w)
                            })
-    prog_scores <- make_prog_scores(prog_model, analysis_set)
+    prognostic_scores <- estimate_scores(prognostic_model, analysis_set)
   }
 
   # prognosis is a model, or it is unrecognized
   else { 
     # try to predict.  If successful, prognosis was a model.
     # otherwise, throw an error: prognosis type not recognized
-    prog_scores <- tryCatch(predict(prognosis,
+    prognostic_scores <- tryCatch(predict(prognosis,
                                     newdata = data,
                                     type = "response"),
                             error = function(c) {
@@ -210,11 +210,11 @@ build_prog_scores <- function(data, treat, prognosis,
     }
     analysis_set <- data
     pilot_set <- NULL
-    prog_model <- prognosis
+    prognostic_model <- prognosis
   }
 
-  return(list(analysis_set = analysis_set, prog_scores = prog_scores,
-              pilot_set = pilot_set, prog_model = prog_model,
+  return(list(analysis_set = analysis_set, prognostic_scores = prognostic_scores,
+              pilot_set = pilot_set, prognostic_model = prognostic_model,
               outcome = outcome))
 }
 
@@ -267,12 +267,12 @@ split_pilot_set <- function(data, treat, pilot_fraction, pilot_sample){
 #' (rather than the linear predictor), so the score is the expected value of the
 #' outcome under the control assignement based on the observed covariates.
 #'
-#' @param prog_model Model of prognosis
+#' @param prognostic_model Model of prognosis
 #' @param analysis_set data set on which prognostic scores should be estimated
 #'
 #' @return vector of prognostic scores
-make_prog_scores <- function(prog_model, analysis_set){
-  tryCatch(predict(prog_model, analysis_set, type = "response"),
+estimate_scores <- function(prognostic_model, analysis_set){
+  tryCatch(predict(prognostic_model, analysis_set, type = "response"),
            error = function(e) {
              message("Encountered an error while estimating prognostic scores from the prognostic model.")
              message("For troubleshooting help, run help(\"auto_stratify\")")
@@ -326,11 +326,11 @@ check_inputs_auto_stratify <- function(data, treat, outcome){
 #' Checks that prognostic scores are numeric and same length as data
 #'
 #' @inheritParams auto_stratify
-#' @param prog_scores, a numeric vector
+#' @param prognostic_scores, a numeric vector
 #'
 #' @return nothing
-check_scores <- function(prog_scores, data){
-  if (length(prog_scores) != dim(data)[1]){
+check_scores <- function(prognostic_scores, data){
+  if (length(prognostic_scores) != dim(data)[1]){
     stop("prognostic scores must be the same length as the data")
   }
 }

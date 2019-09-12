@@ -14,7 +14,7 @@
 #' matched by some other means.
 #'
 #' @param data data.frame with observations as rows, features as columns
-#' @param strat_formula the formula to be used for stratification.  (e.g. `treat
+#' @param strata_formula the formula to be used for stratification.  (e.g. `treat
 #'   ~ X1`) the variable on the left is taken to be the name of the treatment
 #'   assignment column, and the variables on the left are taken to be the
 #'   variables by which the data should be stratified
@@ -23,12 +23,12 @@
 #' @return A \code{manual_strata} object
 #' @seealso \code{\link{auto_stratify}}, \code{\link{new_manual_strata}}
 #' @export
-manual_stratify <- function(data, strat_formula, force = FALSE){
+manual_stratify <- function(data, strata_formula, force = FALSE){
 
-  check_inputs_manual_stratify(data, strat_formula, force)
+  check_inputs_manual_stratify(data, strata_formula, force)
 
-  treat <- all.vars(strat_formula)[1]
-  covariates <- all.vars(strat_formula)[-1]
+  treat <- all.vars(strata_formula)[1]
+  covariates <- all.vars(strata_formula)[-1]
 
   # helper function to extract group labels from dplyr
   get_next_integer <- function(){
@@ -112,18 +112,18 @@ warn_if_continuous <- function(column, name, force, n){
 #'
 #' @return nothing; produces errors and warnings if anything is wrong
 #' @export
-check_inputs_manual_stratify <- function(data, strat_formula, force){
+check_inputs_manual_stratify <- function(data, strata_formula, force){
   # check input types
   if (!is.data.frame(data)) stop("data must be a data.frame")
-  if (!inherits(strat_formula, "formula")) {
-    stop("strat_formula must be a formula")
+  if (!inherits(strata_formula, "formula")) {
+    stop("strata_formula must be a formula")
   }
   if (!is.logical(force)) stop("force must equal either TRUE or FALSE")
-  if (!all(is.element(all.vars(strat_formula), colnames(data)))) {
+  if (!all(is.element(all.vars(strata_formula), colnames(data)))) {
     stop("not all variables in stat_formula appear in data")
   }
 
-  covariates <- all.vars(strat_formula)[-1]
+  covariates <- all.vars(strata_formula)[-1]
   n <- dim(data)[1]
 
   # Check that all covariates are discrete
