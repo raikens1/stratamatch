@@ -25,7 +25,5 @@ While matching is a mainstay in causal inference for observational studies, the 
 
 (4) Production of a complete, matched dataset across strata.
 
-## User Notes
+## Feedback
  Big_match is a work in progress.  If you have questions or suggestions, please send them to Rocky at raikens@stanford.edu.
- 
- The structure of big_match is inspired in part by the matchit package: https://github.com/cran/MatchIt/
