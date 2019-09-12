@@ -5,7 +5,7 @@ status](https://www.r-pkg.org/badges/version/BigMatch)](https://cran.r-project.o
 <!-- badges: end -->
 **Creators:** Rachael Caelie "Rocky" Aikens and Michael Baiocchi
 
-Development version avaiable for download with `devtools`
+Development version 0.0.9000 is avaiable for download with `devtools`
 
 ```r
 install.packages("devtools")
