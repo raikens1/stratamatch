@@ -9,14 +9,16 @@ status](https://www.r-pkg.org/badges/version/BigMatch)](https://cran.r-project.o
 
 BigMatch requires R version 3.6.0 or higher.  In order to install this package, you may need to [update R](https://www.linkedin.com/pulse/3-methods-update-r-rstudio-windows-mac-woratana-ngarmtrakulchol)
 
-A development version of BigMatch (0.0.0.9000) can be downloaded using `devtools`
+A development version of BigMatch (0.0.0.9000) can be downloaded using `devtools`.  With R updated, simply run:
 
 ```r
 install.packages("devtools")
 devtools::install_github("raikens1/BigMatch")
 ```
 
-**Imports:**
+You may need to update some packages which are dependencies for BigMatch and devtools.
+
+**BigMatch Imports:**
  - `dplyr` (data manipulation),
  - `Hmisc` (quantile binning),
  - `magrittr` (pipe operator),
