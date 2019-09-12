@@ -19,7 +19,7 @@ While matching is a mainstay in causal inference for observational studies, the 
 
 BigMatch uses a pilot design (see [Aikens et al.](https://arxiv.org/abs/1908.09077))to estimate a quantity called the *prognostic score* (see Hansen, 2008 “The Prognostic Analougue of the Propensity Score”), defined here as an individual’s expected outcome under the control assignment, based on their baseline covariates. Balancing observational data sets based on the prognostic score will reduce heterogeneity between matched individuals, decreasing variance and diminishing the sensitivity of the study results to unobserved confounding (See Aikens et al.; Antonelli et al. 2017; and Leacy and Stuart 2014). Moreover, since the prognostic score is often continuous, strata can be easily determined using prognostic score quantiles to select evenly sized “bins” for the data. This cicumvents common problems with stratification based on expert knowledge, since that process often generates strata which are too large, too small, or too poorly balanced between treatment and control observations (although BigMatch does contain a function, `manual_stratify`, to facilitate this kind of stratification as well).
 
-The BigMatch function, auto_stratify, carries out the prognostic score stratification pilot design described above. Although there are many additional options available when running this function, the most basic procedure does the following:
+The `auto_stratify` function carries out the prognostic score stratification pilot design described above. Although there are many additional options available when running this function, the most basic procedure does the following:
 
 1. Partition the data set into a pilot data set and an analysis data set
 
