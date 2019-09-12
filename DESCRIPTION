@@ -29,7 +29,7 @@ Imports:
   optmatch (>= 0.9-11),
   survival(>= 2.44.1.1)
 Depends: 
-  R (>= 3.6.0),
+  R (>= 3.4.0),
 Suggests:
     knitr,
     rmarkdown,
