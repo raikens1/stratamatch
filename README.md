@@ -17,11 +17,11 @@ devtools::install_github("raikens1/BigMatch")
 ```
 
 **Imports:**
-`dplyr` (data manipulation),
-`Hmisc` (quantile binning),
-`magrittr` (pipe operator),
-`optmatch` (matching),
-`survival`(stratification)
+ - `dplyr` (data manipulation),
+ - `Hmisc` (quantile binning),
+ - `magrittr` (pipe operator),
+ - `optmatch` (matching),
+ - `survival`(stratification)
 
 ## Objective
 **Goal:** The purpose of BigMatch is to provide user-friendly software and tutorials in R to support scientists to perform matching for "big data" observational studies. 
