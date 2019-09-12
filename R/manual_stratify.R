@@ -111,7 +111,6 @@ warn_if_continuous <- function(column, name, force, n){
 #' @inheritParams manual_stratify
 #'
 #' @return nothing; produces errors and warnings if anything is wrong
-#' @export
 check_inputs_manual_stratify <- function(data, strata_formula, force){
   # check input types
   if (!is.data.frame(data)) stop("data must be a data.frame")

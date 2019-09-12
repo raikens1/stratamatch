@@ -4,10 +4,10 @@
 \alias{big_match}
 \title{Big Match}
 \usage{
-big_match(strat, propensity = NULL, k = 1)
+big_match(object, propensity = NULL, k = 1)
 }
 \arguments{
-\item{strat}{a strata object}
+\item{object}{a strata object}
 
 \item{propensity}{(optional) formula for propensity score.  If left
 blank, all columns of the dataset will be used as covariates (except

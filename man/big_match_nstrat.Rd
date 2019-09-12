@@ -4,10 +4,10 @@
 \alias{big_match_nstrat}
 \title{Big Match - Not Stratified}
 \usage{
-big_match_nstrat(strat, propensity = NULL, k = 1)
+big_match_nstrat(object, propensity = NULL, k = 1)
 }
 \arguments{
-\item{strat}{a strata object}
+\item{object}{a strata object}
 
 \item{propensity}{(optional) formula for propensity score}
 
