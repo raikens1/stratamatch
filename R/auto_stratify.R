@@ -197,12 +197,8 @@ build_prognostic_scores <- function(data, treat, prognosis,
 
   # prognosis is a formula
   else if (inherits(prognosis, "formula")){
-    check_prog_formula(prognosis, data, outcome, treat)
+    check_prognostic_formula(prognosis, data, outcome, treat)
     split <- split_pilot_set(data, treat, pilot_fraction, pilot_sample)
-    if (!is.null(pilot_sample) &
-        !all(is.element(all.vars(prognosis), colnames(pilot_sample)))) {
-      stop("All variables in prognostic score formula must be in pilot_sample")
-    }
     pilot_set <- split$pilot_set
     analysis_set <- split$analysis_set
     outcome <- all.vars(prognosis)[1]
@@ -288,6 +284,11 @@ split_pilot_set <- function(data, treat, pilot_fraction, pilot_sample){
 #'
 #' @return a glm or lm object fit from \code{prognostic_formula} on \code{data}
 fit_prognostic_model <- function(dat, prognostic_formula, outcome){
+  
+  if (!is.null(dat) &
+      !all(is.element(all.vars(prognostic_formula), colnames(dat)))) {
+    stop("All variables in prognostic score formula must be in pilot set")
+  }
   
   # if outcome is binary or logical, run logistic regression
   if (is_binary(na.omit(dat[[outcome]]))) {
@@ -395,6 +396,9 @@ check_inputs_auto_stratify <- function(data, treat, outcome){
   if (!is.element(treat, colnames(data))){
     stop("treat must be the name of a column in data")
   }
+  if (!is_binary(data[[treat]])) {
+    stop("treatment column must be binary or logical")
+  }
   if (!is.null(outcome)){
     check_outcome(outcome, data, treat)
   }
@@ -436,7 +440,7 @@ check_outcome <- function(outcome, data, treat){
 #' @param prog_formula a formula for prognostic score
 #' 
 #' @return nothing
-check_prog_formula <- function(prog_formula, data, outcome, treat){
+check_prognostic_formula <- function(prog_formula, data, outcome, treat){
   if (!all(is.element(all.vars(prog_formula), colnames(data)))) {
     stop("not all variables in prognosis formula appear in data")
   }

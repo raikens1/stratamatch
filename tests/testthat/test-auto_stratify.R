@@ -1,4 +1,4 @@
-context("Manual and Automatic Statification")
+context("Automatic Statification")
 
 # Make Test Data
 #
@@ -17,57 +17,7 @@ make_test_data <- function(){
 }
 
 #----------------------------------------------------------
-### MANUAL STRATIFY
-#----------------------------------------------------------
-
-test_that("manual_stratify errors work", {
-  test_dat <- make_test_data()
-
-  expect_error(manual_stratify(test_dat, strata_formula = treated ~ cat + cont),
-               "There are 16 distinct values for cont. Is it continuous?")
-
-  expect_warning(manual_stratify(test_dat, strata_formula = treated ~ cat + cont,
-                               force = TRUE),
-               "There are 16 distinct values for cont. Is it continuous?")
-})
-
-test_that("manual stratify works", {
-  test_dat <- make_test_data()
-
-  m.strat <- manual_stratify(test_dat, treated ~ cat)
-
-  expect_is(m.strat, "manual_strata")
-  expect_is(m.strat, "strata")
-
-  expect_equal(m.strat$analysis_set,
-               dplyr::mutate(test_dat, stratum = as.integer(cat + 1)))
-
-  expect_equal(m.strat$treat, "treated")
-
-  expect_equal(toString(m.strat$call),
-               "manual_stratify, test_dat, treated ~ cat")
-
-  exp_issue_table <- data.frame(Stratum = 1:4,
-                            Treat = rep(2, 4),
-                            Control = rep(2, 4),
-                            Total = as.integer(rep(4, 4)),
-                            Control_Proportion = rep(0.5, 4),
-                            Potential_Issues = rep("Too few samples", 4),
-                            stringsAsFactors = FALSE)
-
-  expect_equal(m.strat$issue_table, exp_issue_table)
-
-  expect_equal(m.strat$covariates, c("cat"))
-
-  exp_strata_table <- dplyr::tibble(cat = as.numeric(0:3),
-                             stratum = 1:4,
-                             size = as.integer(rep(4, 4)))
-
-  expect_equal(m.strat$strata_table, exp_strata_table)
-})
-
-#----------------------------------------------------------
-### AUTO STRATIFY
+### ERRORS
 #----------------------------------------------------------
 
 test_that("auto_stratify errors work", {
@@ -156,7 +106,7 @@ test_that("auto_stratify errors work", {
                              treat = "treated",
                              prognosis = outcome ~ cont,
                              pilot_sample = dplyr::select(test_dat, -cont)),
-               "All variables in prognostic score formula must be in pilot_sample")
+               "All variables in prognostic score formula must be in pilot set")
   
   # bad outcome format
   test_dat$outcome_12 <- test_dat$outcome + 1
@@ -173,7 +123,31 @@ test_that("auto_stratify errors work", {
                              prognosis = outcome_ab ~ cont,
                              pilot_sample = test_dat),
                "Outcome was not a recognized type. Must be binary, logical, or numeric")
+  
+  # bad treat format
+  test_dat$treat_cont <- rnorm(16)
+  test_dat$treat_char <- ifelse(test_dat$treated == 0, "a", "b")
+  test_dat$treat_12 <- test_dat$treated + 1
+  expect_error(auto_stratify(test_dat,
+                               treat = "treat_cont",
+                               prognosis = outcome ~ cont,
+                               pilot_sample = test_dat),
+               "treatment column must be binary or logical")
+  expect_error(auto_stratify(test_dat,
+                             treat = "treat_char",
+                             prognosis = outcome ~ cont,
+                             pilot_sample = test_dat),
+               "treatment column must be binary or logical")
+  expect_error(auto_stratify(test_dat,
+                             treat = "treat_12",
+                             prognosis = outcome ~ cont,
+                             pilot_sample = test_dat),
+               "treatment column must be binary or logical")
 })
+
+#----------------------------------------------------------
+### CORRECT INPUTS
+#----------------------------------------------------------
 
 test_that("auto_stratify with prognostic scores works", {
   test_dat <- make_test_data()
@@ -401,9 +375,7 @@ test_that("auto_stratify with logical outcome works", {
                            prognosis = outcome ~ cont,
                            pilot_fraction = 0.5, # way too large in practice
                            size = 4)
-  
-  print(a.strat$pilot_set)
-  
+
   pilot_inds <- c(3, 5, 1, 13)
   
   exp_pilot_set <- test_dat[pilot_inds, ]
@@ -457,6 +429,72 @@ test_that("auto_stratify with logical outcome works", {
   expect_equal(a.strat$pilot_set, exp_pilot_set)
 })
 
+
+test_that("auto_stratify with logical treatment works", {
+  test_dat <- make_test_data() %>%
+    dplyr::mutate(treated = treated == 1)
+  
+  set.seed(5)
+  a.strat <- auto_stratify(test_dat,
+                           treat = "treated",
+                           outcome = "outcome",
+                           prognosis = outcome ~ cont,
+                           pilot_fraction = 0.5, # way too large in practice
+                           size = 4)
+  
+  pilot_inds <- c(3, 5, 1, 13)
+  
+  exp_pilot_set <- test_dat[pilot_inds, ]
+  rownames(exp_pilot_set) <- NULL
+  
+  exp_analysis_set <- test_dat[-pilot_inds, ] %>%
+    dplyr::mutate(stratum = rep(3:1, each = 4))
+  rownames(exp_analysis_set) <- NULL
+  
+  expect_is(a.strat, "auto_strata")
+  expect_is(a.strat, "strata")
+  
+  expect_equal(a.strat$analysis_set, exp_analysis_set)
+  
+  expect_equal(a.strat$treat, "treated")
+  
+  expect_equal(toString(a.strat$call),
+               "auto_stratify, test_dat, treated, outcome ~ cont, outcome, 4, 0.5")
+  
+  exp_issue_table <- data.frame(Stratum = 1:3,
+                                Treat = as.integer(c(3, 2, 3)),
+                                Control = c(1, 2, 1),
+                                Total = as.integer(rep(4, 3)),
+                                Control_Proportion = c(0.25, 0.5, 0.25),
+                                Potential_Issues = rep("Too few samples", 3),
+                                stringsAsFactors = FALSE)
+  
+  expect_equal(a.strat$issue_table, exp_issue_table)
+  
+  exp_strata_table <- dplyr::tibble(stratum = 1:3,
+                                    quantile_bin = factor(c("[0.189,0.216)",
+                                                            "[0.216,0.240)",
+                                                            "[0.240,0.271]")),
+                                    size = as.integer(rep(4, 3)))
+  
+  expect_equal(a.strat$strata_table, exp_strata_table)
+  
+  expect_equal(a.strat$outcome, "outcome")
+  
+  exp_prognostic_model <- glm(exp_pilot_set,
+                              formula = outcome ~ cont,
+                              family = binomial)
+  
+  exp_prognostic_scores <- predict(exp_prognostic_model,
+                                   exp_analysis_set, type = "response")
+  
+  expect_equal(a.strat$prognostic_scores, exp_prognostic_scores)
+  
+  expect_equal(coef(a.strat$prognostic_model), coef(exp_prognostic_model))
+  
+  expect_equal(a.strat$pilot_set, exp_pilot_set)
+})
+
 test_that("auto_stratify with continuous outcome works", {
   test_dat <- make_test_data() %>%
     dplyr::mutate(outcome = rnorm(16))
@@ -468,9 +506,7 @@ test_that("auto_stratify with continuous outcome works", {
                            prognosis = outcome ~ cont,
                            pilot_fraction = 0.5, # way too large in practice
                            size = 4)
-  
-  print(a.strat$pilot_set)
-  
+
   pilot_inds <- c(3, 5, 1, 13)
   
   exp_pilot_set <- test_dat[pilot_inds, ]

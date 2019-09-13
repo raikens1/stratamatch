@@ -133,6 +133,10 @@ check_inputs_manual_stratify <- function(data, strata_formula, force){
 
   covariates <- all.vars(strata_formula)[-1]
   n <- dim(data)[1]
+  
+  if (!is_binary(data[[all.vars(strata_formula)[1]]])) {
+    stop("treatment column must be binary or logical")
+  }
 
   # Check that all covariates are discrete
   for (i in 1:length(covariates)){

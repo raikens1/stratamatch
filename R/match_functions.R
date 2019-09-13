@@ -5,7 +5,7 @@
 
 #' Big Match
 #'
-#' Match within strata in series using optmatch.  Probably needs to be renamed.
+#' Match within strata in series using optmatch.
 #'
 #' @param object a strata object
 #' @param propensity (optional) formula for propensity score.  If left

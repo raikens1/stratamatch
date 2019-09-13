@@ -20,7 +20,7 @@ treated individual}
 a named factor with matching assignments
 }
 \description{
-Match within strata in series using optmatch.  Probably needs to be renamed.
+Match within strata in series using optmatch.
 }
 \examples{
   # make a sample data set
