@@ -204,10 +204,8 @@ make_hist_plot <- function(x, propensity, s){
     dplyr::mutate(prop_score = prop_scores) %>%
     dplyr::filter(.data$stratum == s)
 
-  names(plt_data)[names(plt_data) == x$treat] <- "treat"
-
-  ht <- dplyr::filter(plt_data, .data$treat == 1)$prop_score
-  hc <- dplyr::filter(plt_data, .data$treat == 0)$prop_score
+  ht <- plt_data[ (plt_data[[x$treat]] == 1),]$prop_score
+  hc <- plt_data[ (plt_data[[x$treat]] == 0),]$prop_score
 
   # workaround to get plot area correct
   # make separate histograms, then use the info in the histogram objects
@@ -255,9 +253,7 @@ make_fm_plot <- function(x, propensity, s){
                   prog_score = x$prognostic_scores) %>%
     dplyr::filter(.data$stratum == s)
 
-  names(plt_data)[names(plt_data) == x$treat] <- "treat"
-
-  plt_data$color <- ifelse(plt_data$treat == 1, "red", "blue")
+  plt_data$color <- ifelse(plt_data[[x$treat]] == 1, "red", "blue")
   
   propscore_span = max(plt_data$prop_score) - min(plt_data$prop_score)
   progscore_span = max(plt_data$prog_score) - min(plt_data$prog_score)

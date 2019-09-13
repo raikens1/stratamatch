@@ -37,8 +37,7 @@ match_one <- function(dat, propensity_model, treat, k){
 #' @param treat string, the name of the treatment assignment column
 #' @return a matrix of distances to be passed to opmatch::pairmatch()
 make_distance_matrix <- function(dat, propensity_model, treat){
-  names(dat)[names(dat) == treat] <- "treat"
-  z <- dat$treat
+  z <- dat[[treat]]
   print(length(z))
   lp <- predict(propensity_model, dat)
   pooled.sd <- sqrt( ( (sum(!z) - 1) * mad(lp[!z]) ^ 2 +

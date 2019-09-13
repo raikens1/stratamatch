@@ -255,17 +255,14 @@ split_pilot_set <- function(data, treat, pilot_fraction, pilot_sample){
   } else {
     # otherwise, construct a pilot set
     message("Constructing a pilot set via subsampling.")
-    names(data)[names(data) == treat] <- "treat"
     # Adds an id column and removes it
     data$BigMatch_id <- 1:nrow(data)
-    pilot_set <- data %>% dplyr::filter(treat == 0) %>%
+    pilot_set <- data[ (data[[treat]] == 0),] %>%
       dplyr::sample_frac(pilot_fraction, replace = FALSE)
     analysis_set <- dplyr::anti_join(data, pilot_set,
                                      by = "BigMatch_id") %>%
       dplyr::select(-.data$BigMatch_id)
     pilot_set$BigMatch_id <- NULL
-    names(pilot_set)[names(pilot_set) == "treat"] <- treat
-    names(analysis_set)[names(analysis_set) == "treat"] <- treat
   }
   return(list(analysis_set = analysis_set, pilot_set = pilot_set))
 }
