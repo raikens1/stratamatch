@@ -201,12 +201,12 @@ make_hist_plot <- function(x, propensity, s){
 
   plt_data <- a_set %>%
     dplyr::mutate(prop_score = prop_scores) %>%
-    dplyr::filter(stratum == s)
+    dplyr::filter(.data$stratum == s)
 
   names(plt_data)[names(plt_data) == x$treat] <- "treat"
 
-  ht <- dplyr::filter(plt_data, treat == 1)$prop_score
-  hc <- dplyr::filter(plt_data, treat == 0)$prop_score
+  ht <- dplyr::filter(plt_data, .data$treat == 1)$prop_score
+  hc <- dplyr::filter(plt_data, .data$treat == 0)$prop_score
 
   # workaround to get plot area correct
   # make separate histograms, then use the info in the histogram objects
@@ -252,7 +252,7 @@ make_fm_plot <- function(x, propensity, s){
   plt_data <- a_set %>%
     dplyr::mutate(prop_score = get_prop_scores(propensity, a_set, x$treat),
                   prog_score = x$prognostic_scores) %>%
-    dplyr::filter(stratum == s)
+    dplyr::filter(.data$stratum == s)
 
   names(plt_data)[names(plt_data) == x$treat] <- "treat"
 

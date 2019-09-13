@@ -27,6 +27,7 @@ Imports:
   Hmisc (>= 4.2-0),
   magrittr (>= 1.5),
   optmatch (>= 0.9-11),
+  rlang (>= 0.4.0),
   survival(>= 2.44.1.1)
 Depends: 
   R (>= 3.6.0),

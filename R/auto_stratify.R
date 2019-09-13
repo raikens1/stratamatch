@@ -119,7 +119,7 @@ auto_stratify <- function(data, treat, prognosis,
   qcut <- Hmisc::cut2(prognostic_scores, g = n_bins)
 
   # make strata table
-  strata_table <- make_strata_table(qcut)
+  strata_table <- make_autostrata_table(qcut)
   analysis_set$stratum <- as.integer(qcut)
 
   # package and return result
@@ -250,7 +250,7 @@ split_pilot_set <- function(data, treat, pilot_fraction, pilot_sample){
       dplyr::sample_frac(pilot_fraction, replace = FALSE)
     analysis_set <- dplyr::anti_join(data, pilot_set,
                                      by = "BigMatch_id") %>%
-      dplyr::select(-BigMatch_id)
+      dplyr::select(-.data$BigMatch_id)
     pilot_set$BigMatch_id <- NULL
     names(pilot_set)[names(pilot_set) == "treat"] <- treat
     names(analysis_set)[names(analysis_set) == "treat"] <- treat
@@ -285,13 +285,13 @@ estimate_scores <- function(prognostic_model, analysis_set){
 #' @param qcut the prognostic score quantile cuts
 #'
 #' @return data.frame of strata definitions
-make_strata_table <- function(qcut){
+make_autostrata_table <- function(qcut){
   data.frame(qcut) %>%
     dplyr::mutate(stratum = as.integer(qcut), quantile_bin = qcut) %>%
-    dplyr::group_by(quantile_bin) %>%
-    dplyr::summarise(size = dplyr::n(), stratum = dplyr::first(stratum)) %>%
-    dplyr::arrange(stratum) %>%
-    dplyr::select(stratum, quantile_bin, size)
+    dplyr::group_by(.data$quantile_bin) %>%
+    dplyr::summarise(size = dplyr::n(), stratum = dplyr::first(.data$stratum)) %>%
+    dplyr::arrange(.data$stratum) %>%
+    dplyr::select(.data$stratum, .data$quantile_bin, .data$size)
 }
 
 #----------------------------------------------------------
