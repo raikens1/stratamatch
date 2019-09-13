@@ -157,6 +157,22 @@ test_that("auto_stratify errors work", {
                              prognosis = outcome ~ cont,
                              pilot_sample = dplyr::select(test_dat, -cont)),
                "All variables in prognostic score formula must be in pilot_sample")
+  
+  # bad outcome format
+  test_dat$outcome_12 <- test_dat$outcome + 1
+  test_dat$outcome_ab <- ifelse(test_dat$outcome == 0, "a", "b")
+  
+  expect_warning(auto_stratify(test_dat,
+                             treat = "treated",
+                             prognosis = outcome_12 ~ cont,
+                             pilot_sample = test_dat),
+                 "outcome column has only two values. Is it binary?")
+  
+  expect_error(auto_stratify(test_dat,
+                             treat = "treated",
+                             prognosis = outcome_ab ~ cont,
+                             pilot_sample = test_dat),
+               "Outcome was not a recognized type. Must be binary, logical, or numeric")
 })
 
 test_that("auto_stratify with prognostic scores works", {
@@ -306,7 +322,7 @@ test_that("auto_stratify with prognostic formula + pilot_sample works", {
   expect_equal(a.strat$issue_table, exp_issue_table)
 
   expect_known_value(a.strat$strata_table,
-                     file = "ref_strata_table", update = F)
+                     file = "ref_strata_table_binary", update = F)
 
   expect_equal(a.strat$outcome, "outcome")
 
@@ -360,7 +376,7 @@ test_that("auto_stratify with prognostic model works", {
   expect_equal(a.strat$issue_table, exp_issue_table)
 
   expect_known_value(a.strat$strata_table,
-                     file = "ref_strata_table", update = F)
+                     file = "ref_strata_table_binary", update = F)
 
   expect_equal(a.strat$outcome, "outcome")
 
@@ -373,3 +389,132 @@ test_that("auto_stratify with prognostic model works", {
 
   expect_equal(a.strat$pilot_set, NULL)
 })
+
+test_that("auto_stratify with logical outcome works", {
+  test_dat <- make_test_data() %>%
+    dplyr::mutate(outcome = outcome == 1)
+  
+  set.seed(5)
+  a.strat <- auto_stratify(test_dat,
+                           treat = "treated",
+                           outcome = "outcome",
+                           prognosis = outcome ~ cont,
+                           pilot_fraction = 0.5, # way too large in practice
+                           size = 4)
+  
+  print(a.strat$pilot_set)
+  
+  pilot_inds <- c(3, 5, 1, 13)
+  
+  exp_pilot_set <- test_dat[pilot_inds, ]
+  rownames(exp_pilot_set) <- NULL
+  
+  exp_analysis_set <- test_dat[-pilot_inds, ] %>%
+    dplyr::mutate(stratum = rep(3:1, each = 4))
+  rownames(exp_analysis_set) <- NULL
+  
+  expect_is(a.strat, "auto_strata")
+  expect_is(a.strat, "strata")
+  
+  expect_equal(a.strat$analysis_set, exp_analysis_set)
+  
+  expect_equal(a.strat$treat, "treated")
+  
+  expect_equal(toString(a.strat$call),
+               "auto_stratify, test_dat, treated, outcome ~ cont, outcome, 4, 0.5")
+  
+  exp_issue_table <- data.frame(Stratum = 1:3,
+                                Treat = c(3, 2, 3),
+                                Control = c(1, 2, 1),
+                                Total = as.integer(rep(4, 3)),
+                                Control_Proportion = c(0.25, 0.5, 0.25),
+                                Potential_Issues = rep("Too few samples", 3),
+                                stringsAsFactors = FALSE)
+  
+  expect_equal(a.strat$issue_table, exp_issue_table)
+  
+  exp_strata_table <- dplyr::tibble(stratum = 1:3,
+                                    quantile_bin = factor(c("[0.189,0.216)",
+                                                            "[0.216,0.240)",
+                                                            "[0.240,0.271]")),
+                                    size = as.integer(rep(4, 3)))
+  
+  expect_equal(a.strat$strata_table, exp_strata_table)
+  
+  expect_equal(a.strat$outcome, "outcome")
+  
+  exp_prognostic_model <- glm(exp_pilot_set,
+                              formula = outcome ~ cont,
+                              family = binomial)
+  
+  exp_prognostic_scores <- predict(exp_prognostic_model,
+                                   exp_analysis_set, type = "response")
+  
+  expect_equal(a.strat$prognostic_scores, exp_prognostic_scores)
+  
+  expect_equal(coef(a.strat$prognostic_model), coef(exp_prognostic_model))
+  
+  expect_equal(a.strat$pilot_set, exp_pilot_set)
+})
+
+test_that("auto_stratify with continuous outcome works", {
+  test_dat <- make_test_data() %>%
+    dplyr::mutate(outcome = rnorm(16))
+  
+  set.seed(5)
+  a.strat <- auto_stratify(test_dat,
+                           treat = "treated",
+                           outcome = "outcome",
+                           prognosis = outcome ~ cont,
+                           pilot_fraction = 0.5, # way too large in practice
+                           size = 4)
+  
+  print(a.strat$pilot_set)
+  
+  pilot_inds <- c(3, 5, 1, 13)
+  
+  exp_pilot_set <- test_dat[pilot_inds, ]
+  rownames(exp_pilot_set) <- NULL
+  
+  exp_analysis_set <- test_dat[-pilot_inds, ] %>%
+    dplyr::mutate(stratum = rep(3:1, each = 4))
+  rownames(exp_analysis_set) <- NULL
+  
+  expect_is(a.strat, "auto_strata")
+  expect_is(a.strat, "strata")
+  
+  expect_equal(a.strat$analysis_set, exp_analysis_set)
+  
+  expect_equal(a.strat$treat, "treated")
+  
+  expect_equal(toString(a.strat$call),
+               "auto_stratify, test_dat, treated, outcome ~ cont, outcome, 4, 0.5")
+  
+  exp_issue_table <- data.frame(Stratum = 1:3,
+                                Treat = c(3, 2, 3),
+                                Control = c(1, 2, 1),
+                                Total = as.integer(rep(4, 3)),
+                                Control_Proportion = c(0.25, 0.5, 0.25),
+                                Potential_Issues = rep("Too few samples", 3),
+                                stringsAsFactors = FALSE)
+  
+  expect_equal(a.strat$issue_table, exp_issue_table)
+  
+  expect_known_value(a.strat$strata_table,
+                     file = "ref_strata_table_continuous", update = F)
+  
+  expect_equal(a.strat$outcome, "outcome")
+  
+  exp_prognostic_model <- lm(exp_pilot_set,
+                              formula = outcome ~ cont)
+  
+  exp_prognostic_scores <- predict(exp_prognostic_model,
+                                   exp_analysis_set, type = "response")
+  
+  expect_equal(a.strat$prognostic_scores, exp_prognostic_scores)
+  
+  expect_equal(coef(a.strat$prognostic_model), coef(exp_prognostic_model))
+  
+  expect_equal(a.strat$pilot_set, exp_pilot_set)
+})
+

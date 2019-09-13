@@ -206,19 +206,8 @@ build_prognostic_scores <- function(data, treat, prognosis,
     pilot_set <- split$pilot_set
     analysis_set <- split$analysis_set
     outcome <- all.vars(prognosis)[1]
-    message(paste("Fitting prognostic model:",
-                  Reduce(paste, deparse(prognosis))))
-    prognostic_model <- tryCatch(glm(prognosis, data = pilot_set, family = "binomial"), 
-                           error = function(e) {
-                             message("Error while fitting the prognostic model.")
-                             message("For troubleshooting help, run help(\"auto_stratify\")")
-                             stop(e)
-                           }, 
-                           warning = function(w) {
-                             message("Warning while fitting the prognostic model.")
-                             message("For troubleshooting help, run help(\"auto_stratify\")")
-                             stop(w)
-                           })
+    
+    prognostic_model <- fit_prognostic_model(pilot_set, prognosis, outcome)
     prognostic_scores <- estimate_scores(prognostic_model, analysis_set)
   }
 
@@ -283,6 +272,65 @@ split_pilot_set <- function(data, treat, pilot_fraction, pilot_sample){
     names(analysis_set)[names(analysis_set) == "treat"] <- treat
   }
   return(list(analysis_set = analysis_set, pilot_set = pilot_set))
+}
+
+
+#' Fit Prognostic Model
+#'
+#' Given a pilot set and a prognostic formula, return the fitted formula.  If
+#' the outcome is binary, fit a logistic regression.  Otherwise, fit a linear
+#' model.
+#'
+#' @param dat data.frame on which model should be fit
+#' @param prognostic_formula formula for prognostic model
+#' @param outcome string giving name of column of data where outcomes are
+#'   recorded
+#'
+#' @return a glm or lm object fit from \code{prognostic_formula} on \code{data}
+fit_prognostic_model <- function(dat, prognostic_formula, outcome){
+  
+  # if outcome is binary or logical, run logistic regression
+  if (is_binary(na.omit(dat[[outcome]]))) {
+    message(paste("Fitting prognostic model via logistic regression:",
+                  Reduce(paste, deparse(prognostic_formula))))
+    prognostic_model <- tryCatch(glm(prognostic_formula,
+                                     data = dat,
+                                     family = "binomial"), 
+                                 error = function(e) {
+                                   message("Error while fitting the prognostic model.")
+                                   message("For troubleshooting help, run help(\"auto_stratify\")")
+                                   stop(e)
+                                 }, 
+                                 warning = function(w) {
+                                   message("Warning while fitting the prognostic model.")
+                                   message("For troubleshooting help, run help(\"auto_stratify\")")
+                                   stop(w)
+                                 }) 
+  }
+  
+  # if outcome is numeric, run linear regression
+  else if (is.numeric(na.omit(dat[[outcome]]))) { 
+    if (length(unique(na.omit(dat[[outcome]]))) == 2){
+      warning("outcome column has only two values. Is it binary?")
+      message("Convert to 01 or logical format to run logistic regression instead")
+    }
+    message(paste("Fitting prognostic model via linear regression:",
+                  Reduce(paste, deparse(prognostic_formula))))
+    prognostic_model <- tryCatch(lm(prognostic_formula, data = dat), 
+                                 error = function(e) {
+                                   message("Error while fitting the prognostic model.")
+                                   message("For troubleshooting help, run help(\"auto_stratify\")")
+                                   stop(e)
+                                 }, 
+                                 warning = function(w) {
+                                   message("Warning while fitting the prognostic model.")
+                                   message("For troubleshooting help, run help(\"auto_stratify\")")
+                                   stop(w)
+                                 }) 
+  }
+  else stop("Outcome was not a recognized type. Must be binary, logical, or numeric")
+  
+  return(prognostic_model)
 }
 
 #' Make Prog Scores
@@ -419,8 +467,15 @@ check_pilot_set_options <- function(pilot_sample, pilot_fraction){
   }
 }
 
-# check_is_binary <- function(col, name) {
-#   if (is.logical(col)) return()
-#   if (all(is.element(na.omit(col), 0:1))) return()
-#   else {stop(paste(name, "is not binary or logical"))}
-# }
+#' Check if a vector is binary
+#' 
+#' return TRUE if the input is logical or if it contains only 0's and 1's
+#'
+#' @param col a column from a data frame
+#'
+#' @return logical
+is_binary <- function(col) {
+   if (is.logical(na.omit(col))) return(TRUE)
+   if (all(is.element(na.omit(col), 0:1))) return(TRUE)
+   else return(FALSE)
+}
