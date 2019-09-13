@@ -1,9 +1,9 @@
 manual_strata object from package big_match.
 
 Function call:
-manual_stratify(data = test_dat, strata_formula = treat ~ cat)
+manual_stratify(data = test_dat, strata_formula = treated ~ cat)
 
-Analysis set dimensions: 16 X 5
+Analysis set dimensions: 16 X 7
 
 Number of strata: 4 
 

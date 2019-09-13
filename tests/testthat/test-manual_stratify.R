@@ -3,17 +3,21 @@ context("Manual Statification")
 # Make Test Data
 #
 # Makes a simple data frame with treat, outcome, a categorical and a continouos
-# covariate. Outcome = sigmoid(treat + cont)
+# covariate. Outcomes = sigmoid(treated + cont).  I've added a column named
+# "treat" and "outcome" to ensure that nothing weird happens when treat or
+# outcome is a real column in the data frame
 make_test_data <- function(){
   n <- 16
   set.seed(123)
   
   data.frame(treated = rep(c(0, 1), n / 2),
+             treat = rep("gotcha", n),
              cat = rep(c(0, 1, 2, 3), each = n / 4),
              cont = seq(from = 0, to = 1, length.out = n)) %>%
-    dplyr::mutate(outcome = rbinom(n = n,
-                                   size = 1,
-                                   p = 1 / (1 + exp(treated + cont))))
+    dplyr::mutate(outcomes = rbinom(n = n,
+                                    size = 1,
+                                    p = 1 / (1 + exp(treated + cont))),
+                  outcome = rep("gotcha", n))
 }
 
 #----------------------------------------------------------
