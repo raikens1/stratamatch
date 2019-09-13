@@ -8,8 +8,8 @@ check_outcome(outcome, data, treat)
 }
 \arguments{
 \item{outcome}{string giving the name of column with outcome information.
-Required if prognostic_scores is specified.  Otherwise it will be inferred from
-prog_formula}
+Required if prognostic_scores is specified.  Otherwise it will be inferred
+from prog_formula}
 
 \item{data}{\code{data.frame} with observations as rows, features as columns}
 

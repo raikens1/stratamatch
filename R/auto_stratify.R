@@ -78,27 +78,54 @@
 #'   Other errors or warnings can occur if the pilot set is too small and the
 #'   prognostic formula is too complicated.  Always make sure that the number of
 #'   observations in the pilot set is large enough that you can confidently fit
-#'   a prognostic model with the number of covariates you want. 
+#'   a prognostic model with the number of covariates you want.
 #'
 #' @param data \code{data.frame} with observations as rows, features as columns
 #' @param treat string giving the name of column designating treatment
 #'   assignment
 #' @param outcome string giving the name of column with outcome information.
-#'   Required if prognostic_scores is specified.  Otherwise it will be inferred from
-#'   prog_formula
+#'   Required if prognostic_scores is specified.  Otherwise it will be inferred
+#'   from prog_formula
 #' @param prognosis information on how to build prognostic scores.  Three
 #'   different input types are allowed: \enumerate{ \item vector of prognostic
 #'   scores for all individuals in the data set. Should be in the same order as
 #'   the rows of \code{data}. \item a \code{formula} for fitting a prognostic
 #'   model \item an already-fit prognostic score model}
 #' @param size numeric, desired size of strata (default = 2500)
-#' @param pilot_fraction numeric between 0 and 1 giving the proportion of controls to
-#'   be allotted for building the prognostic score (default = 0.1)
-#' @param pilot_sample a data.frame of held aside samples for building prognostic
-#'   score model.
+#' @param pilot_fraction numeric between 0 and 1 giving the proportion of
+#'   controls to be allotted for building the prognostic score (default = 0.1)
+#' @param pilot_sample a data.frame of held aside samples for building
+#'   prognostic score model.
 #' @return Returns a \code{strata} object
 #' @seealso \code{\link{manual_stratify}}, \code{\link{new_auto_strata}}
 #' @export
+#' @examples
+#'   # make sample data set
+#'   set.seed(111)
+#'   dat <- make_sample_data(n = 75)
+#'   
+#'   # construct a pilot set, build a prognostic score for `outcome` based on X2
+#'   # and stratify the data set based on the scores into sets of about 25
+#'   # observations
+#'   a.strat_formula <- auto_stratify(dat, "treat", outcome ~ X2, size = 25)
+#'   
+#'   # stratify the data set based on a model for prognosis
+#'   pilot_data <- make_sample_data(n = 30)
+#'   prognostic_model <- glm(outcome ~ X2, pilot_data, family = "binomial")
+#'   a.strat_model <- auto_stratify(dat, "treat", prognostic_model,
+#'                                  outcome = "outcome", size = 25)
+#'                                  
+#'   # stratify the data set based on a vector of prognostic scores
+#'   prognostic_scores <- predict(prognostic_model, newdata = dat,
+#'                                type = "response")
+#'   a.strat_scores <- auto_stratify(dat, "treat", prognostic_scores,
+#'                                   outcome = "outcome", size = 25)
+#'                                   
+#'   # diagnostic plots
+#'   plot(a.strat_formula)
+#'   plot(a.strat_formula, type = "FM", propensity = treat ~ X1, stratum = 1)
+#'   plot(a.strat_formula, type = "hist", propensity = treat ~ X1, stratum = 1)
+#'   plot(a.strat_formula, type = "residual")
 auto_stratify <- function(data, treat, prognosis,
                           outcome = NULL, size = 2500,
                           pilot_fraction = 0.1, pilot_sample = NULL) {
@@ -183,7 +210,7 @@ build_prognostic_scores <- function(data, treat, prognosis,
                   Reduce(paste, deparse(prognosis))))
     prognostic_model <- tryCatch(glm(prognosis, data = pilot_set, family = "binomial"), 
                            error = function(e) {
-                             message("Encountered an error while fitting the prognostic model.")
+                             message("Error while fitting the prognostic model.")
                              message("For troubleshooting help, run help(\"auto_stratify\")")
                              stop(e)
                            }, 
@@ -274,9 +301,13 @@ split_pilot_set <- function(data, treat, pilot_fraction, pilot_sample){
 estimate_scores <- function(prognostic_model, analysis_set){
   tryCatch(predict(prognostic_model, analysis_set, type = "response"),
            error = function(e) {
-             message("Encountered an error while estimating prognostic scores from the prognostic model.")
+             message("Error while estimating prognostic scores from the prognostic model.")
              message("For troubleshooting help, run help(\"auto_stratify\")")
-             stop(e)
+             stop(e)},
+           warning = function(w) {
+             message("Warning while estimating prognostic scores from the prognostic model.")
+             message("For troubleshooting help, run help(\"auto_stratify\")")
+             stop(w)
            })
 }
 

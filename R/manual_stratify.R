@@ -23,6 +23,15 @@
 #' @return A \code{manual_strata} object
 #' @seealso \code{\link{auto_stratify}}, \code{\link{new_manual_strata}}
 #' @export
+#' @examples
+#'   # make sample data set
+#'   dat <- make_sample_data(n = 75)
+#'   
+#'   # stratify based on B1 and B2
+#'   m.strat <- manual_stratify(dat, treat ~ B1 + B2)
+#'   
+#'   # diagnostic plot
+#'   plot(m.strat)
 manual_stratify <- function(data, strata_formula, force = FALSE){
 
   check_inputs_manual_stratify(data, strata_formula, force)

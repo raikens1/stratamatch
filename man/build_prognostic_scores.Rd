@@ -20,14 +20,14 @@ the rows of \code{data}. \item a \code{formula} for fitting a prognostic
 model \item an already-fit prognostic score model}}
 
 \item{outcome}{string giving the name of column with outcome information.
-Required if prognostic_scores is specified.  Otherwise it will be inferred from
-prog_formula}
+Required if prognostic_scores is specified.  Otherwise it will be inferred
+from prog_formula}
 
-\item{pilot_fraction}{numeric between 0 and 1 giving the proportion of controls to
-be allotted for building the prognostic score (default = 0.1)}
+\item{pilot_fraction}{numeric between 0 and 1 giving the proportion of
+controls to be allotted for building the prognostic score (default = 0.1)}
 
-\item{pilot_sample}{a data.frame of held aside samples for building prognostic
-score model.}
+\item{pilot_sample}{a data.frame of held aside samples for building
+prognostic score model.}
 }
 \value{
 a list of: analysis set, prognostic scores, pilot set, prognostic

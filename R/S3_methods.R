@@ -67,14 +67,15 @@ print.auto_strata <- function(x, ...) {
                    dim(x$analysis_set)[1], "X",
                    dim(x$analysis_set)[2]))
 
-  if (!is.null(x$prognostic_model)) {
+  if (!is.null(x$pilot_set)) {
     writeLines(paste("\nPilot set dimensions:",
                      dim(x$pilot_set)[1], "X",
                      dim(x$pilot_set)[2]))
-
+  }
+  if (!is.null(x$prognostic_model)){
     writeLines("\nPrognostic Score Formula:")
     print(x$prognostic_model$formula)
-
+    
   } else {
     writeLines("\nPrognostic Scores prespecified.")
   }

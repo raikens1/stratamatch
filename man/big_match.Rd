@@ -22,3 +22,14 @@ a named factor with matching assignments
 \description{
 Match within strata in series using optmatch.  Probably needs to be renamed.
 }
+\examples{
+  # make a sample data set
+  set.seed(1)
+  dat <- make_sample_data (n = 75)
+  
+  # stratify with auto_stratify
+  a.strat <- auto_stratify(dat, "treat", outcome ~ X2, size = 25)
+  
+  # 1:1 match based on propensity formula: treat ~ X1 + X2
+  big_match(a.strat, propensity = treat ~ X1 + X2, k = 1)
+}

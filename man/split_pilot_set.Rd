@@ -12,11 +12,11 @@ split_pilot_set(data, treat, pilot_fraction, pilot_sample)
 \item{treat}{string giving the name of column designating treatment
 assignment}
 
-\item{pilot_fraction}{numeric between 0 and 1 giving the proportion of controls to
-be allotted for building the prognostic score (default = 0.1)}
+\item{pilot_fraction}{numeric between 0 and 1 giving the proportion of
+controls to be allotted for building the prognostic score (default = 0.1)}
 
-\item{pilot_sample}{a data.frame of held aside samples for building prognostic
-score model.}
+\item{pilot_sample}{a data.frame of held aside samples for building
+prognostic score model.}
 }
 \value{
 a list with analaysis_set and pilot_set

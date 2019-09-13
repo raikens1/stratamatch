@@ -12,8 +12,8 @@ check_prog_formula(prog_formula, data, outcome, treat)
 \item{data}{\code{data.frame} with observations as rows, features as columns}
 
 \item{outcome}{string giving the name of column with outcome information.
-Required if prognostic_scores is specified.  Otherwise it will be inferred from
-prog_formula}
+Required if prognostic_scores is specified.  Otherwise it will be inferred
+from prog_formula}
 
 \item{treat}{string giving the name of column designating treatment
 assignment}
