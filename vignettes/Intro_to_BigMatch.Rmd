@@ -170,7 +170,7 @@ Plots are an important way that we can check how our statification went.  There 
 ```{r}
 # size-ratio plot for manually stratified data
 plot(m.strat)
-# plot(m.strat, type = "scatter") will give the same output
+# plot(m.strat, type = "SR") will give the same output
 # plot(m.strat, label = TRUE) will allow the user to click points to label them
 ```
 

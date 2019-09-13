@@ -115,7 +115,7 @@ print.manual_strata <- function(x, ...) {
 #'
 #' Generates diagnostic plots for the product of a stratification by
 #' \code{\link{auto_stratify}} or \code{\link{manual_stratify}}.  There are
-#' three plot types: \enumerate{ \item \code{"scatter"} (default) - produces a
+#' three plot types: \enumerate{ \item \code{"SR"} (default) - produces a
 #' scatter plot of strata by size and treat:control ratio \item \code{"hist"} -
 #' produces a histogram of propensity scores within a stratum \item \code{"FM"}
 #' - produces a Fisher-Mill plot of individuals within a stratum  (not supported
@@ -125,9 +125,9 @@ print.manual_strata <- function(x, ...) {
 #'
 #' @param x a \code{strata} object returned by \code{\link{auto_stratify}} or
 #'   \code{\link{manual_stratify}}
-#' @param type string giving the plot type (default = \code{"scatter"}).  Other
+#' @param type string giving the plot type (default = \code{"SR"}).  Other
 #'   options are \code{"hist"}, \code{"FM"} and \code{"residual"}
-#' @param label ignored unless \code{type = "scatter"}. If \code{TRUE}, a
+#' @param label ignored unless \code{type = "SR"}. If \code{TRUE}, a
 #'   clickable plot is produced. The user may click on any number of strata and
 #'   press "finish" to have those strata labeled.  Note: uses \code{\link{identify}},
 #'   which may not be supported on some devices
@@ -141,9 +141,9 @@ print.manual_strata <- function(x, ...) {
 #' @seealso Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
 #'   Section 3.2 for an explaination of Fisher-Mill plots
 #' @export
-plot.strata <- function(x, type = "scatter", label = FALSE,
+plot.strata <- function(x, type = "SR", label = FALSE,
                         propensity, stratum, ...){
-  if (type == "scatter") make_scatter_plot(x, label)
+  if (type == "SR") make_SR_plot(x, label)
   else if (type == "hist") make_hist_plot(x, propensity, stratum)
   else if (type == "FM") make_fm_plot(x, propensity, stratum)
   else if (type == "residual") make_resid_plot(x)
@@ -152,13 +152,13 @@ plot.strata <- function(x, type = "scatter", label = FALSE,
   }
 }
 
-#' Make scatter plot
+#' Make Size-Ratio plot
 #'
 #' Not meant to be called externally.  Helper plot function for \code{strata}.
 #' Produces a scatter plot of strata by size and control proportion.
 #'
 #' @inheritParams plot.strata
-make_scatter_plot <- function(x, label) {
+make_SR_plot <- function(x, label) {
   issue_table <- x$issue_table
 
   # set parameters
