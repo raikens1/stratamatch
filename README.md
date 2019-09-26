@@ -18,18 +18,18 @@ install.packages("devtools")
 devtools::install_github("raikens1/BigMatch")
 ```
 
-### Quick Start Guide
+### Vignettes
 
 BigMatch includes a vignette on its basic usage.  To make sure that this is built when you install, run the following instead:
 
-```
+```r
 install.packages("devtools")
 devtools::install_github("raikens1/BigMatch", build_vignettes = T)
 ```
 
 Then, to access the vignette, run:
 
-```
+```r
 browseVignettes("BigMatch")
 ```
 
