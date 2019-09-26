@@ -18,6 +18,8 @@ install.packages("devtools")
 devtools::install_github("raikens1/BigMatch")
 ```
 
+### Quick Start Guide
+
 BigMatch includes a vignette on its basic usage.  To make sure that this is built when you install, run the following instead:
 
 ```
