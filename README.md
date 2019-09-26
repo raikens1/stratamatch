@@ -4,6 +4,7 @@
 status](https://www.r-pkg.org/badges/version/BigMatch)](https://cran.r-project.org/package=BigMatch)
 <!-- badges: end -->
 **Creator:** Rachael Caelie "Rocky" Aikens
+
 **Authors:** Rachael C. Aikens, Joseph Rigdon, Justin Lee, Jonathan H. Chen, Michael Baiocchi
 
 ## Installation
