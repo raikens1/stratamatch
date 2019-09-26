@@ -7,6 +7,12 @@ Author: Rachael C. Aikens, Michael Baiocchi
 Authors@R: c(
            person("Rachael C.", "Aikens", email = "rockyaikens@gmail.com",
                   role = c("aut", "cre")),
+           person("Joseph", "Rigdon",
+                  role = c("aut")), 
+           person("Justin", "Lee",
+                  role = c("aut")),
+           person("Jonathan", "Chen",
+                  role = c("aut")),
            person("Michael", "Baiocchi", email = "baiocchi@stanford.edu",
                   role = c("aut"))
            )
