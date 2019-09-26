@@ -18,6 +18,19 @@ install.packages("devtools")
 devtools::install_github("raikens1/BigMatch")
 ```
 
+BigMatch includes a vignette on its basic usage.  To make sure that this is built when you install, run the following instead:
+
+```
+install.packages("devtools")
+devtools::install_github("raikens1/BigMatch", build_vignettes = T)
+```
+
+Then, to access the vignette, run:
+
+```
+browseVignettes("BigMatch")
+```
+
 ## Objective
 **Goal:** The purpose of BigMatch is to provide user-friendly software and tutorials in R to support scientists to perform matching for "big data" observational studies. 
 
