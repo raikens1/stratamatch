@@ -17,6 +17,7 @@ Authors@R: c(
                   role = c("aut"))
            )
 Maintainer: Rachael C. Aikens <rockyaikens@gmail.com>
+BugReports: https://github.com/raikens1/BigMatch/issues
 Description: This package employs a "Pilot Matching" design to automatically 
     stratify and match large datasets.  The `manual_stratify` function allows
     users to manually stratify a dataset based on categorical variables of 
