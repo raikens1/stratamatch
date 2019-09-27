@@ -58,7 +58,7 @@ is.manual_strata <- function(object) {
 #' @param ... other arguments
 #' @export
 print.auto_strata <- function(x, ...) {
-  writeLines("auto_strata object from package big_match.\n")
+  writeLines("auto_strata object from package stratamatch.\n")
 
   writeLines("Function call:")
   print(x$call)
@@ -93,7 +93,7 @@ print.auto_strata <- function(x, ...) {
 #' @param ... other arguments
 #' @export
 print.manual_strata <- function(x, ...) {
-  writeLines("manual_strata object from package big_match.\n")
+  writeLines("manual_strata object from package stratamatch.\n")
 
   writeLines("Function call:")
   print(x$call)

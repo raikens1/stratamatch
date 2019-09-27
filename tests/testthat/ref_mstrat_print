@@ -1,4 +1,4 @@
-manual_strata object from package big_match.
+manual_strata object from package stratamatch.
 
 Function call:
 manual_stratify(data = test_dat, strata_formula = treated ~ cat)

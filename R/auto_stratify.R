@@ -10,7 +10,7 @@
 #'
 #' Automatically creates strata for matching based on a prognostic score formula
 #' or a vector of prognostic scores already estimated by the user. Creates a
-#' \code{auto_strata} object, which can be passed to \code{\link{big_match}} for
+#' \code{auto_strata} object, which can be passed to \code{\link{strata_match}} for
 #' stratified matching or unpacked by the user to be matched by some other
 #' means.
 #'
@@ -256,13 +256,13 @@ split_pilot_set <- function(data, treat, pilot_fraction, pilot_sample){
     # otherwise, construct a pilot set
     message("Constructing a pilot set via subsampling.")
     # Adds an id column and removes it
-    data$BigMatch_id <- 1:nrow(data)
+    data$stratamatch_id <- 1:nrow(data)
     pilot_set <- data[ (data[[treat]] == 0),] %>%
       dplyr::sample_frac(pilot_fraction, replace = FALSE)
     analysis_set <- dplyr::anti_join(data, pilot_set,
-                                     by = "BigMatch_id") %>%
-      dplyr::select(-.data$BigMatch_id)
-    pilot_set$BigMatch_id <- NULL
+                                     by = "stratamatch_id") %>%
+      dplyr::select(-.data$stratamatch_id)
+    pilot_set$stratamatch_id <- NULL
   }
   return(list(analysis_set = analysis_set, pilot_set = pilot_set))
 }

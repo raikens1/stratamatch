@@ -50,14 +50,14 @@ make_distance_matrix <- function(dat, propensity_model, treat){
 ### Matching Methods
 #----------------------------------------------------------
 
-#' Big Match Dopar
+#' Strata Match Dopar
 #'
 #' Still in development. Match within strata in parallel by calling match_one
 #' with dopar. Doesn't work right now.
 #'
-#' @inheritParams big_match
+#' @inheritParams strata_match
 #' @return a data.frame with pair assignments
-big_match_dopar <- function(strat, propensity_formula = NULL, k = 1) {
+strata_match_dopar <- function(strat, propensity_formula = NULL, k = 1) {
   
   check_inputs_matcher(strat, propensity_formula, k)
   
@@ -85,15 +85,15 @@ big_match_dopar <- function(strat, propensity_formula = NULL, k = 1) {
 }
 
 
-#' Big Match Multidplyr
+#' Strata Match Multidplyr
 #'
 #' Still in development. Match within strata in parallel by calling match_one
 #' with multidplyr.  Currently buggy, but returns a result.
 #'
-#' @inheritParams big_match
+#' @inheritParams strata_match
 #' 
 #' @return a data.frame like dat with pair assignments
-big_match_multidplyr <- function(strat, propensity_formula = NULL, k = 1) {
+strata_match_multidplyr <- function(strat, propensity_formula = NULL, k = 1) {
   
   check_inputs_matcher(strat, propensity_formula, k)
   

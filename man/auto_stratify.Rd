@@ -37,7 +37,7 @@ Returns a \code{strata} object
 \description{
 Automatically creates strata for matching based on a prognostic score formula
 or a vector of prognostic scores already estimated by the user. Creates a
-\code{auto_strata} object, which can be passed to \code{\link{big_match}} for
+\code{auto_strata} object, which can be passed to \code{\link{strata_match}} for
 stratified matching or unpacked by the user to be matched by some other
 means.
 }

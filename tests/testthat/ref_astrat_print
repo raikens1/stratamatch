@@ -1,4 +1,4 @@
-auto_strata object from package big_match.
+auto_strata object from package stratamatch.
 
 Function call:
 auto_stratify(data = test_dat, treat = "treated", prognosis = test_dat$cont, 

@@ -40,7 +40,7 @@ a basic \code{auto_strata} object
 Basic constructor for an \code{auto_strata} object. These objects hold all
 the information associated with a dataset that has been stratified via
 \code{\link{auto_stratify}}.  This object may be passed to
-\code{\link{big_match}} to be matched or it may be unpacked by the user to be
+\code{\link{strata_match}} to be matched or it may be unpacked by the user to be
 matched by other means.
 }
 \seealso{

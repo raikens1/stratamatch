@@ -23,7 +23,7 @@ A \code{manual_strata} object
 \description{
 Stratifies a data set based on a set of blocking covariates specified by the
 user. Creates a \code{manual_strata} object, which can be passed to
-\code{\link{big_match}} for stratified matching or unpacked by the user to be
+\code{\link{strata_match}} for stratified matching or unpacked by the user to be
 matched by some other means.
 }
 \examples{

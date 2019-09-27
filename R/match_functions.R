@@ -3,7 +3,7 @@
 # Matching methods to be called on strata objects, and their helpers
 #----------------------------------------------------------
 
-#' Big Match
+#' Strata Match
 #'
 #' Match within strata in series using optmatch.
 #'
@@ -24,8 +24,8 @@
 #'   a.strat <- auto_stratify(dat, "treat", outcome ~ X2, size = 25)
 #'   
 #'   # 1:1 match based on propensity formula: treat ~ X1 + X2
-#'   big_match(a.strat, propensity = treat ~ X1 + X2, k = 1)
-big_match <- function(object, propensity = NULL, k = 1){
+#'   strata_match(a.strat, propensity = treat ~ X1 + X2, k = 1)
+strata_match <- function(object, propensity = NULL, k = 1){
 
   check_inputs_matcher(object, propensity, k)
 
@@ -57,7 +57,7 @@ big_match <- function(object, propensity = NULL, k = 1){
                              controls = k))
 }
 
-#' Big Match - Not Stratified
+#' Match without Stratification
 #'
 #' Not meant to be called externally, but exported currently for convenience.
 #' This function is for performance testing purposes, so that we can compare the
@@ -70,7 +70,7 @@ big_match <- function(object, propensity = NULL, k = 1){
 #'   treated individual
 #' @return a named factor with matching assignments
 #' @export
-big_match_nstrat <- function(object, propensity = NULL, k = 1){
+strata_match_nstrat <- function(object, propensity = NULL, k = 1){
 
   check_inputs_matcher(object, propensity, k)
 
@@ -94,7 +94,7 @@ big_match_nstrat <- function(object, propensity = NULL, k = 1){
 
 #' Check inputs to any matching function
 #'
-#' @inheritParams big_match
+#' @inheritParams strata_match
 #'
 #' @return nothing
 check_inputs_matcher <- function(object, propensity, k){
