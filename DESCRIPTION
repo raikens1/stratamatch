@@ -1,4 +1,4 @@
-Package: BigMatch
+Package: stratamatch
 Type: Package
 Date: 2019-08-16
 Title: Stratification and Matching for Large Observational Data Sets
@@ -7,17 +7,24 @@ Author: Rachael C. Aikens, Michael Baiocchi
 Authors@R: c(
            person("Rachael C.", "Aikens", email = "rockyaikens@gmail.com",
                   role = c("aut", "cre")),
+           person("Joseph", "Rigdon",
+                  role = c("aut")), 
+           person("Justin", "Lee",
+                  role = c("aut")),
+           person("Jonathan", "Chen",
+                  role = c("aut")),
            person("Michael", "Baiocchi", email = "baiocchi@stanford.edu",
                   role = c("aut"))
            )
 Maintainer: Rachael C. Aikens <rockyaikens@gmail.com>
+BugReports: https://github.com/raikens1/stratamatch/issues
 Description: This package employs a "Pilot Matching" design to automatically 
     stratify and match large datasets.  The `manual_stratify` function allows
     users to manually stratify a dataset based on categorical variables of 
     interest, while the `auto_stratify` function does automatically by
     allocating a held-aside "pilot" data set, fitting a prognostic score  
     (see Hansen (2008)) on the pilot set, and stratifying the data set based
-    on prognostic score quantiles.  The `big_match` function then does optimal
+    on prognostic score quantiles.  The `strata_match` function then does optimal
     matching of the data set in parallel within strata.
 License: GPL-3
 Encoding: UTF-8
@@ -27,6 +34,7 @@ Imports:
   Hmisc (>= 4.2-0),
   magrittr (>= 1.5),
   optmatch (>= 0.9-11),
+  rlang (>= 0.4.0),
   survival(>= 2.44.1.1)
 Depends: 
   R (>= 3.4.0),
@@ -34,6 +42,6 @@ Suggests:
     knitr,
     rmarkdown,
     testthat (>= 2.1.0)
-URL: https://github.com/raikens1/BigMatch
+URL: https://github.com/raikens1/stratamatch
 RoxygenNote: 6.1.1
 VignetteBuilder: knitr

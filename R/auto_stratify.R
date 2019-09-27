@@ -10,7 +10,7 @@
 #'
 #' Automatically creates strata for matching based on a prognostic score formula
 #' or a vector of prognostic scores already estimated by the user. Creates a
-#' \code{auto_strata} object, which can be passed to \code{\link{big_match}} for
+#' \code{auto_strata} object, which can be passed to \code{\link{strata_match}} for
 #' stratified matching or unpacked by the user to be matched by some other
 #' means.
 #'
@@ -78,48 +78,75 @@
 #'   Other errors or warnings can occur if the pilot set is too small and the
 #'   prognostic formula is too complicated.  Always make sure that the number of
 #'   observations in the pilot set is large enough that you can confidently fit
-#'   a prognostic model with the number of covariates you want. 
+#'   a prognostic model with the number of covariates you want.
 #'
 #' @param data \code{data.frame} with observations as rows, features as columns
 #' @param treat string giving the name of column designating treatment
 #'   assignment
 #' @param outcome string giving the name of column with outcome information.
-#'   Required if prog_scores is specified.  Otherwise it will be inferred from
-#'   prog_formula
+#'   Required if prognostic_scores is specified.  Otherwise it will be inferred
+#'   from prog_formula
 #' @param prognosis information on how to build prognostic scores.  Three
 #'   different input types are allowed: \enumerate{ \item vector of prognostic
 #'   scores for all individuals in the data set. Should be in the same order as
 #'   the rows of \code{data}. \item a \code{formula} for fitting a prognostic
 #'   model \item an already-fit prognostic score model}
 #' @param size numeric, desired size of strata (default = 2500)
-#' @param pilot_fraction numeric between 0 and 1 giving the proportion of controls to
-#'   be allotted for building the prognostic score (default = 0.1)
-#' @param pilot_sample a data.frame of held aside samples for building prognostic
-#'   score model.
+#' @param pilot_fraction numeric between 0 and 1 giving the proportion of
+#'   controls to be allotted for building the prognostic score (default = 0.1)
+#' @param pilot_sample a data.frame of held aside samples for building
+#'   prognostic score model.
 #' @return Returns a \code{strata} object
 #' @seealso \code{\link{manual_stratify}}, \code{\link{new_auto_strata}}
 #' @export
+#' @examples
+#'   # make sample data set
+#'   set.seed(111)
+#'   dat <- make_sample_data(n = 75)
+#'   
+#'   # construct a pilot set, build a prognostic score for `outcome` based on X2
+#'   # and stratify the data set based on the scores into sets of about 25
+#'   # observations
+#'   a.strat_formula <- auto_stratify(dat, "treat", outcome ~ X2, size = 25)
+#'   
+#'   # stratify the data set based on a model for prognosis
+#'   pilot_data <- make_sample_data(n = 30)
+#'   prognostic_model <- glm(outcome ~ X2, pilot_data, family = "binomial")
+#'   a.strat_model <- auto_stratify(dat, "treat", prognostic_model,
+#'                                  outcome = "outcome", size = 25)
+#'                                  
+#'   # stratify the data set based on a vector of prognostic scores
+#'   prognostic_scores <- predict(prognostic_model, newdata = dat,
+#'                                type = "response")
+#'   a.strat_scores <- auto_stratify(dat, "treat", prognostic_scores,
+#'                                   outcome = "outcome", size = 25)
+#'                                   
+#'   # diagnostic plots
+#'   plot(a.strat_formula)
+#'   plot(a.strat_formula, type = "FM", propensity = treat ~ X1, stratum = 1)
+#'   plot(a.strat_formula, type = "hist", propensity = treat ~ X1, stratum = 1)
+#'   plot(a.strat_formula, type = "residual")
 auto_stratify <- function(data, treat, prognosis,
                           outcome = NULL, size = 2500,
                           pilot_fraction = 0.1, pilot_sample = NULL) {
 
   check_inputs_auto_stratify(data, treat, outcome)
 
-  build <- build_prog_scores(data, treat, prognosis,
+  build <- build_prognostic_scores(data, treat, prognosis,
                              outcome, pilot_fraction, pilot_sample)
 
   analysis_set <- build$analysis_set
-  prog_scores <- build$prog_scores
+  prognostic_scores <- build$prognostic_scores
   pilot_set <- build$pilot_set
-  prog_model <- build$prog_model
+  prognostic_model <- build$prognostic_model
   outcome <- build$outcome
 
   # Create strata from prognostic score quantiles
   n_bins <- ceiling(dim(analysis_set)[1] / size)
-  qcut <- Hmisc::cut2(prog_scores, g = n_bins)
+  qcut <- Hmisc::cut2(prognostic_scores, g = n_bins)
 
   # make strata table
-  strata_table <- make_strata_table(qcut)
+  strata_table <- make_autostrata_table(qcut)
   analysis_set$stratum <- as.integer(qcut)
 
   # package and return result
@@ -129,8 +156,8 @@ auto_stratify <- function(data, treat, prognosis,
                             issue_table = make_issue_table(analysis_set, treat),
                             strata_table = strata_table,
                             outcome = outcome,
-                            prog_scores = prog_scores,
-                            prog_model = prog_model,
+                            prognostic_scores = prognostic_scores,
+                            prognostic_model = prognostic_model,
                             pilot_set = pilot_set)
 
   return(result)
@@ -154,7 +181,7 @@ auto_stratify <- function(data, treat, prognosis,
 #'
 #' @return a list of: analysis set, prognostic scores, pilot set, prognostic
 #'   model, and outcome string
-build_prog_scores <- function(data, treat, prognosis,
+build_prognostic_scores <- function(data, treat, prognosis,
                               outcome, pilot_fraction, pilot_sample){
   # prognosis is a vector of prognostic scores
   if (is.numeric(prognosis)){
@@ -162,44 +189,29 @@ build_prog_scores <- function(data, treat, prognosis,
     if (is.null(outcome)) {
       stop("If specifying prognostic scores, outcome must be specified")
     }
-    prog_scores <- prognosis
+    prognostic_scores <- prognosis
     analysis_set <- data
     pilot_set <- NULL
-    prog_model <- NULL
+    prognostic_model <- NULL
   }
 
   # prognosis is a formula
   else if (inherits(prognosis, "formula")){
-    check_prog_formula(prognosis, data, outcome, treat)
+    check_prognostic_formula(prognosis, data, outcome, treat)
     split <- split_pilot_set(data, treat, pilot_fraction, pilot_sample)
-    if (!is.null(pilot_sample) &
-        !all(is.element(all.vars(prognosis), colnames(pilot_sample)))) {
-      stop("All variables in prognostic score formula must be in pilot_sample")
-    }
     pilot_set <- split$pilot_set
     analysis_set <- split$analysis_set
     outcome <- all.vars(prognosis)[1]
-    message(paste("Fitting prognostic model:",
-                  Reduce(paste, deparse(prognosis))))
-    prog_model <- tryCatch(glm(prognosis, data = pilot_set, family = "binomial"), 
-                           error = function(e) {
-                             message("Encountered an error while fitting the prognostic model.")
-                             message("For troubleshooting help, run help(\"auto_stratify\")")
-                             stop(e)
-                           }, 
-                           warning = function(w) {
-                             message("Warning while fitting the prognostic model.")
-                             message("For troubleshooting help, run help(\"auto_stratify\")")
-                             stop(w)
-                           })
-    prog_scores <- make_prog_scores(prog_model, analysis_set)
+    
+    prognostic_model <- fit_prognostic_model(pilot_set, prognosis, outcome)
+    prognostic_scores <- estimate_scores(prognostic_model, analysis_set)
   }
 
   # prognosis is a model, or it is unrecognized
   else { 
     # try to predict.  If successful, prognosis was a model.
     # otherwise, throw an error: prognosis type not recognized
-    prog_scores <- tryCatch(predict(prognosis,
+    prognostic_scores <- tryCatch(predict(prognosis,
                                     newdata = data,
                                     type = "response"),
                             error = function(c) {
@@ -210,11 +222,11 @@ build_prog_scores <- function(data, treat, prognosis,
     }
     analysis_set <- data
     pilot_set <- NULL
-    prog_model <- prognosis
+    prognostic_model <- prognosis
   }
 
-  return(list(analysis_set = analysis_set, prog_scores = prog_scores,
-              pilot_set = pilot_set, prog_model = prog_model,
+  return(list(analysis_set = analysis_set, prognostic_scores = prognostic_scores,
+              pilot_set = pilot_set, prognostic_model = prognostic_model,
               outcome = outcome))
 }
 
@@ -243,19 +255,80 @@ split_pilot_set <- function(data, treat, pilot_fraction, pilot_sample){
   } else {
     # otherwise, construct a pilot set
     message("Constructing a pilot set via subsampling.")
-    names(data)[names(data) == treat] <- "treat"
     # Adds an id column and removes it
-    data$BigMatch_id <- 1:nrow(data)
-    pilot_set <- data %>% dplyr::filter(treat == 0) %>%
+    data$stratamatch_id <- 1:nrow(data)
+    pilot_set <- data[ (data[[treat]] == 0),] %>%
       dplyr::sample_frac(pilot_fraction, replace = FALSE)
     analysis_set <- dplyr::anti_join(data, pilot_set,
-                                     by = "BigMatch_id") %>%
-      dplyr::select(-BigMatch_id)
-    pilot_set$BigMatch_id <- NULL
-    names(pilot_set)[names(pilot_set) == "treat"] <- treat
-    names(analysis_set)[names(analysis_set) == "treat"] <- treat
+                                     by = "stratamatch_id") %>%
+      dplyr::select(-.data$stratamatch_id)
+    pilot_set$stratamatch_id <- NULL
   }
   return(list(analysis_set = analysis_set, pilot_set = pilot_set))
+}
+
+
+#' Fit Prognostic Model
+#'
+#' Given a pilot set and a prognostic formula, return the fitted formula.  If
+#' the outcome is binary, fit a logistic regression.  Otherwise, fit a linear
+#' model.
+#'
+#' @param dat data.frame on which model should be fit
+#' @param prognostic_formula formula for prognostic model
+#' @param outcome string giving name of column of data where outcomes are
+#'   recorded
+#'
+#' @return a glm or lm object fit from \code{prognostic_formula} on \code{data}
+fit_prognostic_model <- function(dat, prognostic_formula, outcome){
+  
+  if (!is.null(dat) &
+      !all(is.element(all.vars(prognostic_formula), colnames(dat)))) {
+    stop("All variables in prognostic score formula must be in pilot set")
+  }
+  
+  # if outcome is binary or logical, run logistic regression
+  if (is_binary(na.omit(dat[[outcome]]))) {
+    message(paste("Fitting prognostic model via logistic regression:",
+                  Reduce(paste, deparse(prognostic_formula))))
+    prognostic_model <- tryCatch(glm(prognostic_formula,
+                                     data = dat,
+                                     family = "binomial"), 
+                                 error = function(e) {
+                                   message("Error while fitting the prognostic model.")
+                                   message("For troubleshooting help, run help(\"auto_stratify\")")
+                                   stop(e)
+                                 }, 
+                                 warning = function(w) {
+                                   message("Warning while fitting the prognostic model.")
+                                   message("For troubleshooting help, run help(\"auto_stratify\")")
+                                   stop(w)
+                                 }) 
+  }
+  
+  # if outcome is numeric, run linear regression
+  else if (is.numeric(na.omit(dat[[outcome]]))) { 
+    if (length(unique(na.omit(dat[[outcome]]))) == 2){
+      warning("outcome column has only two values. Is it binary?")
+      message("Convert to 01 or logical format to run logistic regression instead")
+    }
+    message(paste("Fitting prognostic model via linear regression:",
+                  Reduce(paste, deparse(prognostic_formula))))
+    prognostic_model <- tryCatch(lm(prognostic_formula, data = dat), 
+                                 error = function(e) {
+                                   message("Error while fitting the prognostic model.")
+                                   message("For troubleshooting help, run help(\"auto_stratify\")")
+                                   stop(e)
+                                 }, 
+                                 warning = function(w) {
+                                   message("Warning while fitting the prognostic model.")
+                                   message("For troubleshooting help, run help(\"auto_stratify\")")
+                                   stop(w)
+                                 }) 
+  }
+  else stop("Outcome was not a recognized type. Must be binary, logical, or numeric")
+  
+  return(prognostic_model)
 }
 
 #' Make Prog Scores
@@ -267,16 +340,20 @@ split_pilot_set <- function(data, treat, pilot_fraction, pilot_sample){
 #' (rather than the linear predictor), so the score is the expected value of the
 #' outcome under the control assignement based on the observed covariates.
 #'
-#' @param prog_model Model of prognosis
+#' @param prognostic_model Model of prognosis
 #' @param analysis_set data set on which prognostic scores should be estimated
 #'
 #' @return vector of prognostic scores
-make_prog_scores <- function(prog_model, analysis_set){
-  tryCatch(predict(prog_model, analysis_set, type = "response"),
+estimate_scores <- function(prognostic_model, analysis_set){
+  tryCatch(predict(prognostic_model, analysis_set, type = "response"),
            error = function(e) {
-             message("Encountered an error while estimating prognostic scores from the prognostic model.")
+             message("Error while estimating prognostic scores from the prognostic model.")
              message("For troubleshooting help, run help(\"auto_stratify\")")
-             stop(e)
+             stop(e)},
+           warning = function(w) {
+             message("Warning while estimating prognostic scores from the prognostic model.")
+             message("For troubleshooting help, run help(\"auto_stratify\")")
+             stop(w)
            })
 }
 
@@ -285,13 +362,13 @@ make_prog_scores <- function(prog_model, analysis_set){
 #' @param qcut the prognostic score quantile cuts
 #'
 #' @return data.frame of strata definitions
-make_strata_table <- function(qcut){
+make_autostrata_table <- function(qcut){
   data.frame(qcut) %>%
     dplyr::mutate(stratum = as.integer(qcut), quantile_bin = qcut) %>%
-    dplyr::group_by(quantile_bin) %>%
-    dplyr::summarise(size = dplyr::n(), stratum = dplyr::first(stratum)) %>%
-    dplyr::arrange(stratum) %>%
-    dplyr::select(stratum, quantile_bin, size)
+    dplyr::group_by(.data$quantile_bin) %>%
+    dplyr::summarise(size = dplyr::n(), stratum = dplyr::first(.data$stratum)) %>%
+    dplyr::arrange(.data$stratum) %>%
+    dplyr::select(.data$stratum, .data$quantile_bin, .data$size)
 }
 
 #----------------------------------------------------------
@@ -316,6 +393,9 @@ check_inputs_auto_stratify <- function(data, treat, outcome){
   if (!is.element(treat, colnames(data))){
     stop("treat must be the name of a column in data")
   }
+  if (!is_binary(data[[treat]])) {
+    stop("treatment column must be binary or logical")
+  }
   if (!is.null(outcome)){
     check_outcome(outcome, data, treat)
   }
@@ -326,11 +406,11 @@ check_inputs_auto_stratify <- function(data, treat, outcome){
 #' Checks that prognostic scores are numeric and same length as data
 #'
 #' @inheritParams auto_stratify
-#' @param prog_scores, a numeric vector
+#' @param prognostic_scores, a numeric vector
 #'
 #' @return nothing
-check_scores <- function(prog_scores, data){
-  if (length(prog_scores) != dim(data)[1]){
+check_scores <- function(prognostic_scores, data){
+  if (length(prognostic_scores) != dim(data)[1]){
     stop("prognostic scores must be the same length as the data")
   }
 }
@@ -357,7 +437,7 @@ check_outcome <- function(outcome, data, treat){
 #' @param prog_formula a formula for prognostic score
 #' 
 #' @return nothing
-check_prog_formula <- function(prog_formula, data, outcome, treat){
+check_prognostic_formula <- function(prog_formula, data, outcome, treat){
   if (!all(is.element(all.vars(prog_formula), colnames(data)))) {
     stop("not all variables in prognosis formula appear in data")
   }
@@ -388,8 +468,15 @@ check_pilot_set_options <- function(pilot_sample, pilot_fraction){
   }
 }
 
-# check_is_binary <- function(col, name) {
-#   if (is.logical(col)) return()
-#   if (all(is.element(na.omit(col), 0:1))) return()
-#   else {stop(paste(name, "is not binary or logical"))}
-# }
+#' Check if a vector is binary
+#' 
+#' return TRUE if the input is logical or if it contains only 0's and 1's
+#'
+#' @param col a column from a data frame
+#'
+#' @return logical
+is_binary <- function(col) {
+   if (is.logical(na.omit(col))) return(TRUE)
+   if (all(is.element(na.omit(col), 0:1))) return(TRUE)
+   else return(FALSE)
+}

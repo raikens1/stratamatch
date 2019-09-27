@@ -58,7 +58,7 @@ is.manual_strata <- function(object) {
 #' @param ... other arguments
 #' @export
 print.auto_strata <- function(x, ...) {
-  writeLines("auto_strata object from package big_match.\n")
+  writeLines("auto_strata object from package stratamatch.\n")
 
   writeLines("Function call:")
   print(x$call)
@@ -67,14 +67,15 @@ print.auto_strata <- function(x, ...) {
                    dim(x$analysis_set)[1], "X",
                    dim(x$analysis_set)[2]))
 
-  if (!is.null(x$prog_model)) {
+  if (!is.null(x$pilot_set)) {
     writeLines(paste("\nPilot set dimensions:",
                      dim(x$pilot_set)[1], "X",
                      dim(x$pilot_set)[2]))
-
+  }
+  if (!is.null(x$prognostic_model)){
     writeLines("\nPrognostic Score Formula:")
-    print(x$prog_model$formula)
-
+    print(x$prognostic_model$formula)
+    
   } else {
     writeLines("\nPrognostic Scores prespecified.")
   }
@@ -92,7 +93,7 @@ print.auto_strata <- function(x, ...) {
 #' @param ... other arguments
 #' @export
 print.manual_strata <- function(x, ...) {
-  writeLines("manual_strata object from package big_match.\n")
+  writeLines("manual_strata object from package stratamatch.\n")
 
   writeLines("Function call:")
   print(x$call)
@@ -114,7 +115,7 @@ print.manual_strata <- function(x, ...) {
 #'
 #' Generates diagnostic plots for the product of a stratification by
 #' \code{\link{auto_stratify}} or \code{\link{manual_stratify}}.  There are
-#' three plot types: \enumerate{ \item \code{"scatter"} (default) - produces a
+#' three plot types: \enumerate{ \item \code{"SR"} (default) - produces a
 #' scatter plot of strata by size and treat:control ratio \item \code{"hist"} -
 #' produces a histogram of propensity scores within a stratum \item \code{"FM"}
 #' - produces a Fisher-Mill plot of individuals within a stratum  (not supported
@@ -124,9 +125,9 @@ print.manual_strata <- function(x, ...) {
 #'
 #' @param x a \code{strata} object returned by \code{\link{auto_stratify}} or
 #'   \code{\link{manual_stratify}}
-#' @param type string giving the plot type (default = \code{"scatter"}).  Other
+#' @param type string giving the plot type (default = \code{"SR"}).  Other
 #'   options are \code{"hist"}, \code{"FM"} and \code{"residual"}
-#' @param label ignored unless \code{type = "scatter"}. If \code{TRUE}, a
+#' @param label ignored unless \code{type = "SR"}. If \code{TRUE}, a
 #'   clickable plot is produced. The user may click on any number of strata and
 #'   press "finish" to have those strata labeled.  Note: uses \code{\link{identify}},
 #'   which may not be supported on some devices
@@ -140,9 +141,9 @@ print.manual_strata <- function(x, ...) {
 #' @seealso Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
 #'   Section 3.2 for an explaination of Fisher-Mill plots
 #' @export
-plot.strata <- function(x, type = "scatter", label = FALSE,
+plot.strata <- function(x, type = "SR", label = FALSE,
                         propensity, stratum, ...){
-  if (type == "scatter") make_scatter_plot(x, label)
+  if (type == "SR") make_SR_plot(x, label)
   else if (type == "hist") make_hist_plot(x, propensity, stratum)
   else if (type == "FM") make_fm_plot(x, propensity, stratum)
   else if (type == "residual") make_resid_plot(x)
@@ -151,13 +152,13 @@ plot.strata <- function(x, type = "scatter", label = FALSE,
   }
 }
 
-#' Make scatter plot
+#' Make Size-Ratio plot
 #'
 #' Not meant to be called externally.  Helper plot function for \code{strata}.
 #' Produces a scatter plot of strata by size and control proportion.
 #'
 #' @inheritParams plot.strata
-make_scatter_plot <- function(x, label) {
+make_SR_plot <- function(x, label) {
   issue_table <- x$issue_table
 
   # set parameters
@@ -201,12 +202,10 @@ make_hist_plot <- function(x, propensity, s){
 
   plt_data <- a_set %>%
     dplyr::mutate(prop_score = prop_scores) %>%
-    dplyr::filter(stratum == s)
+    dplyr::filter(.data$stratum == s)
 
-  names(plt_data)[names(plt_data) == x$treat] <- "treat"
-
-  ht <- dplyr::filter(plt_data, treat == 1)$prop_score
-  hc <- dplyr::filter(plt_data, treat == 0)$prop_score
+  ht <- plt_data[ (plt_data[[x$treat]] == 1),]$prop_score
+  hc <- plt_data[ (plt_data[[x$treat]] == 0),]$prop_score
 
   # workaround to get plot area correct
   # make separate histograms, then use the info in the histogram objects
@@ -251,12 +250,10 @@ make_fm_plot <- function(x, propensity, s){
 
   plt_data <- a_set %>%
     dplyr::mutate(prop_score = get_prop_scores(propensity, a_set, x$treat),
-                  prog_score = x$prog_scores) %>%
-    dplyr::filter(stratum == s)
+                  prog_score = x$prognostic_scores) %>%
+    dplyr::filter(.data$stratum == s)
 
-  names(plt_data)[names(plt_data) == x$treat] <- "treat"
-
-  plt_data$color <- ifelse(plt_data$treat == 1, "red", "blue")
+  plt_data$color <- ifelse(plt_data[[x$treat]] == 1, "red", "blue")
   
   propscore_span = max(plt_data$prop_score) - min(plt_data$prop_score)
   progscore_span = max(plt_data$prog_score) - min(plt_data$prog_score)
@@ -282,10 +279,10 @@ make_resid_plot <- function(x){
   if (!is.auto_strata(x)){
     stop("Prognostic score residual plots are only valid for auto-stratified data.")
   } else {
-    if (is.null(x$prog_model)){
-      stop("Cannot make prognostic model residual plots since prog_scores were provided.")
+    if (is.null(x$prognostic_model)){
+      stop("Cannot make prognostic model residual plots since prognostic scores were provided.")
     } else{
-      return(plot(x$prog_model))
+      return(plot(x$prognostic_model))
     }
   }
 }
@@ -304,7 +301,6 @@ make_resid_plot <- function(x){
 #' @param treat, the name of the treatment assignment column
 #'
 #' @return vector of propensity scores
-#' @export
 get_prop_scores <- function(propensity, data, treat){
   # if it is a vector of propensity scores, check and return it
   if (is.numeric(propensity)){

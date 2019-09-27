@@ -10,11 +10,11 @@
 #'
 #' Stratifies a data set based on a set of blocking covariates specified by the
 #' user. Creates a \code{manual_strata} object, which can be passed to
-#' \code{\link{big_match}} for stratified matching or unpacked by the user to be
+#' \code{\link{strata_match}} for stratified matching or unpacked by the user to be
 #' matched by some other means.
 #'
 #' @param data data.frame with observations as rows, features as columns
-#' @param strat_formula the formula to be used for stratification.  (e.g. `treat
+#' @param strata_formula the formula to be used for stratification.  (e.g. `treat
 #'   ~ X1`) the variable on the left is taken to be the name of the treatment
 #'   assignment column, and the variables on the left are taken to be the
 #'   variables by which the data should be stratified
@@ -23,12 +23,21 @@
 #' @return A \code{manual_strata} object
 #' @seealso \code{\link{auto_stratify}}, \code{\link{new_manual_strata}}
 #' @export
-manual_stratify <- function(data, strat_formula, force = FALSE){
+#' @examples
+#'   # make sample data set
+#'   dat <- make_sample_data(n = 75)
+#'   
+#'   # stratify based on B1 and B2
+#'   m.strat <- manual_stratify(dat, treat ~ B1 + B2)
+#'   
+#'   # diagnostic plot
+#'   plot(m.strat)
+manual_stratify <- function(data, strata_formula, force = FALSE){
 
-  check_inputs_manual_stratify(data, strat_formula, force)
+  check_inputs_manual_stratify(data, strata_formula, force)
 
-  treat <- all.vars(strat_formula)[1]
-  covariates <- all.vars(strat_formula)[-1]
+  treat <- all.vars(strata_formula)[1]
+  covariates <- all.vars(strata_formula)[-1]
 
   # helper function to extract group labels from dplyr
   get_next_integer <- function(){
@@ -47,7 +56,7 @@ manual_stratify <- function(data, strat_formula, force = FALSE){
     dplyr::ungroup()
 
   strata_table <- grouped_table %>%
-    dplyr::summarize(stratum = dplyr::first(stratum),
+    dplyr::summarize(stratum = dplyr::first(.data$stratum),
                      size = dplyr::n())
 
   issue_table <- make_issue_table(analysis_set, treat)
@@ -111,20 +120,23 @@ warn_if_continuous <- function(column, name, force, n){
 #' @inheritParams manual_stratify
 #'
 #' @return nothing; produces errors and warnings if anything is wrong
-#' @export
-check_inputs_manual_stratify <- function(data, strat_formula, force){
+check_inputs_manual_stratify <- function(data, strata_formula, force){
   # check input types
   if (!is.data.frame(data)) stop("data must be a data.frame")
-  if (!inherits(strat_formula, "formula")) {
-    stop("strat_formula must be a formula")
+  if (!inherits(strata_formula, "formula")) {
+    stop("strata_formula must be a formula")
   }
   if (!is.logical(force)) stop("force must equal either TRUE or FALSE")
-  if (!all(is.element(all.vars(strat_formula), colnames(data)))) {
+  if (!all(is.element(all.vars(strata_formula), colnames(data)))) {
     stop("not all variables in stat_formula appear in data")
   }
 
-  covariates <- all.vars(strat_formula)[-1]
+  covariates <- all.vars(strata_formula)[-1]
   n <- dim(data)[1]
+  
+  if (!is_binary(data[[all.vars(strata_formula)[1]]])) {
+    stop("treatment column must be binary or logical")
+  }
 
   # Check that all covariates are discrete
   for (i in 1:length(covariates)){

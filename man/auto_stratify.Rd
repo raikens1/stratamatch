@@ -20,16 +20,16 @@ the rows of \code{data}. \item a \code{formula} for fitting a prognostic
 model \item an already-fit prognostic score model}}
 
 \item{outcome}{string giving the name of column with outcome information.
-Required if prog_scores is specified.  Otherwise it will be inferred from
-prog_formula}
+Required if prognostic_scores is specified.  Otherwise it will be inferred
+from prog_formula}
 
 \item{size}{numeric, desired size of strata (default = 2500)}
 
-\item{pilot_fraction}{numeric between 0 and 1 giving the proportion of controls to
-be allotted for building the prognostic score (default = 0.1)}
+\item{pilot_fraction}{numeric between 0 and 1 giving the proportion of
+controls to be allotted for building the prognostic score (default = 0.1)}
 
-\item{pilot_sample}{a data.frame of held aside samples for building prognostic
-score model.}
+\item{pilot_sample}{a data.frame of held aside samples for building
+prognostic score model.}
 }
 \value{
 Returns a \code{strata} object
@@ -37,7 +37,7 @@ Returns a \code{strata} object
 \description{
 Automatically creates strata for matching based on a prognostic score formula
 or a vector of prognostic scores already estimated by the user. Creates a
-\code{auto_strata} object, which can be passed to \code{\link{big_match}} for
+\code{auto_strata} object, which can be passed to \code{\link{strata_match}} for
 stratified matching or unpacked by the user to be matched by some other
 means.
 }
@@ -110,6 +110,34 @@ model for prognosis (e.g. a \code{glm} object).  If this method is used, the
   a prognostic model with the number of covariates you want.
 }
 
+\examples{
+  # make sample data set
+  set.seed(111)
+  dat <- make_sample_data(n = 75)
+  
+  # construct a pilot set, build a prognostic score for `outcome` based on X2
+  # and stratify the data set based on the scores into sets of about 25
+  # observations
+  a.strat_formula <- auto_stratify(dat, "treat", outcome ~ X2, size = 25)
+  
+  # stratify the data set based on a model for prognosis
+  pilot_data <- make_sample_data(n = 30)
+  prognostic_model <- glm(outcome ~ X2, pilot_data, family = "binomial")
+  a.strat_model <- auto_stratify(dat, "treat", prognostic_model,
+                                 outcome = "outcome", size = 25)
+                                 
+  # stratify the data set based on a vector of prognostic scores
+  prognostic_scores <- predict(prognostic_model, newdata = dat,
+                               type = "response")
+  a.strat_scores <- auto_stratify(dat, "treat", prognostic_scores,
+                                  outcome = "outcome", size = 25)
+                                  
+  # diagnostic plots
+  plot(a.strat_formula)
+  plot(a.strat_formula, type = "FM", propensity = treat ~ X1, stratum = 1)
+  plot(a.strat_formula, type = "hist", propensity = treat ~ X1, stratum = 1)
+  plot(a.strat_formula, type = "residual")
+}
 \seealso{
 \code{\link{manual_stratify}}, \code{\link{new_auto_strata}}
 }

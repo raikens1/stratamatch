@@ -4,17 +4,17 @@
 \alias{plot.strata}
 \title{Plot method for \code{strata} object}
 \usage{
-\method{plot}{strata}(x, type = "scatter", label = FALSE, propensity,
+\method{plot}{strata}(x, type = "SR", label = FALSE, propensity,
   stratum, ...)
 }
 \arguments{
 \item{x}{a \code{strata} object returned by \code{\link{auto_stratify}} or
 \code{\link{manual_stratify}}}
 
-\item{type}{string giving the plot type (default = \code{"scatter"}).  Other
+\item{type}{string giving the plot type (default = \code{"SR"}).  Other
 options are \code{"hist"}, \code{"FM"} and \code{"residual"}}
 
-\item{label}{ignored unless \code{type = "scatter"}. If \code{TRUE}, a
+\item{label}{ignored unless \code{type = "SR"}. If \code{TRUE}, a
 clickable plot is produced. The user may click on any number of strata and
 press "finish" to have those strata labeled.  Note: uses \code{\link{identify}},
 which may not be supported on some devices}
@@ -32,7 +32,7 @@ number specifying which stratum to plot.}
 \description{
 Generates diagnostic plots for the product of a stratification by
 \code{\link{auto_stratify}} or \code{\link{manual_stratify}}.  There are
-three plot types: \enumerate{ \item \code{"scatter"} (default) - produces a
+three plot types: \enumerate{ \item \code{"SR"} (default) - produces a
 scatter plot of strata by size and treat:control ratio \item \code{"hist"} -
 produces a histogram of propensity scores within a stratum \item \code{"FM"}
 - produces a Fisher-Mill plot of individuals within a stratum  (not supported

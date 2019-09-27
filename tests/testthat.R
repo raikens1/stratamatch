@@ -1,4 +1,4 @@
 library(testthat)
-library(BigMatch)
+library(stratamatch)
 
-test_check("BigMatch")
+test_check("stratamatch")

@@ -8,7 +8,7 @@
 #' Basic constructor for an \code{manual_strata} object. These objects hold all
 #' the information associated with a dataset that has been stratified via
 #' \code{\link{manual_stratify}}.  This object may be passed to
-#' \code{\link{big_match}} to be matched or it may be unpacked by the user to be
+#' \code{\link{strata_match}} to be matched or it may be unpacked by the user to be
 #' matched by other means.
 #'
 #' @param treat a string giving the name of the column where treatment
@@ -54,7 +54,7 @@ new_manual_strata <- function(treat = character(),
 #' Basic constructor for an \code{auto_strata} object. These objects hold all
 #' the information associated with a dataset that has been stratified via
 #' \code{\link{auto_stratify}}.  This object may be passed to
-#' \code{\link{big_match}} to be matched or it may be unpacked by the user to be
+#' \code{\link{strata_match}} to be matched or it may be unpacked by the user to be
 #' matched by other means.
 #'
 #' @param outcome a string giving the name of the column where outcome
@@ -67,11 +67,8 @@ new_manual_strata <- function(treat = character(),
 #'   treat:control balance
 #' @param strata_table a table of each stratum and the prognostic score quantile
 #'   bin this corresponds to
-#' @param prog_scores a vector of prognostic scores.  Either \code{prog_scores}
-#'   or \code{prog_model} must be specified to stratify a dataset automatically.
-#' @param prog_model a model for prognosis fit on a separate data set. Either
-#'   \code{prog_scores} or \code{prog_model} must be specified to stratify a
-#'   dataset automatically.
+#' @param prognostic_scores a vector of prognostic scores.  
+#' @param prognostic_model a model for prognosis fit on a separate data set. 
 #' @param pilot_set the set of controls used to fit the prognostic model.
 #'   These are excluded from subsequent analysis so that the prognostic score is
 #'   not overfit to the data used to estimate the treatment effect.
@@ -86,8 +83,8 @@ new_auto_strata <- function(outcome, treat,
                            call = NULL,
                            issue_table = NULL,
                            strata_table = NULL,
-                           prog_scores = NULL,
-                           prog_model = NULL,
+                           prognostic_scores = NULL,
+                           prognostic_model = NULL,
                            pilot_set = NULL){
 
   stopifnot(is.character(outcome))
@@ -96,7 +93,7 @@ new_auto_strata <- function(outcome, treat,
   stopifnot(is.call(call))
   stopifnot(is.data.frame(issue_table))
   stopifnot(is.data.frame(strata_table))
-  stopifnot(is.numeric(prog_scores))
+  stopifnot(is.numeric(prognostic_scores))
 
   my_autostrata <- structure(list(analysis_set = analysis_set,
                                  treat = treat,
@@ -104,8 +101,8 @@ new_auto_strata <- function(outcome, treat,
                                  issue_table = issue_table,
                                  strata_table = strata_table,
                                  outcome = outcome,
-                                 prog_scores = prog_scores,
-                                 prog_model = prog_model,
+                                 prognostic_scores = prognostic_scores,
+                                 prognostic_model = prognostic_model,
                                  pilot_set = pilot_set),
                             class = c("auto_strata", "strata"))
   return(my_autostrata)

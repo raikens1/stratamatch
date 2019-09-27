@@ -12,13 +12,13 @@
 #' @return Returns a 3 by [number of strata] dataframe with Treat, Control, Total, Control Proportion, and Potential Issues
 #' @export
 make_issue_table <- function(a_set, treat){
-  names(a_set)[names(a_set) == treat] <- "treat"
-  df <- a_set %>%
-    dplyr::group_by(stratum) %>%
-    dplyr::summarize(Treated = sum(treat),
-                     Control = sum(1 - treat),
+  df <- data.frame(treat = a_set[[treat]],
+                   stratum = a_set$stratum) %>%
+    dplyr::group_by(.data$stratum) %>%
+    dplyr::summarize(Treated = sum(.data$treat),
+                     Control = sum(1 - .data$treat),
                      Total = dplyr::n()) %>%
-    dplyr::mutate(Control_Proportion = Control / Total)
+    dplyr::mutate(Control_Proportion = .data$Control / .data$Total)
 
   colnames(df) <- c("Stratum", "Treat",
                     "Control", "Total",

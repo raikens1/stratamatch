@@ -4,12 +4,12 @@
 \alias{manual_stratify}
 \title{Manual Stratify}
 \usage{
-manual_stratify(data, strat_formula, force = FALSE)
+manual_stratify(data, strata_formula, force = FALSE)
 }
 \arguments{
 \item{data}{data.frame with observations as rows, features as columns}
 
-\item{strat_formula}{the formula to be used for stratification.  (e.g. `treat
+\item{strata_formula}{the formula to be used for stratification.  (e.g. `treat
 ~ X1`) the variable on the left is taken to be the name of the treatment
 assignment column, and the variables on the left are taken to be the
 variables by which the data should be stratified}
@@ -23,8 +23,18 @@ A \code{manual_strata} object
 \description{
 Stratifies a data set based on a set of blocking covariates specified by the
 user. Creates a \code{manual_strata} object, which can be passed to
-\code{\link{big_match}} for stratified matching or unpacked by the user to be
+\code{\link{strata_match}} for stratified matching or unpacked by the user to be
 matched by some other means.
+}
+\examples{
+  # make sample data set
+  dat <- make_sample_data(n = 75)
+  
+  # stratify based on B1 and B2
+  m.strat <- manual_stratify(dat, treat ~ B1 + B2)
+  
+  # diagnostic plot
+  plot(m.strat)
 }
 \seealso{
 \code{\link{auto_stratify}}, \code{\link{new_manual_strata}}
