@@ -1,7 +1,6 @@
-#----------------------------------------------------------
-### CONTAINS: 
-# Methods for the strata objects for the generics `is`, `print`, `summarize`, and
-# `plot`
+#---------------------------------------------------------- 
+## CONTAINS: Methods for the strata objects for the generics `is`, `print`,
+## `summarize`, and `plot`
 #----------------------------------------------------------
 
 #----------------------------------------------------------
@@ -248,8 +247,10 @@ make_fm_plot <- function(x, propensity, s){
     stop("Stratum number does not exist in analysis set")
   }
 
+  prop_scores = get_prop_scores(propensity, a_set, x$treat)
+  
   plt_data <- a_set %>%
-    dplyr::mutate(prop_score = get_prop_scores(propensity, a_set, x$treat),
+    dplyr::mutate(prop_score = prop_scores,
                   prog_score = x$prognostic_scores) %>%
     dplyr::filter(.data$stratum == s)
 

@@ -52,6 +52,8 @@ test_that("Plot errors work", {
   expect_error(plot(a.strat, type = "FM",
                     propensity = treated ~ X1 + X2, stratum = 200),
                "Stratum number does not exist in analysis set")
+  expect_error(plot(a.strat, type = "FM", propensity = "soup", stratum = 1),
+               "propensity type not recognized")
   
   # overlap plots
   expect_error(plot(a.strat, type = "hist",
