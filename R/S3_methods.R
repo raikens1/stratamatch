@@ -318,11 +318,13 @@ get_prop_scores <- function(propensity, data, treat){
   }
 
   # if it is a model for propensity, predict on data
-  # This error handling doesn't work
-  return(tryCatch(predict(propensity, newdata = data, type = "response"),
+  prop_scores <- tryCatch(predict(propensity, 
+                                  newdata = data,
+                                  type = "response"),
                           error = function(c) {
-                            stop("propensity type not recognized", class = "error")
-                            }))
+                            stop("propensity type not recognized")
+                            })
+  return(prop_scores)
 }
 
 #' Check Propensity Formula
