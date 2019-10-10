@@ -11,8 +11,6 @@
 #'   dat <- make_sample_data(n = 30)
 #' @export
 make_sample_data <- function(n = 100){
-  set.seed(123)
-  
   # make distribution of C3 depend on C1
   sample_0 <- c("a", "b", rep("c", 4))
   sample_1 <- c("c", "b", rep("a", 4))

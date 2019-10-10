@@ -1,40 +1,26 @@
 context("S3 methods for Strata objects")
 
-# Make Test Data
+# Load test data
 #
-# Makes a simple data frame with treat, outcome, a categorical and a continouos
-# covariate. Outcomes = sigmoid(treated + cont).  I've added a column named
+# test_dat is a simple data frame with treated, outcomes, and some categorical and
+# continuous columns based on make_sample_data. I've added a column named
 # "treat" and "outcome" to ensure that nothing weird happens when treat or
 # outcome is a real column in the data frame
-make_test_data <- function(){
-  n <- 16
-  set.seed(123)
-  
-  data.frame(treated = rep(c(0, 1), n / 2),
-             treat = rep("gotcha", n),
-             cat = rep(c(0, 1, 2, 3), each = n / 4),
-             cont = seq(from = 0, to = 1, length.out = n)) %>%
-    dplyr::mutate(outcomes = rbinom(n = n,
-                                    size = 1,
-                                    p = 1 / (1 + exp(treated + cont))),
-                  outcome = rep("gotcha", n))
-}
+test_dat <- read.csv("test_data.csv")
 
 #----------------------------------------------------------
 ### PRINT
 #----------------------------------------------------------
 
 test_that("Print manual strata works", {
-  test_dat <- make_test_data()
-  m.strat <- manual_stratify(test_dat, treated ~ cat)
+  m.strat <- manual_stratify(test_dat, treated ~ C1)
 
   expect_known_output(print(m.strat), file = "ref_mstrat_print", update = F)
 })
 
 test_that("Print auto strata works", {
-  test_dat <- make_test_data()
   a.strat <- auto_stratify(test_dat,
-                           "treated", prognosis = test_dat$cont,
+                           "treated", prognosis = 1/(1 + exp(-test_dat$X1)),
                            outcome = "outcomes")
 
   expect_known_output(print(a.strat), file = "ref_astrat_print", update = F)
@@ -45,10 +31,9 @@ test_that("Print auto strata works", {
 #----------------------------------------------------------
 
 test_that("Plot errors work", {
-  test_dat <- make_test_data()
-  m.strat <- manual_stratify(test_dat, treated ~ cat)
+  m.strat <- manual_stratify(test_dat, treated ~ C1)
   a.strat <- auto_stratify(test_dat,
-                           "treated", prognosis = test_dat$cont,
+                           "treated", prognosis = 1/(1 + exp(-test_dat$X1)),
                            outcome = "outcomes")
 
   # bad plot type
@@ -81,7 +66,7 @@ test_that("Plot errors work", {
                     propensity = treated ~ socks, stratum = 1),
                "not all variables in propensity formula appear in data")
   expect_error(plot(a.strat, type = "hist",
-                    propensity = outcomes ~ cont, stratum = 1),
+                    propensity = outcomes ~ X1, stratum = 1),
                "propensity formula must model treatment assignment")
   expect_error(plot(a.strat, type = "hist", propensity = "soup", stratum = 1),
                "propensity type not recognized")

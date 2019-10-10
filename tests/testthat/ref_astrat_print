@@ -1,13 +1,13 @@
 auto_strata object from package stratamatch.
 
 Function call:
-auto_stratify(data = test_dat, treat = "treated", prognosis = test_dat$cont, 
-    outcome = "outcomes")
+auto_stratify(data = test_dat, treat = "treated", prognosis = 1/(1 + 
+    exp(-test_dat$X1)), outcome = "outcomes")
 
-Analysis set dimensions: 16 X 7
+Analysis set dimensions: 100 X 10
 
 Prognostic Scores prespecified.
 
 Number of strata: 1 
 
-	Min size: 16 	Max size: 16
+	Min size: 100 	Max size: 100

@@ -364,7 +364,7 @@ estimate_scores <- function(prognostic_model, analysis_set){
 #' @return data.frame of strata definitions
 make_autostrata_table <- function(qcut){
   data.frame(qcut) %>%
-    dplyr::mutate(stratum = as.integer(qcut), quantile_bin = qcut) %>%
+    dplyr::mutate(stratum = as.integer(qcut), quantile_bin = as.character(qcut)) %>%
     dplyr::group_by(.data$quantile_bin) %>%
     dplyr::summarise(size = dplyr::n(), stratum = dplyr::first(.data$stratum)) %>%
     dplyr::arrange(.data$stratum) %>%

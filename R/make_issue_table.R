@@ -16,7 +16,7 @@ make_issue_table <- function(a_set, treat){
                    stratum = a_set$stratum) %>%
     dplyr::group_by(.data$stratum) %>%
     dplyr::summarize(Treated = sum(.data$treat),
-                     Control = sum(1 - .data$treat),
+                     Control = as.integer(sum(1 - .data$treat)),
                      Total = dplyr::n()) %>%
     dplyr::mutate(Control_Proportion = .data$Control / .data$Total)
 
