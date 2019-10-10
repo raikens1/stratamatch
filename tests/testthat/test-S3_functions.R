@@ -68,6 +68,4 @@ test_that("Plot errors work", {
   expect_error(plot(a.strat, type = "hist",
                     propensity = outcomes ~ X1, stratum = 1),
                "propensity formula must model treatment assignment")
-  expect_error(plot(a.strat, type = "hist", propensity = "soup", stratum = 1),
-               "propensity type not recognized")
 })
