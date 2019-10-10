@@ -321,7 +321,7 @@ get_prop_scores <- function(propensity, data, treat){
   # This error handling doesn't work
   return(tryCatch(predict(propensity, newdata = data, type = "response"),
                           error = function(c) {
-                            stop("propensity type not recognized")
+                            stop("propensity type not recognized", class = "try-error")
                             }))
 }
 
