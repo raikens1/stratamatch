@@ -16,15 +16,15 @@
 #' @return a named factor with matching assignments
 #' @export
 #' @examples 
-#'   # make a sample data set
-#'   set.seed(1)
-#'   dat <- make_sample_data (n = 75)
+#' # make a sample data set
+#' set.seed(1)
+#' dat <- make_sample_data(n = 75)
 #'   
-#'   # stratify with auto_stratify
-#'   a.strat <- auto_stratify(dat, "treat", outcome ~ X2, size = 25)
+#' # stratify with auto_stratify
+#' a.strat <- auto_stratify(dat, "treat", outcome ~ X2, size = 25)
 #'   
-#'   # 1:1 match based on propensity formula: treat ~ X1 + X2
-#'   strata_match(a.strat, propensity = treat ~ X1 + X2, k = 1)
+#' # 1:1 match based on propensity formula: treat ~ X1 + X2
+#' strata_match(a.strat, propensity = treat ~ X1 + X2, k = 1)
 strata_match <- function(object, propensity = NULL, k = 1){
 
   check_inputs_matcher(object, propensity, k)
@@ -59,17 +59,14 @@ strata_match <- function(object, propensity = NULL, k = 1){
 
 #' Match without Stratification
 #'
-#' Not meant to be called externally, but exported currently for convenience.
-#' This function is for performance testing purposes, so that we can compare the
-#' speed of matching within strata to matching the entire dataset without
-#' stratification.
+#' Not meant to be called externally.  Match a data set without stratifying.
+#' Used to compare performance with and without stratification.
 #'
 #' @param object a strata object
 #' @param propensity (optional) formula for propensity score
 #' @param k numeric, the number of control individuals to be matched to each
 #'   treated individual
 #' @return a named factor with matching assignments
-#' @export
 strata_match_nstrat <- function(object, propensity = NULL, k = 1){
 
   check_inputs_matcher(object, propensity, k)

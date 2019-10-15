@@ -14,8 +14,8 @@
 #' matched by some other means.
 #'
 #' @param data data.frame with observations as rows, features as columns
-#' @param strata_formula the formula to be used for stratification.  (e.g. `treat
-#'   ~ X1`) the variable on the left is taken to be the name of the treatment
+#' @param strata_formula the formula to be used for stratification.  (e.g. \code{treat
+#'   ~ X1}) the variable on the left is taken to be the name of the treatment
 #'   assignment column, and the variables on the left are taken to be the
 #'   variables by which the data should be stratified
 #' @param force a boolean. If true, run even if a variable appears continuous.

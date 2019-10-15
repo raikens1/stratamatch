@@ -12,9 +12,13 @@
 #' Checks if the target object is a \code{strata} object.
 #' 
 #' @param object any R object
-#' @return Returns \code{TRUE} if its argument has class "strata" among its classes and
+#' @return Returns \code{TRUE} if its argument has \code{strata} among its classes and
 #' \code{FALSE} otherwise.
 #' @export
+#' @examples 
+#' dat <- make_sample_data()
+#' m.strat <- manual_stratify(dat, treat ~ C1)
+#' is.strata(m.strat) # returns TRUE
 is.strata <- function(object) {
   inherits(object, "strata")
 }
@@ -24,9 +28,13 @@ is.strata <- function(object) {
 #' Checks if the target object is an \code{auto_strata} object.
 #' 
 #' @param object any R object
-#' @return Returns \code{TRUE} if its argument has class "auto_strata" among its classes and
+#' @return Returns \code{TRUE} if its argument has \code{auto_strata} among its classes and
 #' \code{FALSE} otherwise.
 #' @export
+#' @examples 
+#' dat <- make_sample_data()
+#' a.strat <- auto_stratify(dat, "treat", outcome ~ X1 + X2)
+#' is.auto_strata(a.strat) # returns TRUE
 is.auto_strata <- function(object) {
   inherits(object, "auto_strata")
 }
@@ -37,9 +45,13 @@ is.auto_strata <- function(object) {
 #' Checks if the target object is a \code{manual_strata} object.
 #' 
 #' @param object any R object
-#' @return Returns \code{TRUE} if its argument has class "manual_strata" among its classes and
+#' @return Returns \code{TRUE} if its argument has \code{manual_strata} among its classes and
 #' \code{FALSE} otherwise.
 #' @export
+#' @examples 
+#' dat <- make_sample_data()
+#' m.strat <- manual_stratify(dat, treat ~ C1)
+#' is.manual_strata(m.strat) # returns TRUE
 is.manual_strata <- function(object) {
   inherits(object, "manual_strata")
 }
@@ -56,6 +68,10 @@ is.manual_strata <- function(object) {
 #' @param x, an \code{auto_strata} object
 #' @param ... other arguments
 #' @export
+#' @examples 
+#' dat <- make_sample_data()
+#' a.strat <- auto_stratify(dat, "treat", outcome ~ X1 + X2)
+#' print(a.strat) # prints information about a.strat
 print.auto_strata <- function(x, ...) {
   writeLines("auto_strata object from package stratamatch.\n")
 
@@ -91,6 +107,10 @@ print.auto_strata <- function(x, ...) {
 #' @param x, a \code{manual_strata} object
 #' @param ... other arguments
 #' @export
+#' @examples 
+#' dat <- make_sample_data()
+#' m.strat <- manual_stratify(dat, treat ~ C1)
+#' print(m.strat) # prints information about m.strat
 print.manual_strata <- function(x, ...) {
   writeLines("manual_strata object from package stratamatch.\n")
 
@@ -128,18 +148,25 @@ print.manual_strata <- function(x, ...) {
 #'   options are \code{"hist"}, \code{"FM"} and \code{"residual"}
 #' @param label ignored unless \code{type = "SR"}. If \code{TRUE}, a
 #'   clickable plot is produced. The user may click on any number of strata and
-#'   press "finish" to have those strata labeled.  Note: uses \code{\link{identify}},
+#'   press finish to have those strata labeled.  Note: uses \code{\link{identify}},
 #'   which may not be supported on some devices
-#' @param propensity ignored unless \code{type = "hist} or \code{type = "FM}.
+#' @param propensity ignored unless \code{type = "hist"} or \code{type = "FM"}.
 #'   Specifies propensity score information for plots where this is required.
 #'   Accepts either a vector of propensity scores, a \code{glm} model for
 #'   propensity scores, or a formula for fitting a propensity score model.
-#' @param stratum ignored unless \code{type = "hist} or \code{type = "FM}. A
+#' @param stratum ignored unless \code{type = "hist"} or \code{type = "FM"}. A
 #'   number specifying which stratum to plot.
 #' @param ... other arguments
 #' @seealso Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
 #'   Section 3.2 for an explaination of Fisher-Mill plots
 #' @export
+#' @examples 
+#' dat <- make_sample_data()
+#' a.strat <- auto_stratify(dat, "treat", outcome ~ X1 + X2)
+#' plot(a.strat) # makes size-ratio scatter plot
+#' plot(a.strat, type = "hist", propensity = treat ~ X1, stratum = 1)
+#' plot(a.strat, type = "FM", propensity = treat ~ X1, stratum = 1)
+#' plot(a.strat, type = "residual")
 plot.strata <- function(x, type = "SR", label = FALSE,
                         propensity, stratum, ...){
   if (type == "SR") make_SR_plot(x, label)
@@ -185,7 +212,7 @@ make_SR_plot <- function(x, label) {
 #' Make histogram plot
 #'
 #' Not meant to be called externally.  Helper plot function for \code{strata}
-#' object with type = "hist". Produces a histogram of propensity scores within a
+#' object with \code{type = "hist"}. Produces a histogram of propensity scores within a
 #' stratum
 #'
 #' @inheritParams plot.strata
@@ -230,7 +257,7 @@ make_hist_plot <- function(x, propensity, s){
 #' Make Fisher-Mill plot
 #'
 #' Not meant to be called externally.  Helper plot function for \code{strata}
-#' object with type = "FM". Produces a Fisher-Mill plot of stratum \code{s}
+#' object with \code{type = "FM"}. Produces a Fisher-Mill plot of stratum \code{s}
 #'
 #' @inheritParams plot.strata
 #' @param s the number code of the strata to be plotted
@@ -272,7 +299,7 @@ make_fm_plot <- function(x, propensity, s){
 #' Make Residual Plot
 #'
 #' Not yet implemented.  Not meant to be called externally. Helper plot function
-#' for \code{strata} object with type = "residual". Produces the diagnostic
+#' for \code{strata} object with \code{type = "residual"}. Produces the diagnostic
 #' plots for the prognostic score model
 #'
 #' @inheritParams plot.strata

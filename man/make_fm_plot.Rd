@@ -10,7 +10,7 @@ make_fm_plot(x, propensity, s)
 \item{x}{a \code{strata} object returned by \code{\link{auto_stratify}} or
 \code{\link{manual_stratify}}}
 
-\item{propensity}{ignored unless \code{type = "hist} or \code{type = "FM}.
+\item{propensity}{ignored unless \code{type = "hist"} or \code{type = "FM"}.
 Specifies propensity score information for plots where this is required.
 Accepts either a vector of propensity scores, a \code{glm} model for
 propensity scores, or a formula for fitting a propensity score model.}
@@ -19,7 +19,7 @@ propensity scores, or a formula for fitting a propensity score model.}
 }
 \description{
 Not meant to be called externally.  Helper plot function for \code{strata}
-object with type = "FM". Produces a Fisher-Mill plot of stratum \code{s}
+object with \code{type = "FM"}. Produces a Fisher-Mill plot of stratum \code{s}
 }
 \seealso{
 Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .

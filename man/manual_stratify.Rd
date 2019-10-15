@@ -9,8 +9,8 @@ manual_stratify(data, strata_formula, force = FALSE)
 \arguments{
 \item{data}{data.frame with observations as rows, features as columns}
 
-\item{strata_formula}{the formula to be used for stratification.  (e.g. `treat
-~ X1`) the variable on the left is taken to be the name of the treatment
+\item{strata_formula}{the formula to be used for stratification.  (e.g. \code{treat
+~ X1}) the variable on the left is taken to be the name of the treatment
 assignment column, and the variables on the left are taken to be the
 variables by which the data should be stratified}
 

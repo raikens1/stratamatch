@@ -18,8 +18,6 @@ treated individual}
 a named factor with matching assignments
 }
 \description{
-Not meant to be called externally, but exported currently for convenience.
-This function is for performance testing purposes, so that we can compare the
-speed of matching within strata to matching the entire dataset without
-stratification.
+Not meant to be called externally.  Match a data set without stratifying.
+Used to compare performance with and without stratification.
 }

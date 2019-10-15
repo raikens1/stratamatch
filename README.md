@@ -1,8 +1,5 @@
 # stratamatch
-<!-- badges: start -->
-[![CRAN
-status](https://www.r-pkg.org/badges/version/stratamatch)](https://cran.r-project.org/package=stratamatch)
-<!-- badges: end -->
+
 **Creator:** Rachael Caelie "Rocky" Aikens
 
 **Authors:** Rachael C. Aikens, Joseph Rigdon, Justin Lee, Jonathan H. Chen, Michael Baiocchi

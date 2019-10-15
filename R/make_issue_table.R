@@ -35,7 +35,7 @@ make_issue_table <- function(a_set, treat){
 #' return a string of potential issues with the stratum.
 #'
 #' @param row a row of the data.frame produced in make_issue_table
-#' @return Returns a string of potential issues ("none" if everything is fine)
+#' @return Returns a string of potential issues
 get_issues <- function(row){
   row <- as.numeric(row[4:5])
 

@@ -10,9 +10,14 @@ is.strata(object)
 \item{object}{any R object}
 }
 \value{
-Returns \code{TRUE} if its argument has class "strata" among its classes and
+Returns \code{TRUE} if its argument has \code{strata} among its classes and
 \code{FALSE} otherwise.
 }
 \description{
 Checks if the target object is a \code{strata} object.
+}
+\examples{
+dat <- make_sample_data()
+m.strat <- manual_stratify(dat, treat ~ C1)
+is.strata(m.strat) # returns TRUE
 }

@@ -10,7 +10,7 @@ make_hist_plot(x, propensity, s)
 \item{x}{a \code{strata} object returned by \code{\link{auto_stratify}} or
 \code{\link{manual_stratify}}}
 
-\item{propensity}{ignored unless \code{type = "hist} or \code{type = "FM}.
+\item{propensity}{ignored unless \code{type = "hist"} or \code{type = "FM"}.
 Specifies propensity score information for plots where this is required.
 Accepts either a vector of propensity scores, a \code{glm} model for
 propensity scores, or a formula for fitting a propensity score model.}
@@ -19,6 +19,6 @@ propensity scores, or a formula for fitting a propensity score model.}
 }
 \description{
 Not meant to be called externally.  Helper plot function for \code{strata}
-object with type = "hist". Produces a histogram of propensity scores within a
+object with \code{type = "hist"}. Produces a histogram of propensity scores within a
 stratum
 }

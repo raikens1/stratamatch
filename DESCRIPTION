@@ -1,9 +1,8 @@
 Package: stratamatch
 Type: Package
-Date: 2019-08-16
+Date: 2019-10-10
 Title: Stratification and Matching for Large Observational Data Sets
-Version: 0.0.0.9000
-Author: Rachael C. Aikens, Michael Baiocchi
+Version: 0.1.0
 Authors@R: c(
            person("Rachael C.", "Aikens", email = "rockyaikens@gmail.com",
                   role = c("aut", "cre")),
@@ -11,20 +10,20 @@ Authors@R: c(
                   role = c("aut")), 
            person("Justin", "Lee",
                   role = c("aut")),
-           person("Jonathan", "Chen",
-                  role = c("aut")),
            person("Michael", "Baiocchi", email = "baiocchi@stanford.edu",
+                  role = c("aut")),
+           person("Jonathan", "Chen", email = "jonc101@stanford.edu",
                   role = c("aut"))
            )
 Maintainer: Rachael C. Aikens <rockyaikens@gmail.com>
 BugReports: https://github.com/raikens1/stratamatch/issues
-Description: This package employs a "Pilot Matching" design to automatically 
-    stratify and match large datasets.  The `manual_stratify` function allows
+Description: A pilot matching design to automatically 
+    stratify and match large datasets.  The 'manual_stratify()' function allows
     users to manually stratify a dataset based on categorical variables of 
-    interest, while the `auto_stratify` function does automatically by
-    allocating a held-aside "pilot" data set, fitting a prognostic score  
-    (see Hansen (2008)) on the pilot set, and stratifying the data set based
-    on prognostic score quantiles.  The `strata_match` function then does optimal
+    interest, while the 'auto_stratify()' function does automatically by
+    allocating a held-aside (pilot) data set, fitting a prognostic score  
+    (see Hansen (2008) <doi:10.1093/biomet/asn004>) on the pilot set, and stratifying the data set based
+    on prognostic score quantiles.  The 'strata_match()' function then does optimal
     matching of the data set in parallel within strata.
 License: GPL-3
 Encoding: UTF-8
@@ -37,7 +36,7 @@ Imports:
   rlang (>= 0.4.0),
   survival(>= 2.44.1.1)
 Depends: 
-  R (>= 3.6.0),
+  R (>= 3.4.0),
 Suggests:
     knitr,
     rmarkdown,

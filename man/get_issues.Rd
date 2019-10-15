@@ -10,7 +10,7 @@ get_issues(row)
 \item{row}{a row of the data.frame produced in make_issue_table}
 }
 \value{
-Returns a string of potential issues ("none" if everything is fine)
+Returns a string of potential issues
 }
 \description{
 Helper for make_issue_table to return issues string.  Given a row which
