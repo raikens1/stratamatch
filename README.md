@@ -72,4 +72,4 @@ The `auto_stratify` function carries out the prognostic score stratification pil
 Once the data set has been stratified (either manually or automatically), the treatment and control individuals can then be matched. At this point, the reader may choose to match the data set within each stratum using the strata_match function, or they may select and implement their own matching scheme.
 
 ## Feedback
-Stratamatch is a work in progress.  If you have questions or suggestions, please send them to Rocky at raikens@stanford.edu.
+We welcome your feedback! Post bug reports, questions, or suggestions as github issues.  Or (less preferred) email the maintainer at `rockyaikens at gmail`
