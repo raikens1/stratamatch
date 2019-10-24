@@ -30,7 +30,7 @@ For a tutorial of the basic usage, view the stratamatch vignette.  To access thi
 browseVignettes("stratamatch")
 ```
 
-### From Source
+## Installation from Source
 
 You can also install the development version of stratamatch from github using devtools:
 
