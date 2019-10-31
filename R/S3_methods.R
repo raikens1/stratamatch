@@ -362,9 +362,6 @@ get_prop_scores <- function(propensity, data, treat){
 #' 
 #' @return nothing
 check_prop_formula <- function(prop_formula, data, treat){
-  if (!all(is.element(all.vars(prop_formula), colnames(data)))) {
-    stop("not all variables in propensity formula appear in data")
-  }
   if (!(treat == all.vars(prop_formula)[1])) {
     stop("propensity formula must model treatment assignment")
   }

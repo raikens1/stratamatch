@@ -242,7 +242,11 @@ build_prognostic_scores <- function(data, treat, prognosis,
 #'
 #' @return a list with analaysis_set and pilot_set
 #' @export
-split_pilot_set <- function(data, treat, pilot_fraction, pilot_sample){
+#' @examples 
+#'   dat <- make_sample_data()
+#'   splt <- split_pilot_set(dat, "treat", 0.2)
+#'   a.strat <- auto_stratify(splt$analysis_set, "treat", outcome ~ X1, pilot_sample = splt$pilot_set)
+split_pilot_set <- function(data, treat, pilot_fraction = 0.1, pilot_sample = NULL){
   check_pilot_set_options(pilot_sample, pilot_fraction)
   pilot_set <- NULL
 
@@ -438,9 +442,7 @@ check_outcome <- function(outcome, data, treat){
 #' 
 #' @return nothing
 check_prognostic_formula <- function(prog_formula, data, outcome, treat){
-  if (!all(is.element(all.vars(prog_formula), colnames(data)))) {
-    stop("not all variables in prognosis formula appear in data")
-  }
+
   if (treat == all.vars(prog_formula)[1]) {
     stop("prognostic formula must model outcome, not treatment")
   }

@@ -10,7 +10,6 @@
 #' @param a_set \code{data.frame} with observations as rows, features as columns.  This should be the analysis set from the recently stratified data.
 #' @param treat string name of treatment column
 #' @return Returns a 3 by [number of strata] dataframe with Treat, Control, Total, Control Proportion, and Potential Issues
-#' @export
 make_issue_table <- function(a_set, treat){
   df <- data.frame(treat = a_set[[treat]],
                    stratum = a_set$stratum) %>%

@@ -5,7 +5,8 @@
 
 #' Strata Match
 #'
-#' Match within strata in series using optmatch.
+#' Match within strata in series using optmatch.  Requires optmatch package to
+#' be installed.
 #'
 #' @param object a strata object
 #' @param propensity (optional) formula for propensity score.  If left
@@ -26,7 +27,11 @@
 #' # 1:1 match based on propensity formula: treat ~ X1 + X2
 #' strata_match(a.strat, propensity = treat ~ X1 + X2, k = 1)
 strata_match <- function(object, propensity = NULL, k = 1){
-
+  
+  if (!requireNamespace("optmatch", quietly = TRUE)) {
+    stop("optmatch package is required.  Please install it.")
+  }
+  
   check_inputs_matcher(object, propensity, k)
 
   message("This function makes essential use of the optmatch package, which has an academic license.")
@@ -68,7 +73,11 @@ strata_match <- function(object, propensity = NULL, k = 1){
 #'   treated individual
 #' @return a named factor with matching assignments
 strata_match_nstrat <- function(object, propensity = NULL, k = 1){
-
+  
+  if (!requireNamespace("optmatch", quietly = TRUE)) {
+    stop("optmatch package is required.  Please install it.")
+  }
+  
   check_inputs_matcher(object, propensity, k)
 
   if (is.null(propensity)){

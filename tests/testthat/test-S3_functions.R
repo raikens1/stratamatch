@@ -63,9 +63,6 @@ test_that("Plot errors work", {
                     propensity = 1:3, stratum = 1),
                "propensity scores must be the same length as the data")
   expect_error(plot(a.strat, type = "hist",
-                    propensity = treated ~ socks, stratum = 1),
-               "not all variables in propensity formula appear in data")
-  expect_error(plot(a.strat, type = "hist",
                     propensity = outcomes ~ X1, stratum = 1),
                "propensity formula must model treatment assignment")
   expect_error(plot(a.strat, type = "hist", propensity = "soup", stratum = 1),

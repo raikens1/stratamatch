@@ -3,9 +3,6 @@
 \name{strata}
 \alias{strata}
 \title{Strata function from package Survival}
-\usage{
-strata(..., na.group = FALSE, shortlabel, sep = ", ")
-}
 \description{
 Strata function from package Survival
 }

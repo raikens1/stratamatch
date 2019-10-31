@@ -9,6 +9,9 @@ context("Matching with Stratification")
 test_dat <- read.csv("test_data.csv")
 
 test_that("matching works", {
+  if (!requireNamespace("optmatch", quietly = TRUE)) {
+    skip("optmatch not installed")
+  }
   m.strat <- manual_stratify(test_dat, treated ~ C1)
 
   m.match1 <- strata_match(m.strat, treated ~ X1, k = 1)
@@ -23,13 +26,14 @@ test_that("matching works", {
 
 
 test_that("matching errors work", {
-
+  if (!requireNamespace("optmatch", quietly = TRUE)) {
+    skip("optmatch not installed")
+  }
+  
   m.strat <- manual_stratify(test_dat, treated ~ C1)
 
   expect_error(strata_match(m.strat, "soup", k = 1),
                "propensity must be a formula")
-  expect_error(strata_match(m.strat, zombies ~ C1 + X1, k = 1),
-               "not all variables in propensity formula appear in data")
   expect_error(strata_match(m.strat, C1 ~ treated + X1, k = 1),
                "propensity formula must model treatment assignment")
   expect_error(strata_match(m.strat, treated ~ C1 + X1, k = "socks"),
