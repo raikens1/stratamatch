@@ -1,23 +1,45 @@
 # stratamatch
+<!-- badges: start -->
+[![CRAN
+status](https://www.r-pkg.org/badges/version/stratamatch)](https://cran.r-project.org/package=stratamatch)
+<!-- badges: end -->
 
 **Creator:** Rachael Caelie "Rocky" Aikens
 
 **Authors:** Rachael C. Aikens, Joseph Rigdon, Justin Lee, Jonathan H. Chen, Michael Baiocchi
 
-## Installation
+## Quick Start
 
-Stratamatch requires R version 3.6.0 or higher.  In order to install this package, you may need to [update R](https://www.linkedin.com/pulse/3-methods-update-r-rstudio-windows-mac-woratana-ngarmtrakulchol)
+Stratamatch requires R version 3.4.0 or higher.  In order to install this package, you may need to [update R](https://www.linkedin.com/pulse/3-methods-update-r-rstudio-windows-mac-woratana-ngarmtrakulchol)
 
-A development version of stratamatch (0.0.0.9000) can be downloaded using `devtools`.  With R updated, simply run:
+To install from CRAN:
+
+```r
+install.packages("stratamatch"
+```
+
+After installation, to load the package and attach it to the namespace, run:
+
+```r
+library(stratamatch)
+```
+
+For a tutorial of the basic usage, view the stratamatch vignette.  To access this from your R console, run:
+
+```
+browseVignettes("stratamatch")
+```
+
+## Installation from Source
+
+You can also install the development version of stratamatch from github using devtools:
 
 ```r
 install.packages("devtools")
 devtools::install_github("raikens1/stratamatch")
 ```
 
-### Vignettes
-
-Stratamatch includes a vignette on its basic usage.  To make sure that this is built when you install, run the following instead:
+The optmatch package must be installed to successfully build the vignettes.  To make sure that vignettes are built when you install, make sure optmatch is installed, then run the following instead:
 
 ```r
 install.packages("devtools")
@@ -50,4 +72,4 @@ The `auto_stratify` function carries out the prognostic score stratification pil
 Once the data set has been stratified (either manually or automatically), the treatment and control individuals can then be matched. At this point, the reader may choose to match the data set within each stratum using the strata_match function, or they may select and implement their own matching scheme.
 
 ## Feedback
-Stratamatch is a work in progress.  If you have questions or suggestions, please send them to Rocky at raikens@stanford.edu.
+We welcome your feedback! Post bug reports, questions, or suggestions as github issues.  Or (less preferred) email the maintainer at `rockyaikens at gmail dot com`
