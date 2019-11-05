@@ -303,7 +303,6 @@ fit_prognostic_model <- function(dat, prognostic_formula, outcome){
                                    message("For troubleshooting help, run help(\"auto_stratify\")")
                                    stop(w)
                                  }) 
-    print(prognostic_model)
   }
   
   # if outcome is numeric, run linear regression
