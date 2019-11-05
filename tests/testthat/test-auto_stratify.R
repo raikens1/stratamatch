@@ -115,11 +115,6 @@ test_that("auto_stratify errors work", {
                              prognosis = outcomes ~ X1,
                              pilot_sample = -1),
                "pilot_sample must be a data.frame")
-  expect_error(auto_stratify(test_dat,
-                             treat = "treated",
-                             prognosis = outcomes ~ X1,
-                             pilot_sample = dplyr::select(test_dat, -X1)),
-               "All variables in prognostic score formula must be in pilot set")
   
   # bad outcome format
   test_dat$outcome_12 <- test_dat$outcomes + 1

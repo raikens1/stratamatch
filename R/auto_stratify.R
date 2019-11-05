@@ -286,11 +286,6 @@ split_pilot_set <- function(data, treat, pilot_fraction = 0.1, pilot_sample = NU
 #' @return a glm or lm object fit from \code{prognostic_formula} on \code{data}
 fit_prognostic_model <- function(dat, prognostic_formula, outcome){
   
-  if (!is.null(dat) &
-      !all(is.element(all.vars(prognostic_formula), colnames(dat)))) {
-    stop("All variables in prognostic score formula must be in pilot set")
-  }
-  
   # if outcome is binary or logical, run logistic regression
   if (is_binary(na.omit(dat[[outcome]]))) {
     message(paste("Fitting prognostic model via logistic regression:",
@@ -308,6 +303,7 @@ fit_prognostic_model <- function(dat, prognostic_formula, outcome){
                                    message("For troubleshooting help, run help(\"auto_stratify\")")
                                    stop(w)
                                  }) 
+    print(prognostic_model)
   }
   
   # if outcome is numeric, run linear regression
@@ -349,6 +345,7 @@ fit_prognostic_model <- function(dat, prognostic_formula, outcome){
 #'
 #' @return vector of prognostic scores
 estimate_scores <- function(prognostic_model, analysis_set){
+  
   tryCatch(predict(prognostic_model, analysis_set, type = "response"),
            error = function(e) {
              message("Error while estimating prognostic scores from the prognostic model.")
@@ -447,7 +444,13 @@ check_prognostic_formula <- function(prog_formula, data, outcome, treat){
     stop("prognostic formula must model outcome, not treatment")
   }
   if (is.element(treat, all.vars(prog_formula))) {
-    stop("prognostic formula must model the outcome in the absence of treatment; the treatment assignment may not be a predictor for the prognostic score model")
+    RHS <- as.character(prog_formula)[3]
+    allowed <- paste("-", treat)
+    
+    # check that every time treat appears on RHS, it appears as "- treat" 
+    if (lengths(regmatches(RHS, gregexpr(allowed, RHS))) != lengths(regmatches(RHS, gregexpr(treat, RHS)))){
+       stop("prognostic formula must model the outcome in the absence of treatment; the treatment assignment may not be a predictor for the prognostic score model")
+    }
   }
   if (!is.null(outcome)){
     if (outcome != all.vars(prog_formula)[1]){
