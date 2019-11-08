@@ -85,6 +85,15 @@ test_that("auto_stratify errors work", {
                              prognosis = outcomes ~ X1 + treated),
                "prognostic formula must model the outcome in the absence of treatment; the treatment assignment may not be a predictor for the prognostic score model")
   
+  # check that this runs without throwing an error
+  smalldata <- dplyr::select(test_dat, X1, outcomes, treated)
+  expect_error(auto_stratify(smalldata,
+                             treat = "treated",
+                             prognosis = outcomes ~ . - treated, 
+                             pilot_fraction = 0.2, # way too large in practice
+                             size = 25),
+               NA)
+  
   # bad prognostic model
   expect_error(auto_stratify(test_dat,
                              treat = "treated",

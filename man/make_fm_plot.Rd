@@ -4,7 +4,7 @@
 \alias{make_fm_plot}
 \title{Make Fisher-Mill plot}
 \usage{
-make_fm_plot(x, propensity, s)
+make_fm_plot(x, propensity, s, jitter_prognosis, jitter_propensity)
 }
 \arguments{
 \item{x}{a \code{strata} object returned by \code{\link{auto_stratify}} or
@@ -15,7 +15,13 @@ Specifies propensity score information for plots where this is required.
 Accepts either a vector of propensity scores, a \code{glm} model for
 propensity scores, or a formula for fitting a propensity score model.}
 
-\item{s}{the number code of the strata to be plotted}
+\item{s}{the number code of the stratum to be plotted}
+
+\item{jitter_prognosis}{ignored unless \code{type = "FM"}.  Amount of uniform
+random noise to add to prognostic scores in plot.}
+
+\item{jitter_propensity}{ignored unless \code{type = "FM"}.  Amount of
+uniform random noise to add to propensity scores in plot.}
 }
 \description{
 Not meant to be called externally.  Helper plot function for \code{strata}

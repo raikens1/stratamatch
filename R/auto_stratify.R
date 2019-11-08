@@ -208,7 +208,7 @@ build_prognostic_scores <- function(data, treat, prognosis,
   }
 
   # prognosis is a model, or it is unrecognized
-  else { 
+  else {
     # try to predict.  If successful, prognosis was a model.
     # otherwise, throw an error: prognosis type not recognized
     prognostic_scores <- tryCatch(predict(prognosis,
@@ -258,7 +258,7 @@ split_pilot_set <- function(data, treat, pilot_fraction = 0.1, pilot_sample = NU
 
   } else {
     # otherwise, construct a pilot set
-    message("Constructing a pilot set via subsampling.")
+    message(paste0("Constructing a pilot set by subsampling ", pilot_fraction*100, "% of controls."))
     # Adds an id column and removes it
     data$stratamatch_id <- 1:nrow(data)
     pilot_set <- data[ (data[[treat]] == 0),] %>%
@@ -442,6 +442,7 @@ check_prognostic_formula <- function(prog_formula, data, outcome, treat){
   if (treat == all.vars(prog_formula)[1]) {
     stop("prognostic formula must model outcome, not treatment")
   }
+  
   if (is.element(treat, all.vars(prog_formula))) {
     RHS <- as.character(prog_formula)[3]
     allowed <- paste("-", treat)

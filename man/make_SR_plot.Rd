@@ -10,9 +10,9 @@ make_SR_plot(x, label)
 \item{x}{a \code{strata} object returned by \code{\link{auto_stratify}} or
 \code{\link{manual_stratify}}}
 
-\item{label}{ignored unless \code{type = "SR"}. If \code{TRUE}, a
-clickable plot is produced. The user may click on any number of strata and
-press finish to have those strata labeled.  Note: uses \code{\link{identify}},
+\item{label}{ignored unless \code{type = "SR"}. If \code{TRUE}, a clickable
+plot is produced. The user may click on any number of strata and press
+finish to have those strata labeled.  Note: uses \code{\link{identify}},
 which may not be supported on some devices}
 }
 \description{

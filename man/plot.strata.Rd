@@ -4,8 +4,8 @@
 \alias{plot.strata}
 \title{Plot method for \code{strata} object}
 \usage{
-\method{plot}{strata}(x, type = "SR", label = FALSE, propensity,
-  stratum, ...)
+\method{plot}{strata}(x, type = "SR", label = FALSE, jitter_prognosis,
+  jitter_propensity, propensity, stratum, ...)
 }
 \arguments{
 \item{x}{a \code{strata} object returned by \code{\link{auto_stratify}} or
@@ -14,10 +14,16 @@
 \item{type}{string giving the plot type (default = \code{"SR"}).  Other
 options are \code{"hist"}, \code{"FM"} and \code{"residual"}}
 
-\item{label}{ignored unless \code{type = "SR"}. If \code{TRUE}, a
-clickable plot is produced. The user may click on any number of strata and
-press finish to have those strata labeled.  Note: uses \code{\link{identify}},
+\item{label}{ignored unless \code{type = "SR"}. If \code{TRUE}, a clickable
+plot is produced. The user may click on any number of strata and press
+finish to have those strata labeled.  Note: uses \code{\link{identify}},
 which may not be supported on some devices}
+
+\item{jitter_prognosis}{ignored unless \code{type = "FM"}.  Amount of uniform
+random noise to add to prognostic scores in plot.}
+
+\item{jitter_propensity}{ignored unless \code{type = "FM"}.  Amount of
+uniform random noise to add to propensity scores in plot.}
 
 \item{propensity}{ignored unless \code{type = "hist"} or \code{type = "FM"}.
 Specifies propensity score information for plots where this is required.

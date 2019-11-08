@@ -146,10 +146,14 @@ print.manual_strata <- function(x, ...) {
 #'   \code{\link{manual_stratify}}
 #' @param type string giving the plot type (default = \code{"SR"}).  Other
 #'   options are \code{"hist"}, \code{"FM"} and \code{"residual"}
-#' @param label ignored unless \code{type = "SR"}. If \code{TRUE}, a
-#'   clickable plot is produced. The user may click on any number of strata and
-#'   press finish to have those strata labeled.  Note: uses \code{\link{identify}},
+#' @param label ignored unless \code{type = "SR"}. If \code{TRUE}, a clickable
+#'   plot is produced. The user may click on any number of strata and press
+#'   finish to have those strata labeled.  Note: uses \code{\link{identify}},
 #'   which may not be supported on some devices
+#' @param jitter_prognosis ignored unless \code{type = "FM"}.  Amount of uniform
+#'   random noise to add to prognostic scores in plot.
+#' @param jitter_propensity ignored unless \code{type = "FM"}.  Amount of
+#'   uniform random noise to add to propensity scores in plot.
 #' @param propensity ignored unless \code{type = "hist"} or \code{type = "FM"}.
 #'   Specifies propensity score information for plots where this is required.
 #'   Accepts either a vector of propensity scores, a \code{glm} model for
@@ -160,18 +164,19 @@ print.manual_strata <- function(x, ...) {
 #' @seealso Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
 #'   Section 3.2 for an explaination of Fisher-Mill plots
 #' @export
-#' @examples 
+#' @examples
 #' dat <- make_sample_data()
 #' a.strat <- auto_stratify(dat, "treat", outcome ~ X1 + X2)
 #' plot(a.strat) # makes size-ratio scatter plot
 #' plot(a.strat, type = "hist", propensity = treat ~ X1, stratum = 1)
 #' plot(a.strat, type = "FM", propensity = treat ~ X1, stratum = 1)
 #' plot(a.strat, type = "residual")
-plot.strata <- function(x, type = "SR", label = FALSE,
-                        propensity, stratum, ...){
+plot.strata <- function(x, type = "SR", label = FALSE, jitter_prognosis,
+                        jitter_propensity, propensity, stratum, ...){
   if (type == "SR") make_SR_plot(x, label)
   else if (type == "hist") make_hist_plot(x, propensity, stratum)
-  else if (type == "FM") make_fm_plot(x, propensity, stratum)
+  else if (type == "FM") make_fm_plot(x, propensity, stratum,
+                                      jitter_prognosis, jitter_propensity)
   else if (type == "residual") make_resid_plot(x)
   else {
     stop("Not a recognized plot type.")
@@ -260,10 +265,10 @@ make_hist_plot <- function(x, propensity, s){
 #' object with \code{type = "FM"}. Produces a Fisher-Mill plot of stratum \code{s}
 #'
 #' @inheritParams plot.strata
-#' @param s the number code of the strata to be plotted
+#' @param s the number code of the stratum to be plotted
 #' @seealso Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
 #'   Section 3.2 for an explaination of Fisher-Mill plots
-make_fm_plot <- function(x, propensity, s){
+make_fm_plot <- function(x, propensity, s, jitter_prognosis, jitter_propensity){
   if (!is.auto_strata(x)){
     stop("Cannot make Fisher-Mill plots on manually stratified data.")
   }
@@ -273,13 +278,25 @@ make_fm_plot <- function(x, propensity, s){
   if (!is.element(s, unique(a_set$stratum))){
     stop("Stratum number does not exist in analysis set")
   }
-
+  
   prop_scores = get_prop_scores(propensity, a_set, x$treat)
   
   plt_data <- a_set %>%
     dplyr::mutate(prop_score = prop_scores,
                   prog_score = x$prognostic_scores) %>%
     dplyr::filter(.data$stratum == s)
+  
+  # if jitter arguments supplied, add jitter.
+  if(!missing(jitter_propensity)){ 
+    plt_data <- dplyr::mutate(plt_data,
+                              prop_score = jitter(.data$prop_score,
+                                                  amount = jitter_propensity))
+  } 
+  if(!missing(jitter_prognosis)){ 
+    plt_data <- dplyr::mutate(plt_data,
+                              prog_score = jitter(.data$prog_score,
+                                                  amount = jitter_prognosis))
+  } 
 
   plt_data$color <- ifelse(plt_data[[x$treat]] == 1, "red", "blue")
   
