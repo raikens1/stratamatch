@@ -15,7 +15,7 @@ Stratamatch requires R version 3.4.0 or higher.  In order to install this packag
 To install from CRAN:
 
 ```r
-install.packages("stratamatch"
+install.packages("stratamatch")
 ```
 
 After installation, to load the package and attach it to the namespace, run:
