@@ -4,7 +4,8 @@
 \alias{split_pilot_set}
 \title{Split data into pilot and analysis sets}
 \usage{
-split_pilot_set(data, treat, pilot_fraction = 0.1, pilot_sample = NULL)
+split_pilot_set(data, treat, pilot_fraction = 0.1, pilot_sample = NULL,
+  group_by_covariates = NULL)
 }
 \arguments{
 \item{data}{\code{data.frame} with observations as rows, features as columns}
@@ -17,6 +18,9 @@ controls to be allotted for building the prognostic score (default = 0.1)}
 
 \item{pilot_sample}{a data.frame of held aside samples for building
 prognostic score model.}
+
+\item{group_by_covariates}{character vector giving the names of covariates to
+be grouped by}
 }
 \value{
 a list with analaysis_set and pilot_set

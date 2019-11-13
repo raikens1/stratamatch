@@ -4,7 +4,8 @@
 \alias{check_pilot_set_options}
 \title{Check Prognostic Formula}
 \usage{
-check_pilot_set_options(pilot_sample, pilot_fraction)
+check_pilot_set_options(pilot_sample, pilot_fraction, group_by_covariates,
+  data)
 }
 \arguments{
 \item{pilot_sample}{a data.frame of held aside samples for building
@@ -12,6 +13,8 @@ prognostic score model.}
 
 \item{pilot_fraction}{numeric between 0 and 1 giving the proportion of
 controls to be allotted for building the prognostic score (default = 0.1)}
+
+\item{data}{\code{data.frame} with observations as rows, features as columns}
 }
 \value{
 nothing

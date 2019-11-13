@@ -124,6 +124,21 @@ test_that("auto_stratify errors work", {
                              prognosis = outcomes ~ X1,
                              pilot_sample = -1),
                "pilot_sample must be a data.frame")
+  expect_error(auto_stratify(test_dat,
+                             treat = "treated",
+                             prognosis = outcomes ~ X1,
+                             group_by_covariates = "socks"),
+               "All covariates in group_by_covariates must be columns of the data")
+  expect_warning(auto_stratify(test_dat,
+                               treat = "treated",
+                               prognosis = outcomes ~ X1,
+                               group_by_covariates = "X1"),
+                 "All covariates in group_by_covariates must be discrete")
+  expect_error(auto_stratify(test_dat,
+                             treat = "treated",
+                             prognosis = outcomes ~ X1,
+                             group_by_covariates = 9),
+               "group_by_covariates should be a character vector")
   
   # bad outcome format
   test_dat$outcome_12 <- test_dat$outcomes + 1
