@@ -35,6 +35,9 @@
 manual_stratify <- function(data, strata_formula, force = FALSE){
 
   check_inputs_manual_stratify(data, strata_formula, force)
+  
+  # if input data is grouped, all sorts of strange things happen
+  data <- data %>% dplyr::ungroup()
 
   treat <- all.vars(strata_formula)[1]
   covariates <- all.vars(strata_formula)[-1]
@@ -90,6 +93,7 @@ manual_stratify <- function(data, strata_formula, force = FALSE){
 #' @param n, the number of rows in the data set
 #' @return Does not return anything
 warn_if_continuous <- function(column, name, force, n){
+  
   if (is.factor(column) | !is.numeric(column)){
     return() # assume all factors are discrete
   } else {
@@ -102,7 +106,7 @@ warn_if_continuous <- function(column, name, force, n){
       } else {
         warning(paste("There are ", values,
                       " distinct values for ", name,
-                      ". Is it continuous?", sep = ""))
+                      ". Is it continuous?", sep = ""), immediate. = T)
       }
     }
     return()
@@ -140,6 +144,6 @@ check_inputs_manual_stratify <- function(data, strata_formula, force){
 
   # Check that all covariates are discrete
   for (i in 1:length(covariates)){
-    warn_if_continuous(data[, covariates[i]], covariates[i], force, n)
+    warn_if_continuous(data[[covariates[i]]], covariates[i], force, n)
   }
 }

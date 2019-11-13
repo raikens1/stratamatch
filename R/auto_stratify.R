@@ -96,6 +96,11 @@
 #'   controls to be allotted for building the prognostic score (default = 0.1)
 #' @param pilot_sample a data.frame of held aside samples for building
 #'   prognostic score model.
+#' @param group_by_covariates character vector giving the names of covariates to
+#'   be grouped by (optional). If specified, the pilot set will be sampled in a
+#'   stratified manner, so that the composition of the pilot set reflects the
+#'   composition of the whole data set in terms of these covariates.  The
+#'   specified covariates must be categorical.
 #' @return Returns a \code{strata} object
 #' @seealso \code{\link{manual_stratify}}, \code{\link{new_auto_strata}}
 #' @export
@@ -128,12 +133,16 @@
 #'   plot(a.strat_formula, type = "residual")
 auto_stratify <- function(data, treat, prognosis,
                           outcome = NULL, size = 2500,
-                          pilot_fraction = 0.1, pilot_sample = NULL) {
+                          pilot_fraction = 0.1, pilot_sample = NULL,
+                          group_by_covariates = NULL) {
 
   check_base_inputs_auto_stratify(data, treat, outcome)
+  
+  # if input data is grouped, all sorts of strange things happen
+  data <- data %>% dplyr::ungroup()
 
-  build <- build_autostrata(data, treat, prognosis,
-                             outcome, pilot_fraction, pilot_sample)
+  build <- build_autostrata(data, treat, prognosis, outcome,
+                            pilot_fraction, pilot_sample, group_by_covariates)
 
   analysis_set <- build$analysis_set
   prognostic_scores <- build$prognostic_scores
@@ -181,8 +190,8 @@ auto_stratify <- function(data, treat, prognosis,
 #'
 #' @return a list of: analysis set, prognostic scores, pilot set, prognostic
 #'   model, and outcome string
-build_autostrata <- function(data, treat, prognosis,
-                              outcome, pilot_fraction, pilot_sample){
+build_autostrata <- function(data, treat, prognosis, outcome,
+                             pilot_fraction, pilot_sample, group_by_covariates){
   # prognosis is a vector of prognostic scores
   if (is.numeric(prognosis)){
     check_scores(prognosis, data)
@@ -198,7 +207,8 @@ build_autostrata <- function(data, treat, prognosis,
   # prognosis is a formula
   else if (inherits(prognosis, "formula")){
     check_prognostic_formula(prognosis, data, outcome, treat)
-    split <- split_pilot_set(data, treat, pilot_fraction, pilot_sample)
+    split <- split_pilot_set(data, treat,
+                             pilot_fraction, pilot_sample, group_by_covariates)
     pilot_set <- split$pilot_set
     analysis_set <- split$analysis_set
     outcome <- all.vars(prognosis)[1]
@@ -260,7 +270,7 @@ fit_prognostic_model <- function(dat, prognostic_formula, outcome){
                                  warning = function(w) {
                                    message("Warning while fitting the prognostic model.")
                                    message("For troubleshooting help, run help(\"auto_stratify\")")
-                                   stop(w)
+                                   warning(w)
                                  }) 
   }
   
@@ -312,7 +322,7 @@ estimate_scores <- function(prognostic_model, analysis_set){
            warning = function(w) {
              message("Warning while estimating prognostic scores from the prognostic model.")
              message("For troubleshooting help, run help(\"auto_stratify\")")
-             stop(w)
+             warning(w)
            })
 }
 

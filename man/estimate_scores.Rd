@@ -2,7 +2,7 @@
 % Please edit documentation in R/auto_stratify.R
 \name{estimate_scores}
 \alias{estimate_scores}
-\title{Make Prog Scores}
+\title{Estimate Prognostic Scores}
 \usage{
 estimate_scores(prognostic_model, analysis_set)
 }

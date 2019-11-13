@@ -16,11 +16,6 @@
 #' \code{analysis_set} and \code{pilot_set}.
 #'
 #' @inheritParams auto_stratify
-#' @param group_by_covariates character vector giving the names of covariates to
-#'   be grouped by (optional). If specified, the pilot set will be sampled in a
-#'   stratified manner, so that the composition of the pilot set reflects the
-#'   composition of the whole data set in terms of these covariates.  The
-#'   specified covariates must be categorical.
 #'
 #' @return a list with analaysis_set and pilot_set
 #' @export
@@ -32,11 +27,15 @@ split_pilot_set <- function(data, treat,
                             pilot_fraction = 0.1,
                             pilot_sample = NULL,
                             group_by_covariates = NULL){
-  check_pilot_set_options(pilot_sample, pilot_fraction,
-                          group_by_covariates, data)
   
   # since this function can be called externally now, need to check standard inputs
   check_base_inputs_auto_stratify(data, treat, outcome = NULL)
+  
+  check_pilot_set_options(pilot_sample, pilot_fraction,
+                          group_by_covariates, data)
+  
+  # if input data is grouped, all sorts of strange things happen
+  data <- data %>% dplyr::ungroup()
   
   pilot_set <- NULL
   
@@ -87,6 +86,7 @@ split_pilot_set <- function(data, treat,
 #' @return nothing
 check_pilot_set_options <- function(pilot_sample, pilot_fraction,
                                     group_by_covariates, data){
+
   if (!is.numeric(pilot_fraction)) stop("pilot_fraction must be numeric")
   if (pilot_fraction >= 1 | pilot_fraction <= 0) stop("pilot_fraction must be between 0 and 1")
   
@@ -100,6 +100,16 @@ check_pilot_set_options <- function(pilot_sample, pilot_fraction,
     }
     if (!all(is.element(group_by_covariates, colnames(data)))){
       stop("All covariates in group_by_covariates must be columns of the data")
+    }
+    n <- dim(data)[1]
+    # Check that all covariates are discrete
+    for (i in 1:length(group_by_covariates)){
+      tryCatch(warn_if_continuous(data[[group_by_covariates[i]]], group_by_covariates[i],
+                                  TRUE, n), 
+               warning = function(w) {
+                 message("All covariates in group_by_covariates should be discrete")
+                 warning(w)
+               })
     }
   }
 }

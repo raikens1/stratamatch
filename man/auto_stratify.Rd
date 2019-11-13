@@ -5,7 +5,8 @@
 \title{Auto Stratify}
 \usage{
 auto_stratify(data, treat, prognosis, outcome = NULL, size = 2500,
-  pilot_fraction = 0.1, pilot_sample = NULL)
+  pilot_fraction = 0.1, pilot_sample = NULL,
+  group_by_covariates = NULL)
 }
 \arguments{
 \item{data}{\code{data.frame} with observations as rows, features as columns}
@@ -30,6 +31,12 @@ controls to be allotted for building the prognostic score (default = 0.1)}
 
 \item{pilot_sample}{a data.frame of held aside samples for building
 prognostic score model.}
+
+\item{group_by_covariates}{character vector giving the names of covariates to
+be grouped by (optional). If specified, the pilot set will be sampled in a
+stratified manner, so that the composition of the pilot set reflects the
+composition of the whole data set in terms of these covariates.  The
+specified covariates must be categorical.}
 }
 \value{
 Returns a \code{strata} object

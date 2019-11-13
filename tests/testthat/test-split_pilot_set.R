@@ -51,10 +51,32 @@ test_that("split_pilot_set errors work", {
   expect_warning(split_pilot_set(test_dat,
                                treat = "treated",
                                group_by_covariates = "X1"),
-               "All covariates in group_by_covariates must be discrete")
+               "There are 100 distinct values for X1. Is it continuous?")
   expect_error(split_pilot_set(test_dat,
                                  treat = "treated",
                                  group_by_covariates = 9),
                  "group_by_covariates should be a character vector")
+})
+
+test_that("split pilot set with pilot sample specified", {
+  pilot_set <- dplyr::sample_frac(test_dat, 0.1)
   
+  mysplit <- split_pilot_set(test_dat, "treated", pilot_sample = pilot_set)
+  
+  expect_equal(pilot_set, mysplit$pilot_set)
+  expect_equal(test_dat, mysplit$analysis_set)
+})
+
+test_that("split pilot set with pilot_frac and group_by_covariates specified", {
+  mysplit <- split_pilot_set(test_dat, "treated", pilot_frac = 0.1, 
+                             group_by_covariates = c("B1", "B2"))
+  
+  # hard to come up with a great way to test that this went correctly
+  # for now, check that both have at least one row, that all members of the
+  # pilot set are controls, and that the number of rows combined is 100
+  expect_true(dim(mysplit$analysis_set)[1] > 0)
+  expect_true(dim(mysplit$pilot_set)[1] > 0)
+  expect_true(all(mysplit$pilot_set$treated == 0))
+  
+  expect_equal(dim(mysplit$analysis_set)[1] + dim(mysplit$pilot_set)[1], 100)
 })
