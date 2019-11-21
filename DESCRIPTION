@@ -1,6 +1,6 @@
 Package: stratamatch
 Type: Package
-Date: 2019-10-10
+Date: 2019-11-12
 Title: Stratification and Matching for Large Observational Data Sets
 Version: 0.1.2
 Authors@R: c(
