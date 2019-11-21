@@ -1,6 +1,6 @@
 #----------------------------------------------------------
 ### CONTAINS: 
-# auto_stratify its helper functions
+# auto_stratify its helper functions, except split_pilot_set
 #----------------------------------------------------------
 #----------------------------------------------------------
 ### AUTO STRATIFY
@@ -10,8 +10,8 @@
 #'
 #' Automatically creates strata for matching based on a prognostic score formula
 #' or a vector of prognostic scores already estimated by the user. Creates a
-#' \code{auto_strata} object, which can be passed to \code{\link{strata_match}} for
-#' stratified matching or unpacked by the user to be matched by some other
+#' \code{auto_strata} object, which can be passed to \code{\link{strata_match}}
+#' for stratified matching or unpacked by the user to be matched by some other
 #' means.
 #'
 #' Stratifying by prognostic score quantiles can be more effective than manually
@@ -96,6 +96,11 @@
 #'   controls to be allotted for building the prognostic score (default = 0.1)
 #' @param pilot_sample a data.frame of held aside samples for building
 #'   prognostic score model.
+#' @param group_by_covariates character vector giving the names of covariates to
+#'   be grouped by (optional). If specified, the pilot set will be sampled in a
+#'   stratified manner, so that the composition of the pilot set reflects the
+#'   composition of the whole data set in terms of these covariates.  The
+#'   specified covariates must be categorical.
 #' @return Returns a \code{strata} object
 #' @seealso \code{\link{manual_stratify}}, \code{\link{new_auto_strata}}
 #' @export
@@ -103,24 +108,24 @@
 #'   # make sample data set
 #'   set.seed(111)
 #'   dat <- make_sample_data(n = 75)
-#'   
+#'
 #'   # construct a pilot set, build a prognostic score for `outcome` based on X2
 #'   # and stratify the data set based on the scores into sets of about 25
 #'   # observations
 #'   a.strat_formula <- auto_stratify(dat, "treat", outcome ~ X2, size = 25)
-#'   
+#'
 #'   # stratify the data set based on a model for prognosis
 #'   pilot_data <- make_sample_data(n = 30)
 #'   prognostic_model <- glm(outcome ~ X2, pilot_data, family = "binomial")
 #'   a.strat_model <- auto_stratify(dat, "treat", prognostic_model,
 #'                                  outcome = "outcome", size = 25)
-#'                                  
+#'
 #'   # stratify the data set based on a vector of prognostic scores
 #'   prognostic_scores <- predict(prognostic_model, newdata = dat,
 #'                                type = "response")
 #'   a.strat_scores <- auto_stratify(dat, "treat", prognostic_scores,
 #'                                   outcome = "outcome", size = 25)
-#'                                   
+#'
 #'   # diagnostic plots
 #'   plot(a.strat_formula)
 #'   plot(a.strat_formula, type = "FM", propensity = treat ~ X1, stratum = 1)
@@ -128,12 +133,16 @@
 #'   plot(a.strat_formula, type = "residual")
 auto_stratify <- function(data, treat, prognosis,
                           outcome = NULL, size = 2500,
-                          pilot_fraction = 0.1, pilot_sample = NULL) {
+                          pilot_fraction = 0.1, pilot_sample = NULL,
+                          group_by_covariates = NULL) {
 
-  check_inputs_auto_stratify(data, treat, outcome)
+  check_base_inputs_auto_stratify(data, treat, outcome)
+  
+  # if input data is grouped, all sorts of strange things happen
+  data <- data %>% dplyr::ungroup()
 
-  build <- build_prognostic_scores(data, treat, prognosis,
-                             outcome, pilot_fraction, pilot_sample)
+  build <- build_autostrata(data, treat, prognosis, outcome,
+                            pilot_fraction, pilot_sample, group_by_covariates)
 
   analysis_set <- build$analysis_set
   prognostic_scores <- build$prognostic_scores
@@ -168,7 +177,7 @@ auto_stratify <- function(data, treat, prognosis,
 #----------------------------------------------------------
 
 
-#' Build Prognostic Scores
+#' Build Autostrata object
 #'
 #' Not meant to be called externally. Given the arguments to auto_stratify,
 #' build the prognostic scores and return the analysis set, the prognostic
@@ -181,8 +190,8 @@ auto_stratify <- function(data, treat, prognosis,
 #'
 #' @return a list of: analysis set, prognostic scores, pilot set, prognostic
 #'   model, and outcome string
-build_prognostic_scores <- function(data, treat, prognosis,
-                              outcome, pilot_fraction, pilot_sample){
+build_autostrata <- function(data, treat, prognosis, outcome,
+                             pilot_fraction, pilot_sample, group_by_covariates){
   # prognosis is a vector of prognostic scores
   if (is.numeric(prognosis)){
     check_scores(prognosis, data)
@@ -198,7 +207,8 @@ build_prognostic_scores <- function(data, treat, prognosis,
   # prognosis is a formula
   else if (inherits(prognosis, "formula")){
     check_prognostic_formula(prognosis, data, outcome, treat)
-    split <- split_pilot_set(data, treat, pilot_fraction, pilot_sample)
+    split <- split_pilot_set(data, treat,
+                             pilot_fraction, pilot_sample, group_by_covariates)
     pilot_set <- split$pilot_set
     analysis_set <- split$analysis_set
     outcome <- all.vars(prognosis)[1]
@@ -228,47 +238,6 @@ build_prognostic_scores <- function(data, treat, prognosis,
   return(list(analysis_set = analysis_set, prognostic_scores = prognostic_scores,
               pilot_set = pilot_set, prognostic_model = prognostic_model,
               outcome = outcome))
-}
-
-#' Split data into pilot and analysis sets
-#'
-#' Exported for the convenience of the user, although in practice this process
-#' is almost always done using \code{\link{auto_stratify}}.  Given a data set
-#' and some parameters about how to split the data, this function partitions the
-#' data accordingly and returns the partitioned data as a list containing the
-#' \code{analysis_set} and \code{pilot_set}.
-#'
-#' @inheritParams auto_stratify
-#'
-#' @return a list with analaysis_set and pilot_set
-#' @export
-#' @examples 
-#'   dat <- make_sample_data()
-#'   splt <- split_pilot_set(dat, "treat", 0.2)
-#'   a.strat <- auto_stratify(splt$analysis_set, "treat", outcome ~ X1, pilot_sample = splt$pilot_set)
-split_pilot_set <- function(data, treat, pilot_fraction = 0.1, pilot_sample = NULL){
-  check_pilot_set_options(pilot_sample, pilot_fraction)
-  pilot_set <- NULL
-
-  # if pilot_sample is specified use that to build score
-  if (!is.null(pilot_sample)){
-    message("Using user-specified set for prognostic score modeling.")
-    pilot_set <- pilot_sample
-    analysis_set <- data
-
-  } else {
-    # otherwise, construct a pilot set
-    message(paste0("Constructing a pilot set by subsampling ", pilot_fraction*100, "% of controls."))
-    # Adds an id column and removes it
-    data$stratamatch_id <- 1:nrow(data)
-    pilot_set <- data[ (data[[treat]] == 0),] %>%
-      dplyr::sample_frac(pilot_fraction, replace = FALSE)
-    analysis_set <- dplyr::anti_join(data, pilot_set,
-                                     by = "stratamatch_id") %>%
-      dplyr::select(-.data$stratamatch_id)
-    pilot_set$stratamatch_id <- NULL
-  }
-  return(list(analysis_set = analysis_set, pilot_set = pilot_set))
 }
 
 
@@ -301,7 +270,7 @@ fit_prognostic_model <- function(dat, prognostic_formula, outcome){
                                  warning = function(w) {
                                    message("Warning while fitting the prognostic model.")
                                    message("For troubleshooting help, run help(\"auto_stratify\")")
-                                   stop(w)
+                                   warning(w)
                                  }) 
   }
   
@@ -330,7 +299,7 @@ fit_prognostic_model <- function(dat, prognostic_formula, outcome){
   return(prognostic_model)
 }
 
-#' Make Prog Scores
+#' Estimate Prognostic Scores
 #'
 #' Tries to make prognostic scores.  If successfull, returns them, otherwise
 #' throws an error message.  Common failure mode is that the prognostic score is
@@ -353,7 +322,7 @@ estimate_scores <- function(prognostic_model, analysis_set){
            warning = function(w) {
              message("Warning while estimating prognostic scores from the prognostic model.")
              message("For troubleshooting help, run help(\"auto_stratify\")")
-             stop(w)
+             warning(w)
            })
 }
 
@@ -375,7 +344,6 @@ make_autostrata_table <- function(qcut){
 ### Input Checkers
 #----------------------------------------------------------
 
-
 #' Check inputs from auto_stratify
 #'
 #' Not meant to be called externally.  Throws errors if basic auto_stratify 
@@ -384,7 +352,7 @@ make_autostrata_table <- function(qcut){
 #' @inheritParams auto_stratify
 #'
 #' @return nothing; produces errors and warnings if anything is wrong
-check_inputs_auto_stratify <- function(data, treat, outcome){
+check_base_inputs_auto_stratify <- function(data, treat, outcome){
   # general checks
   if (!is.data.frame(data)) stop("data must be a data.frame")
   if (!(is.character(treat) & length(treat) == 1)){
@@ -459,19 +427,6 @@ check_prognostic_formula <- function(prog_formula, data, outcome, treat){
   }
 }
 
-#' Check Prognostic Formula
-#'
-#' @inheritParams auto_stratify
-#' 
-#' @return nothing
-check_pilot_set_options <- function(pilot_sample, pilot_fraction){
-  if (!is.numeric(pilot_fraction)) stop("pilot_fraction must be numeric")
-  if (pilot_fraction >= 1 | pilot_fraction <= 0) stop("pilot_fraction must be between 0 and 1")
-
-  if (!is.null(pilot_sample) & !is.data.frame(pilot_sample)){
-    stop("pilot_sample must be a data.frame")
-  }
-}
 
 #' Check if a vector is binary
 #' 

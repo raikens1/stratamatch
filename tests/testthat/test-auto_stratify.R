@@ -124,6 +124,16 @@ test_that("auto_stratify errors work", {
                              prognosis = outcomes ~ X1,
                              pilot_sample = -1),
                "pilot_sample must be a data.frame")
+  expect_error(auto_stratify(test_dat,
+                             treat = "treated",
+                             prognosis = outcomes ~ X1,
+                             group_by_covariates = "socks"),
+               "All covariates in group_by_covariates must be columns of the data")
+  expect_error(auto_stratify(test_dat,
+                             treat = "treated",
+                             prognosis = outcomes ~ X1,
+                             group_by_covariates = 9),
+               "group_by_covariates should be a character vector")
   
   # bad outcome format
   test_dat$outcome_12 <- test_dat$outcomes + 1
@@ -203,20 +213,25 @@ test_that("auto_stratify with prognostic formula + pilot_fraction works", {
                            outcome = "outcomes",
                            prognosis = outcomes ~ X1,
                            pilot_fraction = 0.2,
-                           size = 25)
+                           size = 25,
+                           group_by_covariates = c("B1", "B2"))
 
   expect_is(a.strat, "auto_strata")
   expect_is(a.strat, "strata")
+  
+  expect_true(dim(a.strat$analysis_set)[1] > 0)
+  expect_true(dim(a.strat$pilot_set)[1] > 0)
+  expect_true(all(a.strat$pilot_set$treated == 0))
   
   expect_equal(sort(unique(a.strat$analysis_set$stratum)), 1:4)
   expect_equal(dim(a.strat$analysis_set)[1] + dim(a.strat$pilot_set)[1], 100)
   expect_equal(dim(a.strat$analysis_set)[2], 10)
   expect_equal(dim(a.strat$pilot_set)[2], 9)
-
+  
   expect_equal(a.strat$treat, "treated")
 
   expect_equal(toString(a.strat$call),
-               "auto_stratify, test_dat, treated, outcomes ~ X1, outcomes, 25, 0.2")
+               "auto_stratify, test_dat, treated, outcomes ~ X1, outcomes, 25, 0.2, c(\"B1\", \"B2\")")
 
   expect_issue_table_ok(a.strat$issue_table, dim(a.strat$analysis_set)[1], 4)
   expect_strata_table_ok(a.strat$strata_table, dim(a.strat$analysis_set)[1], 4)

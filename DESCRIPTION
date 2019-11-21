@@ -2,7 +2,7 @@ Package: stratamatch
 Type: Package
 Date: 2019-10-10
 Title: Stratification and Matching for Large Observational Data Sets
-Version: 0.1.1
+Version: 0.1.2
 Authors@R: c(
            person("Rachael C.", "Aikens", email = "rockyaikens@gmail.com",
                   role = c("aut", "cre")),
