@@ -38,5 +38,6 @@ data accordingly and returns the partitioned data as a list containing the
 \examples{
   dat <- make_sample_data()
   splt <- split_pilot_set(dat, "treat", 0.2)
-  a.strat <- auto_stratify(splt$analysis_set, "treat", outcome ~ X1, pilot_sample = splt$pilot_set)
+  a.strat <- auto_stratify(splt$analysis_set, "treat", outcome ~ X1,
+   pilot_sample = splt$pilot_set)
 }
