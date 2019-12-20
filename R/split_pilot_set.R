@@ -22,13 +22,14 @@
 #' @examples
 #'   dat <- make_sample_data()
 #'   splt <- split_pilot_set(dat, "treat", 0.2)
-#'   a.strat <- auto_stratify(splt$analysis_set, "treat", outcome ~ X1, pilot_sample = splt$pilot_set)
+#'   a.strat <- auto_stratify(splt$analysis_set, "treat", outcome ~ X1,
+#'    pilot_sample = splt$pilot_set)
 split_pilot_set <- function(data, treat,
                             pilot_fraction = 0.1,
                             pilot_sample = NULL,
                             group_by_covariates = NULL){
   
-  # since this function can be called externally now, need to check standard inputs
+  # since this function can be called externally, need to check standard inputs
   check_base_inputs_auto_stratify(data, treat, outcome = NULL)
   
   check_pilot_set_options(pilot_sample, pilot_fraction,
@@ -47,7 +48,8 @@ split_pilot_set <- function(data, treat,
     
   } else {
     # otherwise, construct a pilot set
-    message(paste0("Constructing a pilot set by subsampling ", pilot_fraction*100, "% of controls."))
+    message(paste0("Constructing a pilot set by subsampling ",
+                   pilot_fraction*100, "% of controls."))
     
     # Adds an id column
     data$stratamatch_id <- 1:nrow(data)
@@ -88,8 +90,9 @@ check_pilot_set_options <- function(pilot_sample, pilot_fraction,
                                     group_by_covariates, data){
 
   if (!is.numeric(pilot_fraction)) stop("pilot_fraction must be numeric")
-  if (pilot_fraction >= 1 | pilot_fraction <= 0) stop("pilot_fraction must be between 0 and 1")
-  
+  if (pilot_fraction >= 1 | pilot_fraction <= 0) {
+    stop("pilot_fraction must be between 0 and 1")
+  }
   if (!is.null(pilot_sample) & !is.data.frame(pilot_sample)){
     stop("pilot_sample must be a data.frame")
   }
@@ -104,8 +107,8 @@ check_pilot_set_options <- function(pilot_sample, pilot_fraction,
     n <- dim(data)[1]
     # Check that all covariates are discrete
     for (i in 1:length(group_by_covariates)){
-      tryCatch(warn_if_continuous(data[[group_by_covariates[i]]], group_by_covariates[i],
-                                  TRUE, n), 
+      tryCatch(warn_if_continuous(data[[group_by_covariates[i]]],
+                                  group_by_covariates[i], TRUE, n), 
                warning = function(w) {
                  message("All covariates in group_by_covariates should be discrete")
                  warning(w)
