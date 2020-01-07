@@ -6,6 +6,9 @@
 #' treatment = 1 is sigmoid(- 0.2 * X1 + X2 - B1 + 2 * B2)
 #'
 #' @param n the size of the desired data set
+#' @examples
+#'   # make sample data set of 30 observations
+#'   dat <- make_sample_data(n = 30)
 #' @export
 make_sample_data <- function(n = 100){
   # make distribution of C3 depend on C1
