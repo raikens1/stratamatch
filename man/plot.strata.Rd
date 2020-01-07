@@ -46,14 +46,6 @@ for \code{manual strata} objects) \item \code{"residual"} - produces a
 residual plot for the prognostic model (not supported for \code{manual
 strata} objects)}
 }
-\examples{
-dat <- make_sample_data()
-a.strat <- auto_stratify(dat, "treat", outcome ~ X1 + X2)
-plot(a.strat) # makes size-ratio scatter plot
-plot(a.strat, type = "hist", propensity = treat ~ X1, stratum = 1)
-plot(a.strat, type = "FM", propensity = treat ~ X1, stratum = 1)
-plot(a.strat, type = "residual")
-}
 \seealso{
 Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
   Section 3.2 for an explaination of Fisher-Mill plots

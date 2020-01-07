@@ -16,8 +16,3 @@ Returns \code{TRUE} if its argument has \code{strata} among its classes and
 \description{
 Checks if the target object is a \code{strata} object.
 }
-\examples{
-dat <- make_sample_data()
-m.strat <- manual_stratify(dat, treat ~ C1)
-is.strata(m.strat) # returns TRUE
-}

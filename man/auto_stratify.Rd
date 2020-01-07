@@ -117,34 +117,6 @@ model for prognosis (e.g. a \code{glm} object).  If this method is used, the
   a prognostic model with the number of covariates you want.
 }
 
-\examples{
-  # make sample data set
-  set.seed(111)
-  dat <- make_sample_data(n = 75)
-
-  # construct a pilot set, build a prognostic score for `outcome` based on X2
-  # and stratify the data set based on the scores into sets of about 25
-  # observations
-  a.strat_formula <- auto_stratify(dat, "treat", outcome ~ X2, size = 25)
-
-  # stratify the data set based on a model for prognosis
-  pilot_data <- make_sample_data(n = 30)
-  prognostic_model <- glm(outcome ~ X2, pilot_data, family = "binomial")
-  a.strat_model <- auto_stratify(dat, "treat", prognostic_model,
-                                 outcome = "outcome", size = 25)
-
-  # stratify the data set based on a vector of prognostic scores
-  prognostic_scores <- predict(prognostic_model, newdata = dat,
-                               type = "response")
-  a.strat_scores <- auto_stratify(dat, "treat", prognostic_scores,
-                                  outcome = "outcome", size = 25)
-
-  # diagnostic plots
-  plot(a.strat_formula)
-  plot(a.strat_formula, type = "FM", propensity = treat ~ X1, stratum = 1)
-  plot(a.strat_formula, type = "hist", propensity = treat ~ X1, stratum = 1)
-  plot(a.strat_formula, type = "residual")
-}
 \seealso{
 \code{\link{manual_stratify}}, \code{\link{new_auto_strata}}
 }

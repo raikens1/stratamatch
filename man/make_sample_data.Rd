@@ -15,7 +15,3 @@ covariates: X1 (continuous), X2 (continuous), B1 (binary), B2 (binary), and
 C1 (categorical). Probability outcome = 1 is sigmoid(treat + X1). Probability
 treatment = 1 is sigmoid(- 0.2 * X1 + X2 - B1 + 2 * B2)
 }
-\examples{
-  # make sample data set of 30 observations
-  dat <- make_sample_data(n = 30)
-}

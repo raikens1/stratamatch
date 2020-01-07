@@ -26,16 +26,6 @@ user. Creates a \code{manual_strata} object, which can be passed to
 \code{\link{strata_match}} for stratified matching or unpacked by the user to be
 matched by some other means.
 }
-\examples{
-  # make sample data set
-  dat <- make_sample_data(n = 75)
-  
-  # stratify based on B1 and B2
-  m.strat <- manual_stratify(dat, treat ~ B1 + B2)
-  
-  # diagnostic plot
-  plot(m.strat)
-}
 \seealso{
 \code{\link{auto_stratify}}, \code{\link{new_manual_strata}}
 }

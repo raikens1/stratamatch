@@ -14,8 +14,3 @@
 \description{
 Print method for \code{manual_strata} object
 }
-\examples{
-dat <- make_sample_data()
-m.strat <- manual_stratify(dat, treat ~ C1)
-print(m.strat) # prints information about m.strat
-}
