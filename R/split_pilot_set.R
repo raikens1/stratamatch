@@ -19,11 +19,6 @@
 #'
 #' @return a list with analaysis_set and pilot_set
 #' @export
-#' @examples
-#'   dat <- make_sample_data()
-#'   splt <- split_pilot_set(dat, "treat", 0.2)
-#'   a.strat <- auto_stratify(splt$analysis_set, "treat", outcome ~ X1,
-#'    pilot_sample = splt$pilot_set)
 split_pilot_set <- function(data, treat,
                             pilot_fraction = 0.1,
                             pilot_sample = NULL,
