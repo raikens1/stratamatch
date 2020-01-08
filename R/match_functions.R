@@ -16,6 +16,16 @@
 #'   treated individual
 #' @return a named factor with matching assignments
 #' @export
+#' @examples 
+#' # make a sample data set
+#' set.seed(1)
+#' dat <- make_sample_data(n = 75)
+#'   
+#' # stratify with auto_stratify
+#' a.strat <- auto_stratify(dat, "treat", outcome ~ X2, size = 25)
+#'   
+#' # 1:1 match based on propensity formula: treat ~ X1 + X2
+#' strata_match(a.strat, propensity = treat ~ X1 + X2, k = 1)
 strata_match <- function(object, propensity = NULL, k = 1){
   
   if (!requireNamespace("optmatch", quietly = TRUE)) {

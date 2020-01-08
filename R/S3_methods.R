@@ -15,6 +15,10 @@
 #' @return Returns \code{TRUE} if its argument has \code{strata} among its classes and
 #' \code{FALSE} otherwise.
 #' @export
+#' @examples 
+#' dat <- make_sample_data()
+#' m.strat <- manual_stratify(dat, treat ~ C1)
+#' is.strata(m.strat) # returns TRUE
 is.strata <- function(object) {
   inherits(object, "strata")
 }
@@ -27,6 +31,10 @@ is.strata <- function(object) {
 #' @return Returns \code{TRUE} if its argument has \code{auto_strata} among its classes and
 #' \code{FALSE} otherwise.
 #' @export
+#' @examples 
+#' dat <- make_sample_data()
+#' a.strat <- auto_stratify(dat, "treat", outcome ~ X1 + X2)
+#' is.auto_strata(a.strat) # returns TRUE
 is.auto_strata <- function(object) {
   inherits(object, "auto_strata")
 }
@@ -40,6 +48,10 @@ is.auto_strata <- function(object) {
 #' @return Returns \code{TRUE} if its argument has \code{manual_strata} among its classes and
 #' \code{FALSE} otherwise.
 #' @export
+#' @examples 
+#' dat <- make_sample_data()
+#' m.strat <- manual_stratify(dat, treat ~ C1)
+#' is.manual_strata(m.strat) # returns TRUE
 is.manual_strata <- function(object) {
   inherits(object, "manual_strata")
 }
@@ -56,6 +68,10 @@ is.manual_strata <- function(object) {
 #' @param x, an \code{auto_strata} object
 #' @param ... other arguments
 #' @export
+#' @examples 
+#' dat <- make_sample_data()
+#' a.strat <- auto_stratify(dat, "treat", outcome ~ X1 + X2)
+#' print(a.strat) # prints information about a.strat
 print.auto_strata <- function(x, ...) {
   writeLines("auto_strata object from package stratamatch.\n")
 
@@ -91,6 +107,10 @@ print.auto_strata <- function(x, ...) {
 #' @param x, a \code{manual_strata} object
 #' @param ... other arguments
 #' @export
+#' @examples 
+#' dat <- make_sample_data()
+#' m.strat <- manual_stratify(dat, treat ~ C1)
+#' print(m.strat) # prints information about m.strat
 print.manual_strata <- function(x, ...) {
   writeLines("manual_strata object from package stratamatch.\n")
 
@@ -144,6 +164,13 @@ print.manual_strata <- function(x, ...) {
 #' @seealso Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
 #'   Section 3.2 for an explaination of Fisher-Mill plots
 #' @export
+#' @examples
+#' dat <- make_sample_data()
+#' a.strat <- auto_stratify(dat, "treat", outcome ~ X1 + X2)
+#' plot(a.strat) # makes size-ratio scatter plot
+#' plot(a.strat, type = "hist", propensity = treat ~ X1, stratum = 1)
+#' plot(a.strat, type = "FM", propensity = treat ~ X1, stratum = 1)
+#' plot(a.strat, type = "residual")
 plot.strata <- function(x, type = "SR", label = FALSE, jitter_prognosis,
                         jitter_propensity, propensity, stratum, ...){
   if (type == "SR") make_SR_plot(x, label)

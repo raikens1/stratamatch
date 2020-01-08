@@ -14,3 +14,8 @@
 \description{
 Print method for \code{auto_strata} object
 }
+\examples{
+dat <- make_sample_data()
+a.strat <- auto_stratify(dat, "treat", outcome ~ X1 + X2)
+print(a.strat) # prints information about a.strat
+}

@@ -35,3 +35,9 @@ and some parameters about how to split the data, this function partitions the
 data accordingly and returns the partitioned data as a list containing the
 \code{analysis_set} and \code{pilot_set}.
 }
+\examples{
+  dat <- make_sample_data()
+  splt <- split_pilot_set(dat, "treat", 0.2)
+  a.strat <- auto_stratify(splt$analysis_set, "treat", outcome ~ X1,
+   pilot_sample = splt$pilot_set)
+}
