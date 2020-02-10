@@ -49,3 +49,4 @@ and handle it appropriately.
 \seealso{
 \code{\link{auto_stratify}}
 }
+\keyword{internal}

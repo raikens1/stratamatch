@@ -16,7 +16,7 @@
 #' @param covariates a character vector with the names of the categorical
 #'   columns on which to stratify
 #' @param analysis_set the data set which will be stratified
-#' @param call the call to \code{auto_stratify} used to generate this object
+#' @param call the call to \code{manual_stratify} used to generate this object
 #' @param issue_table a table of each stratum and potential issues of size and
 #'   treat:control balance
 #' @param strata_table a table of each stratum and the covariate bin this

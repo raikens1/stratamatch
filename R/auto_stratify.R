@@ -101,7 +101,35 @@
 #'   stratified manner, so that the composition of the pilot set reflects the
 #'   composition of the whole data set in terms of these covariates.  The
 #'   specified covariates must be categorical.
-#' @return Returns a \code{strata} object
+#' @return Returns an \code{auto_strata} object.  This contains: \itemize{
+#'
+#'   \item \code{outcome} - a string giving the name of the column where outcome
+#'   information is stored
+#'
+#'   \item \code{treat} - a string giving the name of the column encoding
+#'   treatment assignment
+#'
+#'   \item \code{analysis_set} - the data set with strata assignments
+#'
+#'   \item \code{call} - the call to \code{auto_stratify} used to generate this
+#'   object
+#'
+#'   \item \code{issue_table} - a table of each stratum and potential issues of
+#'   size and treat:control balance
+#'
+#'   \item \code{strata_table} - a table of each stratum and the prognostic score
+#'   quantile bin to which it corresponds
+#'
+#'   \item \code{prognostic_scores} - a vector of prognostic scores.
+#'
+#'   \item \code{prognostic_model} - a model for prognosis fit on a separate data
+#'   set.
+#'
+#'   \item \code{pilot_set} - the set of controls used to fit the prognostic
+#'   model. These are excluded from subsequent analysis so that the prognostic
+#'   score is not overfit to the data used to estimate the treatment effect.
+#'
+#'   }
 #' @seealso \code{\link{manual_stratify}}, \code{\link{new_auto_strata}}
 #' @export
 #' @examples

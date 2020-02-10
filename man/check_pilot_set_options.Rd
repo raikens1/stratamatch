@@ -28,3 +28,4 @@ nothing
 \description{
 Check Pilot set options
 }
+\keyword{internal}

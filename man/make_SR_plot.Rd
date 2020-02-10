@@ -19,3 +19,4 @@ which may not be supported on some devices}
 Not meant to be called externally.  Helper plot function for \code{strata}.
 Produces a scatter plot of strata by size and control proportion.
 }
+\keyword{internal}

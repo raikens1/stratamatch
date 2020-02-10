@@ -22,3 +22,4 @@ Not meant to be called externally.  Helper plot function for \code{strata}
 object with \code{type = "hist"}. Produces a histogram of propensity scores within a
 stratum
 }
+\keyword{internal}

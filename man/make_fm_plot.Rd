@@ -31,3 +31,4 @@ object with \code{type = "FM"}. Produces a Fisher-Mill plot of stratum \code{s}
 Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
   Section 3.2 for an explaination of Fisher-Mill plots
 }
+\keyword{internal}

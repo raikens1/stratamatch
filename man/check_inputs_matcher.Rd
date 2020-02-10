@@ -22,3 +22,4 @@ nothing
 \description{
 Check inputs to any matching function
 }
+\keyword{internal}

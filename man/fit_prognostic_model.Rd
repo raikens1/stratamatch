@@ -22,3 +22,4 @@ Given a pilot set and a prognostic formula, return the fitted formula.  If
 the outcome is binary, fit a logistic regression.  Otherwise, fit a linear
 model.
 }
+\keyword{internal}

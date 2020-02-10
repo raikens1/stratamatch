@@ -23,3 +23,4 @@ nothing; produces errors and warnings if anything is wrong
 \description{
 Not meant to be called externally.  Checks validity of formula, types of all inputs to manual stratify, and warns if covariates are continuous.
 }
+\keyword{internal}

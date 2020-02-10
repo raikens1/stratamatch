@@ -15,3 +15,4 @@ data.frame of strata definitions
 \description{
 Make strata table
 }
+\keyword{internal}

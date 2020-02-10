@@ -23,7 +23,7 @@
   prior to ICU visit, binary} \item{DNR}{whether the patient had code status
   set to any DNR "Do not resuscitate" order at any point during their ICU
   stay, binary} \item{surgicalTeam}{whether the patient was assigned to a
-  surgical team at any point during their ICU stay, binary} ... }}
+  surgical team at any point during their ICU stay, binary} }}
 \source{
 \url{https://simtk.org/frs/download_confirm.php/latestzip/1969/ICUDNR-latest.zip?group_id=892}
 }

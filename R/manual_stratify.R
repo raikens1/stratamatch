@@ -20,7 +20,26 @@
 #'   variables by which the data should be stratified
 #' @param force a boolean. If true, run even if a variable appears continuous.
 #'   (default = FALSE)
-#' @return A \code{manual_strata} object
+#' @return Returns a \code{manual_strata} object.  This contains: \itemize{
+#'
+#'   \item \code{treat} - a string giving the name of the column encoding
+#'   treatment assignment
+#'
+#'   \item \code{covariates} - a character vector with the names of the
+#'   categorical columns on which the data were stratified
+#'
+#'   \item \code{analysis_set} - the data set with strata assignments
+#'
+#'   \item \code{call} - the call to \code{manual_stratify} used to generate this
+#'   object
+#'
+#'   \item \code{issue_table} - a table of each stratum and potential issues of
+#'   size and treat:control balance
+#'
+#'   \item \code{strata_table} - a table of each stratum and the covariate bin
+#'   to which it corresponds
+#'
+#'   }
 #' @seealso \code{\link{auto_stratify}}, \code{\link{new_manual_strata}}
 #' @export
 #' @examples
