@@ -72,6 +72,7 @@ strata_match <- function(object, propensity = NULL, k = 1){
 #' @param k numeric, the number of control individuals to be matched to each
 #'   treated individual
 #' @return a named factor with matching assignments
+#' @keywords internal
 strata_match_nstrat <- function(object, propensity = NULL, k = 1){
   
   if (!requireNamespace("optmatch", quietly = TRUE)) {
@@ -103,6 +104,7 @@ strata_match_nstrat <- function(object, propensity = NULL, k = 1){
 #' @inheritParams strata_match
 #'
 #' @return nothing
+#' @keywords internal
 check_inputs_matcher <- function(object, propensity, k){
   if (!is.strata(object)) {
     stop("strat must be a strata object")

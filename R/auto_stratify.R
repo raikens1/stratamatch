@@ -190,6 +190,7 @@ auto_stratify <- function(data, treat, prognosis,
 #'
 #' @return a list of: analysis set, prognostic scores, pilot set, prognostic
 #'   model, and outcome string
+#' @keywords internal
 build_autostrata <- function(data, treat, prognosis, outcome,
                              pilot_fraction, pilot_sample, group_by_covariates){
   # prognosis is a vector of prognostic scores
@@ -253,6 +254,7 @@ build_autostrata <- function(data, treat, prognosis, outcome,
 #'   recorded
 #'
 #' @return a glm or lm object fit from \code{prognostic_formula} on \code{data}
+#' @keywords internal
 fit_prognostic_model <- function(dat, prognostic_formula, outcome){
   
   # if outcome is binary or logical, run logistic regression
@@ -312,6 +314,7 @@ fit_prognostic_model <- function(dat, prognostic_formula, outcome){
 #' @param analysis_set data set on which prognostic scores should be estimated
 #'
 #' @return vector of prognostic scores
+#' @keywords internal
 estimate_scores <- function(prognostic_model, analysis_set){
   
   tryCatch(predict(prognostic_model, analysis_set, type = "response"),
@@ -331,6 +334,7 @@ estimate_scores <- function(prognostic_model, analysis_set){
 #' @param qcut the prognostic score quantile cuts
 #'
 #' @return data.frame of strata definitions
+#' @keywords internal
 make_autostrata_table <- function(qcut){
   data.frame(qcut) %>%
     dplyr::mutate(stratum = as.integer(qcut), quantile_bin = as.character(qcut)) %>%
@@ -352,6 +356,7 @@ make_autostrata_table <- function(qcut){
 #' @inheritParams auto_stratify
 #'
 #' @return nothing; produces errors and warnings if anything is wrong
+#' @keywords internal
 check_base_inputs_auto_stratify <- function(data, treat, outcome){
   # general checks
   if (!is.data.frame(data)) stop("data must be a data.frame")
@@ -377,6 +382,7 @@ check_base_inputs_auto_stratify <- function(data, treat, outcome){
 #' @param prognostic_scores, a numeric vector
 #'
 #' @return nothing
+#' @keywords internal
 check_scores <- function(prognostic_scores, data){
   if (length(prognostic_scores) != dim(data)[1]){
     stop("prognostic scores must be the same length as the data")
@@ -390,6 +396,7 @@ check_scores <- function(prognostic_scores, data){
 #' @inheritParams auto_stratify
 #'
 #' @return nothing
+#' @keywords internal
 check_outcome <- function(outcome, data, treat){
   if (!(is.character(outcome) & length(treat) == 1)) {
     stop("outcome must be a single string")
@@ -405,6 +412,7 @@ check_outcome <- function(outcome, data, treat){
 #' @param prog_formula a formula for prognostic score
 #' 
 #' @return nothing
+#' @keywords internal
 check_prognostic_formula <- function(prog_formula, data, outcome, treat){
 
   if (treat == all.vars(prog_formula)[1]) {
@@ -435,6 +443,7 @@ check_prognostic_formula <- function(prog_formula, data, outcome, treat){
 #' @param col a column from a data frame
 #'
 #' @return logical
+#' @keywords internal
 is_binary <- function(col) {
    if (is.logical(na.omit(col))) return(TRUE)
    if (all(is.element(na.omit(col), 0:1))) return(TRUE)

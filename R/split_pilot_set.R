@@ -86,6 +86,7 @@ split_pilot_set <- function(data, treat,
 #' @inheritParams split_pilot_set
 #' 
 #' @return nothing
+#' @keywords internal
 check_pilot_set_options <- function(pilot_sample, pilot_fraction,
                                     group_by_covariates, data){
 

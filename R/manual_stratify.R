@@ -92,6 +92,7 @@ manual_stratify <- function(data, strata_formula, force = FALSE){
 #' @param force, a boolean. If true, warn but do not stop
 #' @param n, the number of rows in the data set
 #' @return Does not return anything
+#' @keywords internal
 warn_if_continuous <- function(column, name, force, n){
   
   if (is.factor(column) | !is.numeric(column)){
@@ -124,6 +125,7 @@ warn_if_continuous <- function(column, name, force, n){
 #' @inheritParams manual_stratify
 #'
 #' @return nothing; produces errors and warnings if anything is wrong
+#' @keywords internal
 check_inputs_manual_stratify <- function(data, strata_formula, force){
   # check input types
   if (!is.data.frame(data)) stop("data must be a data.frame")

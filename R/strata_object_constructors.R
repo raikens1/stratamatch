@@ -22,6 +22,7 @@
 #' @param strata_table a table of each stratum and the covariate bin this
 #'   corresponds to
 #' @return a basic \code{manual_strata} object
+#' @keywords internal
 new_manual_strata <- function(treat = character(),
                               covariates = character(),
                               analysis_set = data.frame(),
@@ -76,6 +77,7 @@ new_manual_strata <- function(treat = character(),
 #'   to produce an \code{auto_strata} object.
 #'
 #' @return a basic \code{auto_strata} object
+#' @keywords internal
 new_auto_strata <- function(outcome, treat,
                            analysis_set = NULL,
                            call = NULL,
