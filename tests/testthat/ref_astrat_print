@@ -7,7 +7,3 @@ auto_stratify(data = test_dat, treat = "treated", prognosis = 1/(1 +
 Analysis set dimensions: 100 X 10
 
 Prognostic Scores prespecified.
-
-Number of strata: 1 
-
-	Min size: 100 	Max size: 100

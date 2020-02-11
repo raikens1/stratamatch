@@ -4,7 +4,3 @@ Function call:
 manual_stratify(data = test_dat, strata_formula = treated ~ C1)
 
 Analysis set dimensions: 100 X 10
-
-Number of strata: 3 
-
-	Min size: 19 	Max size: 41

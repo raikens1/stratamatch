@@ -86,6 +86,8 @@ m.strat <- manual_stratify(data = dat, treat ~ B1 + B2 + C1)
 
 # try printing the result
 m.strat
+
+summary(m.strat)
 ```
 
 Above, we see that `manual_stratify` returns a `manual strata` object. The printed summary above shows that `manual_stratify` has divided our dataset according to our instructions and produced 12 strata. 
@@ -111,8 +113,10 @@ In practice, `pilot_fraction` and `size` have defaults, so we don't need to spec
 a.strat <- auto_stratify(dat, treat = "treat", prognosis = outcome ~ X1 + X2,
                          pilot_fraction = 0.1, size = 400)
 
-# print the result from running auto_stratify
+# print and summarize the result from running auto_stratify
 a.strat
+
+summary(a.strat)
 ```
 
 Our call to `auto_stratify` has created `auto_strata` object.  An `auto_strata` object is much like a `manual_strata` object, except that it contains somewhat more information, since the stratification process was done differently.  Importantly, `auto_strata` has partitioned 10% of the individuals in the control group to be in the pilot set.  These individuals were used to build the prognostic score, and were extracted from the analysis set. In order to prevent overfitting, the observations in the pilot set should not be included in later analyses, and should not be reused when making the final effect estimate.

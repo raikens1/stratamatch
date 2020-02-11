@@ -1,6 +1,6 @@
 #---------------------------------------------------------- 
 ## CONTAINS: Methods for the strata objects for the generics `is`, `print`,
-## `summarize`, and `plot`
+## `summary`, and `plot`
 #----------------------------------------------------------
 
 #----------------------------------------------------------
@@ -94,10 +94,6 @@ print.auto_strata <- function(x, ...) {
   } else {
     writeLines("\nPrognostic Scores prespecified.")
   }
-
-  writeLines(paste("\nNumber of strata:", dim(x$issue_table)[1],
-                   "\n\n\tMin size:", min(x$issue_table$Total),
-                   "\tMax size:", max(x$issue_table$Total)))
 }
 
 #' Print Manual Strata
@@ -120,11 +116,32 @@ print.manual_strata <- function(x, ...) {
   writeLines(paste("\nAnalysis set dimensions:",
                    dim(x$analysis_set)[1], "X",
                    dim(x$analysis_set)[2]))
+}
 
-  writeLines(paste("\nNumber of strata:", dim(x$issue_table)[1],
+#----------------------------------------------------------
+### SUMMARY
+#----------------------------------------------------------
+
+#' Summary for strata object
+#' 
+#' Summarize important properties of a \code{strata} object
+#' 
+#' @param x, a \code{strata} object
+#' @param ... other arguments
+#' @export
+#' @examples 
+#' dat <- make_sample_data()
+#' m.strat <- manual_stratify(dat, treat ~ C1)
+#' summary(m.strat) # Summarizes strata in m.strat
+summary.strata <- function(x, ...){
+  writeLines(paste("Number of strata:", dim(x$issue_table)[1],
                    "\n\n\tMin size:", min(x$issue_table$Total),
                    "\tMax size:", max(x$issue_table$Total)))
+  
+  writeLines(paste("\nStrata with Potential Issues:", 
+                   sum(x$issue_table$Potential_Issues != "none")))
 }
+
 
 #----------------------------------------------------------
 ### PLOT METHODS
