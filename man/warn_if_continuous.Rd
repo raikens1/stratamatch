@@ -28,3 +28,4 @@ for sure if something is continuous or just discrete with real-numbered
 values. Returns without throwing an error if the column is a factor, but
 throws an error or warning if the column has many distinct values.
 }
+\keyword{internal}

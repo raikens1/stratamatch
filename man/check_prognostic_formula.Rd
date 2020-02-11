@@ -24,3 +24,4 @@ nothing
 \description{
 Check Prognostic Formula
 }
+\keyword{internal}

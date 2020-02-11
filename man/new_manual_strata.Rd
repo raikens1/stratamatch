@@ -17,7 +17,7 @@ columns on which to stratify}
 
 \item{analysis_set}{the data set which will be stratified}
 
-\item{call}{the call to \code{auto_stratify} used to generate this object}
+\item{call}{the call to \code{manual_stratify} used to generate this object}
 
 \item{issue_table}{a table of each stratum and potential issues of size and
 treat:control balance}
@@ -35,3 +35,4 @@ the information associated with a dataset that has been stratified via
 \code{\link{strata_match}} to be matched or it may be unpacked by the user to be
 matched by other means.
 }
+\keyword{internal}

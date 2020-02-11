@@ -17,3 +17,4 @@ Returns a 3 by [number of strata] dataframe with Treat, Control, Total, Control 
 \description{
 Not meant to be called externally. Produce table of the number of treated and control individuals in each stratum. Also checks for potential problems with treat/control ratio or stratum size which might result in slow or poor quality matching.
 }
+\keyword{internal}

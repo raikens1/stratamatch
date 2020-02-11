@@ -17,3 +17,4 @@ Helper for make_issue_table to return issues string.  Given a row which
 summarizes the Treat, Control, Total, and Control_Proportion of a stratum,
 return a string of potential issues with the stratum.
 }
+\keyword{internal}

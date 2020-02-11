@@ -22,3 +22,4 @@ nothing
 \description{
 Checks that outcome is a string which is a column in the data
 }
+\keyword{internal}

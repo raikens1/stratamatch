@@ -21,3 +21,4 @@ a named factor with matching assignments
 Not meant to be called externally.  Match a data set without stratifying.
 Used to compare performance with and without stratification.
 }
+\keyword{internal}

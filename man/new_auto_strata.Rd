@@ -47,3 +47,4 @@ matched by other means.
 \code{\link{auto_stratify}}, a function which calls this constructor
   to produce an \code{auto_strata} object.
 }
+\keyword{internal}

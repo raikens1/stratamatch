@@ -24,3 +24,4 @@ out which type \code{propensity} is and returns the propensity scores.
 Returns the propensity score on the response scale (rather than the linear
 predictor), so the scores are the predited probabilities of treatment.
 }
+\keyword{internal}
