@@ -22,3 +22,4 @@ set that are never seen in the pilot set.  Outputs are on the response scale,
 (rather than the linear predictor), so the score is the expected value of the
 outcome under the control assignement based on the observed covariates.
 }
+\keyword{internal}

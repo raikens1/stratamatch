@@ -15,3 +15,4 @@ Not yet implemented.  Not meant to be called externally. Helper plot function
 for \code{strata} object with \code{type = "residual"}. Produces the diagnostic
 plots for the prognostic score model
 }
+\keyword{internal}

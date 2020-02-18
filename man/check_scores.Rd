@@ -17,3 +17,4 @@ nothing
 \description{
 Checks that prognostic scores are the same length as data
 }
+\keyword{internal}

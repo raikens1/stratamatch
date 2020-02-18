@@ -15,3 +15,4 @@ logical
 \description{
 return TRUE if the input is logical or if it contains only 0's and 1's
 }
+\keyword{internal}

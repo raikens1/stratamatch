@@ -19,3 +19,4 @@ nothing
 \description{
 Check Propensity Formula
 }
+\keyword{internal}

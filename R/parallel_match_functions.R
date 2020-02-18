@@ -18,6 +18,7 @@
 #' @param treat string, the name of the treatment assignment column
 #' @param k the number of controls to be matched to each treated individual
 #' @return a data.frame like dat with pair assignments column
+#' @keywords internal
 match_one <- function(dat, propensity_model, treat, k){
   dist_matrix <- make_distance_matrix(dat,
                                       propensity_model = propensity_model,
@@ -36,6 +37,7 @@ match_one <- function(dat, propensity_model, treat, k){
 #' @param propensity_model a \code{glm} object modeling propensity scores
 #' @param treat string, the name of the treatment assignment column
 #' @return a matrix of distances to be passed to opmatch::pairmatch()
+#' @keywords internal
 make_distance_matrix <- function(dat, propensity_model, treat){
   z <- dat[[treat]]
   print(length(z))
@@ -57,6 +59,7 @@ make_distance_matrix <- function(dat, propensity_model, treat){
 #'
 #' @inheritParams strata_match
 #' @return a data.frame with pair assignments
+#' @keywords internal
 strata_match_dopar <- function(strat, propensity_formula = NULL, k = 1) {
   
   check_inputs_matcher(strat, propensity_formula, k)
@@ -93,6 +96,7 @@ strata_match_dopar <- function(strat, propensity_formula = NULL, k = 1) {
 #' @inheritParams strata_match
 #' 
 #' @return a data.frame like dat with pair assignments
+#' @keywords internal
 strata_match_multidplyr <- function(strat, propensity_formula = NULL, k = 1) {
   
   check_inputs_matcher(strat, propensity_formula, k)

@@ -26,6 +26,23 @@ test_that("Print auto strata works", {
   expect_known_output(print(a.strat), file = "ref_astrat_print", update = F)
 })
 
+
+#----------------------------------------------------------
+### SUMMARY
+#----------------------------------------------------------
+
+test_that("Summary of strata works", {
+  m.strat <- manual_stratify(test_dat, treated ~ C1)
+  
+  expect_known_output(summary(m.strat), file = "ref_mstrat_summary", update = F)
+  
+  a.strat <- auto_stratify(test_dat,
+                           "treated", prognosis = 1/(1 + exp(-test_dat$X1)),
+                           outcome = "outcomes")
+  
+  expect_known_output(summary(a.strat), file = "ref_astrat_summary", update = F)
+})
+
 #----------------------------------------------------------
 ### PLOT METHODS
 #----------------------------------------------------------
