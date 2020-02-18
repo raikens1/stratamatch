@@ -15,5 +15,5 @@ check_scores(prognostic_scores, data)
 nothing
 }
 \description{
-Checks that prognostic scores are numeric and same length as data
+Checks that prognostic scores are the same length as data
 }

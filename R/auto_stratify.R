@@ -371,7 +371,7 @@ check_base_inputs_auto_stratify <- function(data, treat, outcome){
 
 #' Check Scores
 #' 
-#' Checks that prognostic scores are numeric and same length as data
+#' Checks that prognostic scores are the same length as data
 #'
 #' @inheritParams auto_stratify
 #' @param prognostic_scores, a numeric vector
