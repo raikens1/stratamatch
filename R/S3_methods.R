@@ -123,23 +123,27 @@ print.manual_strata <- function(x, ...) {
 #----------------------------------------------------------
 
 #' Summary for strata object
-#' 
-#' Summarize important properties of a \code{strata} object
-#' 
-#' @param x, a \code{strata} object
+#'
+#' Summarize number and sizes of strata in a \code{strata} object.  Also prints
+#' number of strata with potential issues.
+#'
+#' For more information, access the issue table for your strata object with
+#' \code{mystrata$issue_table}.
+#'
+#' @param object a \code{strata} object
 #' @param ... other arguments
 #' @export
-#' @examples 
+#' @examples
 #' dat <- make_sample_data()
 #' m.strat <- manual_stratify(dat, treat ~ C1)
 #' summary(m.strat) # Summarizes strata in m.strat
-summary.strata <- function(x, ...){
-  writeLines(paste("Number of strata:", dim(x$issue_table)[1],
-                   "\n\n\tMin size:", min(x$issue_table$Total),
-                   "\tMax size:", max(x$issue_table$Total)))
+summary.strata <- function(object, ...){
+  writeLines(paste("Number of strata:", dim(object$issue_table)[1],
+                   "\n\n\tMin size:", min(object$issue_table$Total),
+                   "\tMax size:", max(object$issue_table$Total)))
   
   writeLines(paste("\nStrata with Potential Issues:", 
-                   sum(x$issue_table$Potential_Issues != "none")))
+                   sum(object$issue_table$Potential_Issues != "none")))
 }
 
 

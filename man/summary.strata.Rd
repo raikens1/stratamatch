@@ -4,18 +4,23 @@
 \alias{summary.strata}
 \title{Summary for strata object}
 \usage{
-\method{summary}{strata}(x, ...)
+\method{summary}{strata}(object, ...)
 }
 \arguments{
-\item{x, }{a \code{strata} object}
+\item{object}{a \code{strata} object}
 
 \item{...}{other arguments}
 }
 \description{
-Summarize important properties of a \code{strata} object
+Summarize number and sizes of strata in a \code{strata} object.  Also prints
+number of strata with potential issues.
+}
+\details{
+For more information, access the issue table for your strata object with
+\code{mystrata$issue_table}.
 }
 \examples{
 dat <- make_sample_data()
 m.strat <- manual_stratify(dat, treat ~ C1)
-summary(m.strat) # returns information about m.strat
+summary(m.strat) # Summarizes strata in m.strat
 }
