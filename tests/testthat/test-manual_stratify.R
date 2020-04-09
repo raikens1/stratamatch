@@ -9,10 +9,10 @@ context("Manual Statification")
 make_test_data <- function(){
   n <- 16
   
-  data.frame(treated = rep(c(0, 1), n / 2),
-             treat = rep("gotcha", n),
-             cat = rep(c(0, 1, 2, 3), each = n / 4),
-             cont = seq(from = 0, to = 1, length.out = n)) %>%
+  dplyr::tibble(treated = rep(c(0, 1), n / 2),
+                treat = rep("gotcha", n),
+                cat = rep(c(0, 1, 2, 3), each = n / 4),
+                cont = seq(from = 0, to = 1, length.out = n)) %>%
     dplyr::mutate(outcomes = c(0,1,0,1,1,0,0,1,0,0,1,0,0,0,0,1),
                   outcome = rep("gotcha", n))
 }
@@ -69,13 +69,12 @@ test_that("manual stratify with logical treatment works", {
   expect_equal(toString(m.strat$call),
                "manual_stratify, test_dat, treated ~ cat")
   
-  exp_issue_table <- data.frame(Stratum = 1:4,
-                                Treat = rep(2, 4),
-                                Control = as.integer(rep(2, 4)),
-                                Total = as.integer(rep(4, 4)),
-                                Control_Proportion = rep(0.5, 4),
-                                Potential_Issues = rep("Too few samples", 4),
-                                stringsAsFactors = FALSE)
+  exp_issue_table <- dplyr::tibble(Stratum = 1:4,
+                                   Treat = rep(2, 4),
+                                   Control = as.integer(rep(2, 4)),
+                                   Total = as.integer(rep(4, 4)),
+                                   Control_Proportion = rep(0.5, 4),
+                                   Potential_Issues = rep("Too few samples", 4))
   
   expect_equal(m.strat$issue_table, exp_issue_table)
   
@@ -108,13 +107,12 @@ test_that("manual stratify works", {
   expect_equal(toString(m.strat$call),
                "manual_stratify, test_dat, treated ~ cat")
   
-  exp_issue_table <- data.frame(Stratum = 1:4,
-                                Treat = rep(2, 4),
-                                Control = as.integer(rep(2, 4)),
-                                Total = as.integer(rep(4, 4)),
-                                Control_Proportion = rep(0.5, 4),
-                                Potential_Issues = rep("Too few samples", 4),
-                                stringsAsFactors = FALSE)
+  exp_issue_table <- dplyr::tibble(Stratum = 1:4,
+                                   Treat = rep(2, 4),
+                                   Control = as.integer(rep(2, 4)),
+                                   Total = as.integer(rep(4, 4)),
+                                   Control_Proportion = rep(0.5, 4),
+                                   Potential_Issues = rep("Too few samples", 4))
   
   expect_equal(m.strat$issue_table, exp_issue_table)
   

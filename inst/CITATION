@@ -1,0 +1,23 @@
+citHeader("To cite stratamatch in publications use:")
+
+citEntry(entry = "Article",
+  title        = "Stratified Pilot Matching in R: The stratamatch Package",
+  author       = personList(as.person("Rachael C. Aikens"),
+                   as.person("Joseph Rigdon"), 
+                   as.person("Justin Lee"),
+                   as.person("Michael Baiocchi"),
+                   as.person("Andrew B. Goldstone"),
+                   as.person("Peter Chiu"),
+                   as.person("Y Joseph Woo"),
+                   as.person("Jonathan H. Chen")),
+  journal = "Statistics arXiv",
+  year         = "2020",
+  month       = "jan",
+  url          = "https://arxiv.org/abs/2001.02775",
+
+  textVersion  =
+  paste("Aikens RC, Rigdon J, Lee J, et al.",
+        "Stratified Pilot Matching in R: The stratamatch Package.",
+        "Statistics arXiv 2020.",
+        "URL https://arxiv.org/abs/2001.02775.")
+)

@@ -23,7 +23,7 @@ make_issue_table <- function(a_set, treat){
   colnames(df) <- c("Stratum", "Treat",
                     "Control", "Total",
                     "Control_Proportion")
-  df$Potential_Issues <- apply(df, 1, get_issues)
+  df$Potential_Issues <- unname(apply(df, 1, get_issues))
 
   return(df)
 }
