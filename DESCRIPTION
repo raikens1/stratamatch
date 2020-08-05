@@ -35,7 +35,7 @@ Imports:
   rlang (>= 0.4.0),
   survival(>= 2.44.1.1)
 Depends: 
-  R (>= 3.4.0),
+  R (>= 3.4.0)
 Suggests:
     knitr,
     optmatch (>= 0.9-11),
