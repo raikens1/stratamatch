@@ -372,7 +372,8 @@ make_autostrata_table <- function(qcut){
   data.frame(qcut) %>%
     dplyr::mutate(stratum = as.integer(qcut), quantile_bin = as.character(qcut)) %>%
     dplyr::group_by(.data$quantile_bin) %>%
-    dplyr::summarise(size = dplyr::n(), stratum = dplyr::first(.data$stratum)) %>%
+    dplyr::summarise(size = dplyr::n(), stratum = dplyr::first(.data$stratum),
+                     .groups = "drop_last") %>%
     dplyr::arrange(.data$stratum) %>%
     dplyr::select(.data$stratum, .data$quantile_bin, .data$size)
 }

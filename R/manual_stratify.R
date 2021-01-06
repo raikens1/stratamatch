@@ -79,7 +79,8 @@ manual_stratify <- function(data, strata_formula, force = FALSE){
 
   strata_table <- grouped_table %>%
     dplyr::summarize(stratum = dplyr::first(.data$stratum),
-                     size = dplyr::n())
+                     size = dplyr::n(),
+                     .groups = "drop_last")
 
   issue_table <- make_issue_table(analysis_set, treat)
 
