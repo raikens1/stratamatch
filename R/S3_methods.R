@@ -192,8 +192,8 @@ summary.strata <- function(object, ...){
 #' plot(a.strat, type = "hist", propensity = treat ~ X1, stratum = 1)
 #' plot(a.strat, type = "AC", propensity = treat ~ X1, stratum = 1)
 #' plot(a.strat, type = "residual")
-plot.strata <- function(x, type = "SR", label = FALSE, jitter_prognosis,
-                        jitter_propensity, propensity, stratum, ...){
+plot.strata <- function(x, type = "SR", label = FALSE, stratum = "all", jitter_prognosis,
+                        jitter_propensity, propensity, ...){
   if (type == "SR") make_SR_plot(x, label)
   else if (type == "hist") make_hist_plot(x, propensity, stratum)
   else if (type == "AC") make_ac_plot(x, propensity, stratum,
@@ -243,20 +243,26 @@ make_SR_plot <- function(x, label) {
 #' stratum
 #'
 #' @inheritParams plot.strata
-#' @param s the number code of the strata to be plotted
+#' @param strat the number code of the strata to be plotted.  If "all", plots all strata
 #' @keywords internal
-make_hist_plot <- function(x, propensity, s){
+make_hist_plot <- function(x, propensity, strat){
   a_set <- x$analysis_set
-
-  if (!is.element(s, unique(a_set$stratum))){
-    stop("Stratum number does not exist in analysis set")
-  }
   
   prop_scores = get_prop_scores(propensity, a_set, x$treat)
 
   plt_data <- a_set %>%
-    dplyr::mutate(prop_score = prop_scores) %>%
-    dplyr::filter(.data$stratum == s)
+    dplyr::mutate(prop_score = prop_scores)
+  
+  if (strat == "all"){
+    title <- "Propensity scores across all strata"
+  } else{
+    if (!is.element(strat, unique(a_set$stratum))){
+      stop("Stratum number does not exist in analysis set")
+    } 
+    plt_data <- plt_data %>%
+      dplyr::filter(.data$stratum == strat)
+    title <- paste("Propensity scores in stratum", strat)
+  }
 
   ht <- plt_data[ (plt_data[[x$treat]] == 1),]$prop_score
   hc <- plt_data[ (plt_data[[x$treat]] == 0),]$prop_score
@@ -275,7 +281,7 @@ make_hist_plot <- function(x, propensity, s){
   # plot final overlayed histogram
   hist(hc, breaks = nbreaks,
        col = rgb(0, 0, 1, 0.5), xlim = c(xmin, xmax), ylim = c(0, ymax),
-       main = paste("Propensity scores in stratum", s),
+       main = title,
        xlab = "Propensity Score")
   hist(ht, breaks = nbreaks, col = rgb(1, 0, 0, 0.5), add = TRUE)
   legend("topright", legend = c("treated", "control"),
@@ -288,27 +294,33 @@ make_hist_plot <- function(x, propensity, s){
 #' object with \code{type = "AC"}. Produces a Assignment-Control plot of stratum \code{s}
 #'
 #' @inheritParams plot.strata
-#' @param s the number code of the stratum to be plotted
+#' @param strat the number code of the stratum to be plotted. If "all", plots all strata.
 #' @seealso Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
 #'   Section 3.2 for an explaination of Assignment-Control plots
 #' @keywords internal
-make_ac_plot <- function(x, propensity, s, jitter_prognosis, jitter_propensity){
+make_ac_plot <- function(x, propensity, strat, jitter_prognosis, jitter_propensity){
   if (!is.auto_strata(x)){
     stop("Cannot make Assignment-Control plots on manually stratified data.")
   }
 
   a_set <- x$analysis_set
-
-  if (!is.element(s, unique(a_set$stratum))){
-    stop("Stratum number does not exist in analysis set")
-  }
   
   prop_scores = get_prop_scores(propensity, a_set, x$treat)
   
   plt_data <- a_set %>%
     dplyr::mutate(prop_score = prop_scores,
-                  prog_score = x$prognostic_scores) %>%
-    dplyr::filter(.data$stratum == s)
+                  prog_score = x$prognostic_scores)
+  
+  if (strat == "all"){
+    title <- "Assignment-Control plot for all strata"
+  } else{
+    if (!is.element(strat, unique(a_set$stratum))){
+      stop("Stratum number does not exist in analysis set")
+    } 
+    plt_data <- plt_data %>%
+      dplyr::filter(.data$stratum == strat)
+    title <- paste("Assignment-Control plot for stratum", strat)
+  }
   
   # if jitter arguments supplied, add jitter.
   if(!missing(jitter_propensity)){ 
@@ -328,11 +340,11 @@ make_ac_plot <- function(x, propensity, s, jitter_prognosis, jitter_propensity){
   progscore_span = max(plt_data$prog_score) - min(plt_data$prog_score)
 
   plot(plt_data$prop_score, plt_data$prog_score, col = plt_data$color,
-       main = paste("Assignment-Control plot for stratum", s),
+       main = title,
        xlab = "Estimated propensity score",
        ylab = "Estimated prognostic score",
-       xlim = range(plt_data$prop_score) + c(-0.25, 0.25) * propscore_span,
-       ylim = range(plt_data$prog_score) + c(-0.25, 0.25) * progscore_span)
+       xlim = range(plt_data$prop_score) + c(-0.1, 0.1) * propscore_span,
+       ylim = range(plt_data$prog_score) + c(-0.1, 0.1) * progscore_span)
   legend("topleft", legend = c("treated", "control"), fill = c("red", "blue"),
          box.lty = 0)
 }
