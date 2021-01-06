@@ -4,8 +4,12 @@
 \alias{check_pilot_set_options}
 \title{Check Pilot set options}
 \usage{
-check_pilot_set_options(pilot_sample, pilot_fraction, group_by_covariates,
-  data)
+check_pilot_set_options(
+  pilot_sample,
+  pilot_fraction,
+  group_by_covariates,
+  data
+)
 }
 \arguments{
 \item{pilot_sample}{a data.frame of held aside samples for building

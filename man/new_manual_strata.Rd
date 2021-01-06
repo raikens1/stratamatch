@@ -4,9 +4,14 @@
 \alias{new_manual_strata}
 \title{New Manual Strata}
 \usage{
-new_manual_strata(treat = character(), covariates = character(),
-  analysis_set = data.frame(), call = call(),
-  issue_table = data.frame(), strata_table = data.frame())
+new_manual_strata(
+  treat = character(),
+  covariates = character(),
+  analysis_set = data.frame(),
+  call = call(),
+  issue_table = data.frame(),
+  strata_table = data.frame()
+)
 }
 \arguments{
 \item{treat}{a string giving the name of the column where treatment

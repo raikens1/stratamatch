@@ -4,8 +4,13 @@
 \alias{split_pilot_set}
 \title{Split data into pilot and analysis sets}
 \usage{
-split_pilot_set(data, treat, pilot_fraction = 0.1, pilot_sample = NULL,
-  group_by_covariates = NULL)
+split_pilot_set(
+  data,
+  treat,
+  pilot_fraction = 0.1,
+  pilot_sample = NULL,
+  group_by_covariates = NULL
+)
 }
 \arguments{
 \item{data}{\code{data.frame} with observations as rows, features as columns}

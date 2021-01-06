@@ -3,7 +3,6 @@
 \docType{package}
 \name{stratamatch}
 \alias{stratamatch}
-\alias{stratamatch-package}
 \title{stratamatch: stratify and match large data sets}
 \description{
 This package employs a pilot matching design to automatically stratify and

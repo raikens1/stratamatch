@@ -4,9 +4,17 @@
 \alias{new_auto_strata}
 \title{New Autostrata}
 \usage{
-new_auto_strata(outcome, treat, analysis_set = NULL, call = NULL,
-  issue_table = NULL, strata_table = NULL, prognostic_scores = NULL,
-  prognostic_model = NULL, pilot_set = NULL)
+new_auto_strata(
+  outcome,
+  treat,
+  analysis_set = NULL,
+  call = NULL,
+  issue_table = NULL,
+  strata_table = NULL,
+  prognostic_scores = NULL,
+  prognostic_model = NULL,
+  pilot_set = NULL
+)
 }
 \arguments{
 \item{outcome}{a string giving the name of the column where outcome

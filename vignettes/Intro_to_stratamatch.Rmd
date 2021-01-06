@@ -203,15 +203,15 @@ A similar command works for automatically stratified data:
 plot(a.strat, type = "hist", propensity = treat ~ X2 + X1 + B1 + B2, stratum = 1)
 ```
 
-### Fisher-Mill Plots for Automatically Stratified Data
+### Assignment-Control Plots for Automatically Stratified Data
 
-In addition to the two plot types above, there are some plots that can be used to visualize `auto_strata` objects only: `"residual"` and `"FM"` plots.
+In addition to the two plot types above, there are some plots that can be used to visualize `auto_strata` objects only: `"residual"` and `"AC"` plots.
 
-Setting `type = "FM"` in the plot command produces a Fisher-Mill plot for a given stratum.  This shows each individual in the stratum in terms of their estimated propensity score and their estimated prognostic score (for more details, see [Aikens et al (2019)](https://arxiv.org/abs/1908.09077)).  This allows us to check how well the treated and control samples overlap not only in their probability for treatment but in their expected outcome under the control assignment. Just as with the overlap histograms, we need to provide a stratum number and information on the propensity score.  Below, I use the same propensity formula as in the histogram above.  Below, we see relatively good overlap.  Prognostic score has a hard upper limit because we are looking at the first stratum, which means these are the lowest prognostic scores in our data set.
+Setting `type = "AC"` in the plot command produces a Assignment-Control plot for a given stratum.  This shows each individual in the stratum in terms of their estimated propensity score and their estimated prognostic score (for more details, see [Aikens et al (2019)](https://arxiv.org/abs/1908.09077)).  This allows us to check how well the treated and control samples overlap not only in their probability for treatment but in their expected outcome under the control assignment. Just as with the overlap histograms, we need to provide a stratum number and information on the propensity score.  Below, I use the same propensity formula as in the histogram above.  Below, we see relatively good overlap.  Prognostic score has a hard upper limit because we are looking at the first stratum, which means these are the lowest prognostic scores in our data set.
 
 ```{r}
-# make a Fisher-Mill plot
-plot(a.strat, type = "FM", propensity = treat ~ X1 + X2, stratum = 1)
+# make a Assignment-Control plot
+plot(a.strat, type = "AC", propensity = treat ~ X1 + X2, stratum = 1)
 ```
 
 

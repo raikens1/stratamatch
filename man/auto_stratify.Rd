@@ -4,9 +4,16 @@
 \alias{auto_stratify}
 \title{Auto Stratify}
 \usage{
-auto_stratify(data, treat, prognosis, outcome = NULL, size = 2500,
-  pilot_fraction = 0.1, pilot_sample = NULL,
-  group_by_covariates = NULL)
+auto_stratify(
+  data,
+  treat,
+  prognosis,
+  outcome = NULL,
+  size = 2500,
+  pilot_fraction = 0.1,
+  pilot_sample = NULL,
+  group_by_covariates = NULL
+)
 }
 \arguments{
 \item{data}{\code{data.frame} with observations as rows, features as columns}
@@ -174,7 +181,7 @@ model for prognosis (e.g. a \code{glm} object).  If this method is used, the
 
   # diagnostic plots
   plot(a.strat_formula)
-  plot(a.strat_formula, type = "FM", propensity = treat ~ X1, stratum = 1)
+  plot(a.strat_formula, type = "AC", propensity = treat ~ X1, stratum = 1)
   plot(a.strat_formula, type = "hist", propensity = treat ~ X1, stratum = 1)
   plot(a.strat_formula, type = "residual")
 }

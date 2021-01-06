@@ -62,14 +62,14 @@ test_that("Plot errors work", {
   expect_error(plot(a.strat, type = "residual"),
                "Cannot make prognostic model residual plots since prognostic scores were provided.")
 
-  # FM plots
-  expect_error(plot(m.strat, type = "FM",
+  # AC plots
+  expect_error(plot(m.strat, type = "AC",
                     propensity = treated ~ X1 + X2, stratum = 1),
-               "Cannot make Fisher-Mill plots on manually stratified data.")
-  expect_error(plot(a.strat, type = "FM",
+               "Cannot make Assignment-Control plots on manually stratified data.")
+  expect_error(plot(a.strat, type = "AC",
                     propensity = treated ~ X1 + X2, stratum = 200),
                "Stratum number does not exist in analysis set")
-  expect_error(plot(a.strat, type = "FM", propensity = "soup", stratum = 1),
+  expect_error(plot(a.strat, type = "AC", propensity = "soup", stratum = 1),
                "propensity type not recognized")
   
   # overlap plots

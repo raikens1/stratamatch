@@ -161,7 +161,7 @@
 #'
 #'   # diagnostic plots
 #'   plot(a.strat_formula)
-#'   plot(a.strat_formula, type = "FM", propensity = treat ~ X1, stratum = 1)
+#'   plot(a.strat_formula, type = "AC", propensity = treat ~ X1, stratum = 1)
 #'   plot(a.strat_formula, type = "hist", propensity = treat ~ X1, stratum = 1)
 #'   plot(a.strat_formula, type = "residual")
 auto_stratify <- function(data, treat, prognosis,

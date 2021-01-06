@@ -4,7 +4,8 @@
 \name{ICU_data}
 \alias{ICU_data}
 \title{Demographics and comorbidities of 10,157 ICU patients}
-\format{A data frame with 10157 rows and 29 variables: \describe{
+\format{
+A data frame with 10157 rows and 29 variables: \describe{
   \item{patid}{patient id, numeric} \item{Birth.preTimeDays}{age of patient
   at time of admission to the ICU in days, numeric} \item{Female.pre}{whether
   the patient was documented to be female prior to ICU visit, binary}
@@ -23,7 +24,8 @@
   prior to ICU visit, binary} \item{DNR}{whether the patient had code status
   set to any DNR "Do not resuscitate" order at any point during their ICU
   stay, binary} \item{surgicalTeam}{whether the patient was assigned to a
-  surgical team at any point during their ICU stay, binary} }}
+  surgical team at any point during their ICU stay, binary} }
+}
 \source{
 \url{https://simtk.org/frs/download_confirm.php/latestzip/1969/ICUDNR-latest.zip?group_id=892}
 }

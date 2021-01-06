@@ -89,7 +89,7 @@ print.auto_strata <- function(x, ...) {
   }
   if (!is.null(x$prognostic_model)){
     writeLines("\nPrognostic Score Formula:")
-    print(x$prognostic_model$formula)
+    print(formula(x$prognostic_model))
     
   } else {
     writeLines("\nPrognostic Scores prespecified.")
@@ -157,8 +157,8 @@ summary.strata <- function(object, ...){
 #' \code{\link{auto_stratify}} or \code{\link{manual_stratify}}.  There are
 #' three plot types: \enumerate{ \item \code{"SR"} (default) - produces a
 #' scatter plot of strata by size and treat:control ratio \item \code{"hist"} -
-#' produces a histogram of propensity scores within a stratum \item \code{"FM"}
-#' - produces a Fisher-Mill plot of individuals within a stratum  (not supported
+#' produces a histogram of propensity scores within a stratum \item \code{"AC"}
+#' - produces a Assignment-Control plot of individuals within a stratum  (not supported
 #' for \code{manual strata} objects) \item \code{"residual"} - produces a
 #' residual plot for the prognostic model (not supported for \code{manual
 #' strata} objects)}
@@ -166,37 +166,37 @@ summary.strata <- function(object, ...){
 #' @param x a \code{strata} object returned by \code{\link{auto_stratify}} or
 #'   \code{\link{manual_stratify}}
 #' @param type string giving the plot type (default = \code{"SR"}).  Other
-#'   options are \code{"hist"}, \code{"FM"} and \code{"residual"}
+#'   options are \code{"hist"}, \code{"AC"} and \code{"residual"}
 #' @param label ignored unless \code{type = "SR"}. If \code{TRUE}, a clickable
 #'   plot is produced. The user may click on any number of strata and press
 #'   finish to have those strata labeled.  Note: uses \code{\link{identify}},
 #'   which may not be supported on some devices
-#' @param jitter_prognosis ignored unless \code{type = "FM"}.  Amount of uniform
+#' @param jitter_prognosis ignored unless \code{type = "AC"}.  Amount of uniform
 #'   random noise to add to prognostic scores in plot.
-#' @param jitter_propensity ignored unless \code{type = "FM"}.  Amount of
+#' @param jitter_propensity ignored unless \code{type = "AC"}.  Amount of
 #'   uniform random noise to add to propensity scores in plot.
-#' @param propensity ignored unless \code{type = "hist"} or \code{type = "FM"}.
+#' @param propensity ignored unless \code{type = "hist"} or \code{type = "AC"}.
 #'   Specifies propensity score information for plots where this is required.
 #'   Accepts either a vector of propensity scores, a \code{glm} model for
 #'   propensity scores, or a formula for fitting a propensity score model.
-#' @param stratum ignored unless \code{type = "hist"} or \code{type = "FM"}. A
+#' @param stratum ignored unless \code{type = "hist"} or \code{type = "AC"}. A
 #'   number specifying which stratum to plot.
 #' @param ... other arguments
 #' @seealso Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
-#'   Section 3.2 for an explaination of Fisher-Mill plots
+#'   Section 3.2 for an explaination of Assignment-Control plots
 #' @export
 #' @examples
 #' dat <- make_sample_data()
 #' a.strat <- auto_stratify(dat, "treat", outcome ~ X1 + X2)
 #' plot(a.strat) # makes size-ratio scatter plot
 #' plot(a.strat, type = "hist", propensity = treat ~ X1, stratum = 1)
-#' plot(a.strat, type = "FM", propensity = treat ~ X1, stratum = 1)
+#' plot(a.strat, type = "AC", propensity = treat ~ X1, stratum = 1)
 #' plot(a.strat, type = "residual")
 plot.strata <- function(x, type = "SR", label = FALSE, jitter_prognosis,
                         jitter_propensity, propensity, stratum, ...){
   if (type == "SR") make_SR_plot(x, label)
   else if (type == "hist") make_hist_plot(x, propensity, stratum)
-  else if (type == "FM") make_fm_plot(x, propensity, stratum,
+  else if (type == "AC") make_ac_plot(x, propensity, stratum,
                                       jitter_prognosis, jitter_propensity)
   else if (type == "residual") make_resid_plot(x)
   else {
@@ -282,19 +282,19 @@ make_hist_plot <- function(x, propensity, s){
          fill = c(rgb(1, 0, 0, 0.5), rgb(0, 0, 1, 0.5)))
 }
 
-#' Make Fisher-Mill plot
+#' Make Assignment-Control plot
 #'
 #' Not meant to be called externally.  Helper plot function for \code{strata}
-#' object with \code{type = "FM"}. Produces a Fisher-Mill plot of stratum \code{s}
+#' object with \code{type = "AC"}. Produces a Assignment-Control plot of stratum \code{s}
 #'
 #' @inheritParams plot.strata
 #' @param s the number code of the stratum to be plotted
 #' @seealso Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
-#'   Section 3.2 for an explaination of Fisher-Mill plots
+#'   Section 3.2 for an explaination of Assignment-Control plots
 #' @keywords internal
-make_fm_plot <- function(x, propensity, s, jitter_prognosis, jitter_propensity){
+make_ac_plot <- function(x, propensity, s, jitter_prognosis, jitter_propensity){
   if (!is.auto_strata(x)){
-    stop("Cannot make Fisher-Mill plots on manually stratified data.")
+    stop("Cannot make Assignment-Control plots on manually stratified data.")
   }
 
   a_set <- x$analysis_set
@@ -328,7 +328,7 @@ make_fm_plot <- function(x, propensity, s, jitter_prognosis, jitter_propensity){
   progscore_span = max(plt_data$prog_score) - min(plt_data$prog_score)
 
   plot(plt_data$prop_score, plt_data$prog_score, col = plt_data$color,
-       main = paste("Fisher-Mill plot for stratum", s),
+       main = paste("Assignment-Control plot for stratum", s),
        xlab = "Estimated propensity score",
        ylab = "Estimated prognostic score",
        xlim = range(plt_data$prop_score) + c(-0.25, 0.25) * propscore_span,

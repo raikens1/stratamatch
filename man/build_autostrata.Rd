@@ -4,8 +4,15 @@
 \alias{build_autostrata}
 \title{Build Autostrata object}
 \usage{
-build_autostrata(data, treat, prognosis, outcome, pilot_fraction,
-  pilot_sample, group_by_covariates)
+build_autostrata(
+  data,
+  treat,
+  prognosis,
+  outcome,
+  pilot_fraction,
+  pilot_sample,
+  group_by_covariates
+)
 }
 \arguments{
 \item{data}{\code{data.frame} with observations as rows, features as columns}
