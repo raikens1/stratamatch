@@ -4,7 +4,14 @@
 \alias{make_ac_plot}
 \title{Make Assignment-Control plot}
 \usage{
-make_ac_plot(x, propensity, s, jitter_prognosis, jitter_propensity)
+make_ac_plot(
+  x,
+  propensity,
+  strat,
+  strata_lines,
+  jitter_prognosis,
+  jitter_propensity
+)
 }
 \arguments{
 \item{x}{a \code{strata} object returned by \code{\link{auto_stratify}} or
@@ -15,7 +22,10 @@ Specifies propensity score information for plots where this is required.
 Accepts either a vector of propensity scores, a \code{glm} model for
 propensity scores, or a formula for fitting a propensity score model.}
 
-\item{s}{the number code of the stratum to be plotted}
+\item{strat}{the number code of the stratum to be plotted. If "all", plots all strata.}
+
+\item{strata_lines}{default = \code{TRUE}. Ignored unless \code{type = "AC"}.
+If TRUE, lines on the plot indicate strata cut points.}
 
 \item{jitter_prognosis}{ignored unless \code{type = "AC"}.  Amount of uniform
 random noise to add to prognostic scores in plot.}

@@ -4,7 +4,7 @@
 \alias{make_hist_plot}
 \title{Make histogram plot}
 \usage{
-make_hist_plot(x, propensity, s)
+make_hist_plot(x, propensity, strat)
 }
 \arguments{
 \item{x}{a \code{strata} object returned by \code{\link{auto_stratify}} or
@@ -15,7 +15,7 @@ Specifies propensity score information for plots where this is required.
 Accepts either a vector of propensity scores, a \code{glm} model for
 propensity scores, or a formula for fitting a propensity score model.}
 
-\item{s}{the number code of the strata to be plotted}
+\item{strat}{the number code of the strata to be plotted.  If "all", plots all strata}
 }
 \description{
 Not meant to be called externally.  Helper plot function for \code{strata}

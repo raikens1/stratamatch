@@ -85,3 +85,21 @@ test_that("Plot errors work", {
   expect_error(plot(a.strat, type = "hist", propensity = "soup", stratum = 1),
                "propensity type not recognized")
 })
+
+#----------------------------------------------------------
+### NEW METHODS
+#----------------------------------------------------------
+
+test_that("extract_cut_points works", {
+  a.strat <- auto_stratify(test_dat,
+                           "treated", prognosis = 1/(1 + exp(-test_dat$X1)),
+                           outcome = "outcomes")
+  
+  expect_warning(extract_cut_points(a.strat), "Only one stratum.  Returning NA.")
+  
+  a.strat2 <- auto_stratify(test_dat,
+                           "treated", prognosis = 1/(1 + exp(-test_dat$X1)),
+                           outcome = "outcomes", size = 25)
+  expect_equal(extract_cut_points(a.strat2), 
+               c(0.380, 0.518, 0.668))
+})

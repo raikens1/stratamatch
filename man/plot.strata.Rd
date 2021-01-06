@@ -8,10 +8,11 @@
   x,
   type = "SR",
   label = FALSE,
+  stratum = "all",
+  strata_lines = TRUE,
   jitter_prognosis,
   jitter_propensity,
   propensity,
-  stratum,
   ...
 )
 }
@@ -27,6 +28,12 @@ plot is produced. The user may click on any number of strata and press
 finish to have those strata labeled.  Note: uses \code{\link{identify}},
 which may not be supported on some devices}
 
+\item{stratum}{ignored unless \code{type = "hist"} or \code{type = "AC"}. A
+number specifying which stratum to plot.}
+
+\item{strata_lines}{default = \code{TRUE}. Ignored unless \code{type = "AC"}.
+If TRUE, lines on the plot indicate strata cut points.}
+
 \item{jitter_prognosis}{ignored unless \code{type = "AC"}.  Amount of uniform
 random noise to add to prognostic scores in plot.}
 
@@ -37,9 +44,6 @@ uniform random noise to add to propensity scores in plot.}
 Specifies propensity score information for plots where this is required.
 Accepts either a vector of propensity scores, a \code{glm} model for
 propensity scores, or a formula for fitting a propensity score model.}
-
-\item{stratum}{ignored unless \code{type = "hist"} or \code{type = "AC"}. A
-number specifying which stratum to plot.}
 
 \item{...}{other arguments}
 }

@@ -171,6 +171,10 @@ summary.strata <- function(object, ...){
 #'   plot is produced. The user may click on any number of strata and press
 #'   finish to have those strata labeled.  Note: uses \code{\link{identify}},
 #'   which may not be supported on some devices
+#' @param stratum ignored unless \code{type = "hist"} or \code{type = "AC"}. A
+#'   number specifying which stratum to plot.
+#' @param strata_lines default = \code{TRUE}. Ignored unless \code{type = "AC"}.
+#'   If TRUE, lines on the plot indicate strata cut points. 
 #' @param jitter_prognosis ignored unless \code{type = "AC"}.  Amount of uniform
 #'   random noise to add to prognostic scores in plot.
 #' @param jitter_propensity ignored unless \code{type = "AC"}.  Amount of
@@ -179,8 +183,6 @@ summary.strata <- function(object, ...){
 #'   Specifies propensity score information for plots where this is required.
 #'   Accepts either a vector of propensity scores, a \code{glm} model for
 #'   propensity scores, or a formula for fitting a propensity score model.
-#' @param stratum ignored unless \code{type = "hist"} or \code{type = "AC"}. A
-#'   number specifying which stratum to plot.
 #' @param ... other arguments
 #' @seealso Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
 #'   Section 3.2 for an explaination of Assignment-Control plots
@@ -192,11 +194,12 @@ summary.strata <- function(object, ...){
 #' plot(a.strat, type = "hist", propensity = treat ~ X1, stratum = 1)
 #' plot(a.strat, type = "AC", propensity = treat ~ X1, stratum = 1)
 #' plot(a.strat, type = "residual")
-plot.strata <- function(x, type = "SR", label = FALSE, stratum = "all", jitter_prognosis,
+plot.strata <- function(x, type = "SR", label = FALSE, stratum = "all", 
+                        strata_lines = TRUE, jitter_prognosis,
                         jitter_propensity, propensity, ...){
   if (type == "SR") make_SR_plot(x, label)
   else if (type == "hist") make_hist_plot(x, propensity, stratum)
-  else if (type == "AC") make_ac_plot(x, propensity, stratum,
+  else if (type == "AC") make_ac_plot(x, propensity, stratum, strata_lines,
                                       jitter_prognosis, jitter_propensity)
   else if (type == "residual") make_resid_plot(x)
   else {
@@ -298,7 +301,8 @@ make_hist_plot <- function(x, propensity, strat){
 #' @seealso Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
 #'   Section 3.2 for an explaination of Assignment-Control plots
 #' @keywords internal
-make_ac_plot <- function(x, propensity, strat, jitter_prognosis, jitter_propensity){
+make_ac_plot <- function(x, propensity, strat, strata_lines, 
+                         jitter_prognosis, jitter_propensity){
   if (!is.auto_strata(x)){
     stop("Cannot make Assignment-Control plots on manually stratified data.")
   }
@@ -346,7 +350,12 @@ make_ac_plot <- function(x, propensity, strat, jitter_prognosis, jitter_propensi
        xlim = range(plt_data$prop_score) + c(-0.1, 0.1) * propscore_span,
        ylim = range(plt_data$prog_score) + c(-0.1, 0.1) * progscore_span)
   legend("topleft", legend = c("treated", "control"), fill = c("red", "blue"),
-         box.lty = 0)
+         box.lty = 0, bg="transparent")
+  if(strata_lines){
+    abline(h = extract_cut_points(x), col = "grey")
+    legend("topright", legend = "strata cut points", col = "grey", lty = 1,
+           box.lty = 0, bg="transparent") 
+  }
 }
 
 #' Make Residual Plot
@@ -420,5 +429,46 @@ get_prop_scores <- function(propensity, data, treat){
 check_prop_formula <- function(prop_formula, data, treat){
   if (!(treat == all.vars(prop_formula)[1])) {
     stop("propensity formula must model treatment assignment")
+  }
+}
+
+#----------------------------------------------------------
+### NEW METHODS
+#----------------------------------------------------------
+
+#' Extract cutoffs between strata
+#' 
+#' By default, returns only the internal cut points.  Cutoffs at 0 and 1 are implied.
+#'
+#' @param x an autostrata object
+#'
+#' @return a vector of the score values delineating cutoffs between strata
+#' @export
+#'
+#' @examples
+#' dat <- make_sample_data()
+#' a.strat <- auto_stratify(dat, "treat", outcome ~ X1 + X2)
+#' cutoffs <- extract_cut_points(a.strat)
+extract_cut_points <- function(x) { UseMethod("extract_cut_points") }
+
+#' Extract cutoffs between strata
+#'
+#' @inheritParams extract_cut_points
+#'
+#' @return a vector of the score values delineating cutoffs between strata
+#' @export
+extract_cut_points.auto_strata <- function(x){
+  bin_str <- x$strata_table$quantile_bin
+  
+  bin_str <- sub('.*,', '', bin_str)
+  bin_str <- substr(bin_str, 1, nchar(bin_str) - 1)
+  
+  cuts <- as.numeric(bin_str)
+  
+  if(length(cuts) <= 1){
+    warning("Only one stratum.  Returning NA.")
+    return(NA)
+  } else{
+    return(cuts[-length(cuts)])
   }
 }
