@@ -98,10 +98,10 @@
 #'   observations to be used in pilot set. Note that the actual pilot set size
 #'   returned may not be exactly \code{pilot_size} if \code{group_by_covariates}
 #'   is specified because balancing by covariates may result in deviations from
-#'   desired size. If pilot_size is specified, pilot_fraction is ignored.
+#'   desired size. If \code{pilot_size} is specified, \code{pilot_fraction} is ignored.
 #' @param pilot_sample a data.frame of held aside samples for building
-#'   prognostic score model. If pilot_sample is specified, pilot_size and
-#'   pilot_fraction are both ignored.
+#'   prognostic score model. If \code{pilot_sample} is specified, \code{pilot_size} and
+#'   \code{pilot_fraction} are both ignored.
 #' @param group_by_covariates character vector giving the names of covariates to
 #'   be grouped by (optional). If specified, the pilot set will be sampled in a
 #'   stratified manner, so that the composition of the pilot set reflects the
@@ -245,10 +245,22 @@ build_autostrata <- function(data, treat, prognosis, outcome, pilot_fraction,
   # if prognosis is a formula
   else if (inherits(prognosis, "formula")){
     check_prognostic_formula(prognosis, data, outcome, treat)
-    split <- split_pilot_set(data, treat, pilot_fraction, pilot_size, 
-                             pilot_sample, group_by_covariates)
-    pilot_set <- split$pilot_set
-    analysis_set <- split$analysis_set
+    
+    if(!is.null(pilot_sample)){
+      # check pilot sample
+      if (!is.data.frame(pilot_sample)){
+        stop("pilot_sample must be a data.frame")
+      }
+      message("Using user-specified set for prognostic score modeling.")
+      pilot_set <- pilot_sample
+      analysis_set <- data
+      
+    } else {
+      split <- split_pilot_set(data, treat, pilot_fraction, pilot_size,
+                               group_by_covariates)
+      pilot_set <- split$pilot_set
+      analysis_set <- split$analysis_set 
+    }
     outcome <- all.vars(prognosis)[1]
     
     prognostic_model <- fit_prognostic_model(pilot_set, prognosis, outcome)

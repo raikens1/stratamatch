@@ -148,8 +148,14 @@ test_that("auto_stratify errors work", {
                NA)
   
   # PILOT SET OPTIONS ------------------------
-  # tests for errors on bad pilot set options can be found in split_pilot_set,
-  # which is called by auto_stratify.
+  # bad pilot_sample
+  expect_error(auto_stratify(test_dat,
+                             treat = "treated",
+                             prognosis = outcomes ~ . - treated, 
+                             pilot_sample = -1),
+               "pilot_sample must be a data.frame")
+  # other tests for errors on bad pilot set options can be found in
+  # split_pilot_set, which is called by auto_stratify.
 })
 
 #----------------------------------------------------------

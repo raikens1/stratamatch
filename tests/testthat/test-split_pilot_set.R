@@ -35,16 +35,13 @@ test_that("split_pilot_set errors work", {
   test_dat$treat_char <- ifelse(test_dat$treated == 0, "a", "b")
   test_dat$treat_12 <- test_dat$treated + 1
   expect_error(split_pilot_set(test_dat,
-                               treat = "treat_cont",
-                               pilot_sample = test_dat),
+                               treat = "treat_cont"),
                "treatment column must be binary or logical")
   expect_error(split_pilot_set(test_dat,
-                               treat = "treat_char",
-                               pilot_sample = test_dat),
+                               treat = "treat_char"),
                "treatment column must be binary or logical")
   expect_error(split_pilot_set(test_dat,
-                               treat = "treat_12",
-                               pilot_sample = test_dat),
+                               treat = "treat_12"),
                "treatment column must be binary or logical")
 
   # PILOT SET OPTIONS ----------------------------
@@ -72,10 +69,6 @@ test_that("split_pilot_set errors work", {
                                treat = "treated",
                                pilot_size = 82),
                  "Requested pilot size requires more than 70% of all controls")
-  expect_error(split_pilot_set(test_dat,
-                             treat = "treated",
-                             pilot_sample = -1),
-               "pilot_sample must be a data.frame")
   expect_error(split_pilot_set(test_dat,
                              treat = "treated",
                              group_by_covariates = "socks"),
