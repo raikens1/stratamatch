@@ -10,8 +10,8 @@ is.strata(object)
 \item{object}{any R object}
 }
 \value{
-Returns \code{TRUE} if its argument has \code{strata} among its classes and
-\code{FALSE} otherwise.
+Returns \code{TRUE} if its argument has \code{strata} among its
+  classes and \code{FALSE} otherwise.
 }
 \description{
 Checks if the target object is a \code{strata} object.

@@ -13,7 +13,8 @@ extract_cut_points(x)
 a vector of the score values delineating cutoffs between strata
 }
 \description{
-By default, returns only the internal cut points.  Cutoffs at 0 and 1 are implied.
+By default, returns only the internal cut points.  Cutoffs at 0 and 1 are
+implied.
 }
 \examples{
 dat <- make_sample_data()

@@ -20,7 +20,7 @@ from prog_formula}
 nothing; produces errors and warnings if anything is wrong
 }
 \description{
-Not meant to be called externally.  Throws errors if basic auto_stratify 
+Not meant to be called externally.  Throws errors if basic auto_stratify
 inputs are incorrect.
 }
 \keyword{internal}

@@ -42,9 +42,10 @@ function partitions the data accordingly and returns the partitioned data as
 a list containing the \code{analysis_set} and \code{pilot_set}.
 }
 \examples{
-  dat <- make_sample_data()
-  splt <- split_pilot_set(dat, "treat", 0.2)
-  # can be passed into auto_stratify if desired
-  a.strat <- auto_stratify(splt$analysis_set, "treat", outcome ~ X1,
-   pilot_sample = splt$pilot_set)
+dat <- make_sample_data()
+splt <- split_pilot_set(dat, "treat", 0.2)
+# can be passed into auto_stratify if desired
+a.strat <- auto_stratify(splt$analysis_set, "treat", outcome ~ X1,
+  pilot_sample = splt$pilot_set
+)
 }

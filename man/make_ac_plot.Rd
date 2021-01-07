@@ -22,7 +22,8 @@ Specifies propensity score information for plots where this is required.
 Accepts either a vector of propensity scores, a \code{glm} model for
 propensity scores, or a formula for fitting a propensity score model.}
 
-\item{strat}{the number code of the stratum to be plotted. If "all", plots all strata.}
+\item{strat}{the number code of the stratum to be plotted. If "all", plots
+all strata.}
 
 \item{strata_lines}{default = \code{TRUE}. Ignored unless \code{type = "AC"}.
 If TRUE, lines on the plot indicate strata cut points.}
@@ -35,7 +36,8 @@ uniform random noise to add to propensity scores in plot.}
 }
 \description{
 Not meant to be called externally.  Helper plot function for \code{strata}
-object with \code{type = "AC"}. Produces a Assignment-Control plot of stratum \code{s}
+object with \code{type = "AC"}. Produces a Assignment-Control plot of stratum
+\code{s}
 }
 \seealso{
 Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .

@@ -53,10 +53,10 @@ Generates diagnostic plots for the product of a stratification by
 three plot types: \enumerate{ \item \code{"SR"} (default) - produces a
 scatter plot of strata by size and treat:control ratio \item \code{"hist"} -
 produces a histogram of propensity scores within a stratum \item \code{"AC"}
-- produces a Assignment-Control plot of individuals within a stratum  (not supported
-for \code{manual strata} objects) \item \code{"residual"} - produces a
-residual plot for the prognostic model (not supported for \code{manual
-strata} objects)}
+- produces a Assignment-Control plot of individuals within a stratum  (not
+supported for \code{manual strata} objects) \item \code{"residual"} -
+produces a residual plot for the prognostic model (not supported for
+\code{manual strata} objects)}
 }
 \examples{
 dat <- make_sample_data()

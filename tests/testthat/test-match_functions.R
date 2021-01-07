@@ -29,17 +29,27 @@ test_that("matching errors work", {
   if (!requireNamespace("optmatch", quietly = TRUE)) {
     skip("optmatch not installed")
   }
-  
+
   m.strat <- manual_stratify(test_dat, treated ~ C1)
 
-  expect_error(strata_match(m.strat, "soup", k = 1),
-               "propensity must be a formula")
-  expect_error(strata_match(m.strat, C1 ~ treated + X1, k = 1),
-               "propensity formula must model treatment assignment")
-  expect_error(strata_match(m.strat, treated ~ C1 + X1, k = "socks"),
-               "k must be an integer")
-  expect_error(strata_match(m.strat, treated ~ C1 + X1, k = 0),
-               "k must be 1 or greater")
-  expect_error(strata_match("soup", treated ~ C1 + X1, k = 1),
-               "strat must be a strata object")
+  expect_error(
+    strata_match(m.strat, "soup", k = 1),
+    "propensity must be a formula"
+  )
+  expect_error(
+    strata_match(m.strat, C1 ~ treated + X1, k = 1),
+    "propensity formula must model treatment assignment"
+  )
+  expect_error(
+    strata_match(m.strat, treated ~ C1 + X1, k = "socks"),
+    "k must be an integer"
+  )
+  expect_error(
+    strata_match(m.strat, treated ~ C1 + X1, k = 0),
+    "k must be 1 or greater"
+  )
+  expect_error(
+    strata_match("soup", treated ~ C1 + X1, k = 1),
+    "strat must be a strata object"
+  )
 })

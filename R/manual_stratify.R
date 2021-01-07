@@ -1,5 +1,5 @@
 #----------------------------------------------------------
-### CONTAINS: 
+### CONTAINS:
 # manual_stratify its helper functions
 #----------------------------------------------------------
 #----------------------------------------------------------
@@ -43,18 +43,17 @@
 #' @seealso \code{\link{auto_stratify}}, \code{\link{new_manual_strata}}
 #' @export
 #' @examples
-#'   # make sample data set
-#'   dat <- make_sample_data(n = 75)
-#'   
-#'   # stratify based on B1 and B2
-#'   m.strat <- manual_stratify(dat, treat ~ B1 + B2)
-#'   
-#'   # diagnostic plot
-#'   plot(m.strat)
-manual_stratify <- function(data, strata_formula, force = FALSE){
-
+#' # make sample data set
+#' dat <- make_sample_data(n = 75)
+#'
+#' # stratify based on B1 and B2
+#' m.strat <- manual_stratify(dat, treat ~ B1 + B2)
+#'
+#' # diagnostic plot
+#' plot(m.strat)
+manual_stratify <- function(data, strata_formula, force = FALSE) {
   check_inputs_manual_stratify(data, strata_formula, force)
-  
+
   # if input data is grouped, all sorts of strange things happen
   data <- data %>% dplyr::ungroup()
 
@@ -62,7 +61,7 @@ manual_stratify <- function(data, strata_formula, force = FALSE){
   covariates <- all.vars(strata_formula)[-1]
 
   # helper function to extract group labels from dplyr
-  get_next_integer <- function(){
+  get_next_integer <- function() {
     i <- 0
     function(u, v) {
       i <<- i + 1
@@ -78,18 +77,22 @@ manual_stratify <- function(data, strata_formula, force = FALSE){
     dplyr::ungroup()
 
   strata_table <- grouped_table %>%
-    dplyr::summarize(stratum = dplyr::first(.data$stratum),
-                     size = dplyr::n(),
-                     .groups = "drop_last")
+    dplyr::summarize(
+      stratum = dplyr::first(.data$stratum),
+      size = dplyr::n(),
+      .groups = "drop_last"
+    )
 
   issue_table <- make_issue_table(analysis_set, treat)
 
-  result <- new_manual_strata(analysis_set = analysis_set,
-                              treat = treat,
-                              call = match.call(),
-                              issue_table = issue_table,
-                              covariates = covariates,
-                              strata_table = strata_table)
+  result <- new_manual_strata(
+    analysis_set = analysis_set,
+    treat = treat,
+    call = match.call(),
+    issue_table = issue_table,
+    covariates = covariates,
+    strata_table = strata_table
+  )
   return(result)
 }
 
@@ -113,21 +116,24 @@ manual_stratify <- function(data, strata_formula, force = FALSE){
 #' @param n, the number of rows in the data set
 #' @return Does not return anything
 #' @keywords internal
-warn_if_continuous <- function(column, name, force, n){
-  
-  if (is.factor(column) | !is.numeric(column)){
+warn_if_continuous <- function(column, name, force, n) {
+  if (is.factor(column) | !is.numeric(column)) {
     return() # assume all factors are discrete
   } else {
     values <- length(unique(column))
-    if (values > min(c(15, 0.3 * n))){
-      if ( force == FALSE ){
+    if (values > min(c(15, 0.3 * n))) {
+      if (force == FALSE) {
         stop(paste("There are ", values,
-                   " distinct values for ", name,
-                   ". Is it continuous?", sep = ""))
+          " distinct values for ", name,
+          ". Is it continuous?",
+          sep = ""
+        ))
       } else {
         warning(paste("There are ", values,
-                      " distinct values for ", name,
-                      ". Is it continuous?", sep = ""), immediate. = T)
+          " distinct values for ", name,
+          ". Is it continuous?",
+          sep = ""
+        ), immediate. = T)
       }
     }
     return()
@@ -139,14 +145,14 @@ warn_if_continuous <- function(column, name, force, n){
 #----------------------------------------------------------
 
 #' Check inputs to manual_stratify
-#' 
+#'
 #' Not meant to be called externally.  Checks validity of formula, types of all inputs to manual stratify, and warns if covariates are continuous.
 #'
 #' @inheritParams manual_stratify
 #'
 #' @return nothing; produces errors and warnings if anything is wrong
 #' @keywords internal
-check_inputs_manual_stratify <- function(data, strata_formula, force){
+check_inputs_manual_stratify <- function(data, strata_formula, force) {
   # check input types
   if (!is.data.frame(data)) stop("data must be a data.frame")
   if (!inherits(strata_formula, "formula")) {
@@ -159,13 +165,13 @@ check_inputs_manual_stratify <- function(data, strata_formula, force){
 
   covariates <- all.vars(strata_formula)[-1]
   n <- dim(data)[1]
-  
+
   if (!is_binary(data[[all.vars(strata_formula)[1]]])) {
     stop("treatment column must be binary or logical")
   }
 
   # Check that all covariates are discrete
-  for (i in 1:length(covariates)){
+  for (i in 1:length(covariates)) {
     warn_if_continuous(data[[covariates[i]]], covariates[i], force, n)
   }
 }

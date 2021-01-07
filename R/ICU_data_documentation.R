@@ -52,5 +52,5 @@
 #'   surgical team at any point during their ICU stay, binary} }
 #' @source
 #' \url{https://simtk.org/frs/download_confirm.php/latestzip/1969/ICUDNR-latest.zip?group_id=892}
-#' 
+#'
 "ICU_data"

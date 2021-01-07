@@ -137,13 +137,17 @@ print.manual_strata <- function(x, ...) {
 #' dat <- make_sample_data()
 #' m.strat <- manual_stratify(dat, treat ~ C1)
 #' summary(m.strat) # Summarizes strata in m.strat
-summary.strata <- function(object, ...){
-  writeLines(paste("Number of strata:", dim(object$issue_table)[1],
-                   "\n\n\tMin size:", min(object$issue_table$Total),
-                   "\tMax size:", max(object$issue_table$Total)))
-  
-  writeLines(paste("\nStrata with Potential Issues:", 
-                   sum(object$issue_table$Potential_Issues != "none")))
+summary.strata <- function(object, ...) {
+  writeLines(paste(
+    "Number of strata:", dim(object$issue_table)[1],
+    "\n\n\tMin size:", min(object$issue_table$Total),
+    "\tMax size:", max(object$issue_table$Total)
+  ))
+
+  writeLines(paste(
+    "\nStrata with Potential Issues:",
+    sum(object$issue_table$Potential_Issues != "none")
+  ))
 }
 
 
@@ -194,15 +198,21 @@ summary.strata <- function(object, ...){
 #' plot(a.strat, type = "hist", propensity = treat ~ X1, stratum = 1)
 #' plot(a.strat, type = "AC", propensity = treat ~ X1, stratum = 1)
 #' plot(a.strat, type = "residual")
-plot.strata <- function(x, type = "SR", label = FALSE, stratum = "all", 
+plot.strata <- function(x, type = "SR", label = FALSE, stratum = "all",
                         strata_lines = TRUE, jitter_prognosis,
-                        jitter_propensity, propensity, ...){
-  if (type == "SR") make_SR_plot(x, label)
-  else if (type == "hist") make_hist_plot(x, propensity, stratum)
-  else if (type == "AC") make_ac_plot(x, propensity, stratum, strata_lines,
-                                      jitter_prognosis, jitter_propensity)
-  else if (type == "residual") make_resid_plot(x)
-  else {
+                        jitter_propensity, propensity, ...) {
+  if (type == "SR") {
+    make_SR_plot(x, label)
+  } else if (type == "hist") {
+    make_hist_plot(x, propensity, stratum)
+  } else if (type == "AC") {
+    make_ac_plot(
+      x, propensity, stratum, strata_lines,
+      jitter_prognosis, jitter_propensity
+    )
+  } else if (type == "residual") {
+    make_resid_plot(x)
+  } else {
     stop("Not a recognized plot type.")
   }
 }
@@ -231,13 +241,17 @@ make_SR_plot <- function(x, label) {
   rect(0, 0, SIZE_MIN, 1, col = rgb(1, 0, 0, 0.35), border = NA)
   rect(SIZE_MAX, 0, xmax, 1, col = rgb(1, 0.6, 0, 0.35), border = NA)
   points(x = issue_table$Total, y = issue_table$Control_Proportion, pch = 16)
-  legend("bottomright", legend = c("too few samples", "too many samples", "treat:control imbalance"), fill = c(rgb(1, 0, 0, 0.35), rgb(1, 0.6, 0, 0.35), rgb(1, 1, 0, 0.35)),
-         box.lty = 0)
-  
+  legend("bottomright",
+    legend = c("too few samples", "too many samples", "treat:control imbalance"), fill = c(rgb(1, 0, 0, 0.35), rgb(1, 0.6, 0, 0.35), rgb(1, 1, 0, 0.35)),
+    box.lty = 0
+  )
 
-  if (label == TRUE){
-    identify(x = issue_table$Total, y = issue_table$Control_Proportion,
-             labels = issue_table$Stratum, offset = 0.5)
+
+  if (label == TRUE) {
+    identify(
+      x = issue_table$Total, y = issue_table$Control_Proportion,
+      labels = issue_table$Stratum, offset = 0.5
+    )
   }
 }
 
@@ -251,27 +265,27 @@ make_SR_plot <- function(x, label) {
 #' @param strat the number code of the strata to be plotted.  If "all", plots
 #'   all strata
 #' @keywords internal
-make_hist_plot <- function(x, propensity, strat){
+make_hist_plot <- function(x, propensity, strat) {
   a_set <- x$analysis_set
-  
-  prop_scores = get_prop_scores(propensity, a_set, x$treat)
+
+  prop_scores <- get_prop_scores(propensity, a_set, x$treat)
 
   plt_data <- a_set %>%
     dplyr::mutate(prop_score = prop_scores)
-  
-  if (strat == "all"){
+
+  if (strat == "all") {
     title <- "Propensity scores across all strata"
-  } else{
-    if (!is.element(strat, unique(a_set$stratum))){
+  } else {
+    if (!is.element(strat, unique(a_set$stratum))) {
       stop("Stratum number does not exist in analysis set")
-    } 
+    }
     plt_data <- plt_data %>%
       dplyr::filter(.data$stratum == strat)
     title <- paste("Propensity scores in stratum", strat)
   }
 
-  ht <- plt_data[ (plt_data[[x$treat]] == 1),]$prop_score
-  hc <- plt_data[ (plt_data[[x$treat]] == 0),]$prop_score
+  ht <- plt_data[(plt_data[[x$treat]] == 1), ]$prop_score
+  hc <- plt_data[(plt_data[[x$treat]] == 0), ]$prop_score
 
   # workaround to get plot area correct
   # make separate histograms, then use the info in the histogram objects
@@ -285,13 +299,17 @@ make_hist_plot <- function(x, propensity, strat){
   nbreaks <- max(length(histt$breaks), length(histc$breaks))
 
   # plot final overlayed histogram
-  hist(hc, breaks = nbreaks,
-       col = rgb(0, 0, 1, 0.5), xlim = c(xmin, xmax), ylim = c(0, ymax),
-       main = title,
-       xlab = "Propensity Score")
+  hist(hc,
+    breaks = nbreaks,
+    col = rgb(0, 0, 1, 0.5), xlim = c(xmin, xmax), ylim = c(0, ymax),
+    main = title,
+    xlab = "Propensity Score"
+  )
   hist(ht, breaks = nbreaks, col = rgb(1, 0, 0, 0.5), add = TRUE)
-  legend("topright", legend = c("treated", "control"),
-         fill = c(rgb(1, 0, 0, 0.5), rgb(0, 0, 1, 0.5)))
+  legend("topright",
+    legend = c("treated", "control"),
+    fill = c(rgb(1, 0, 0, 0.5), rgb(0, 0, 1, 0.5))
+  )
 }
 
 #' Make Assignment-Control plot
@@ -306,61 +324,73 @@ make_hist_plot <- function(x, propensity, strat){
 #' @seealso Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
 #'   Section 3.2 for an explaination of Assignment-Control plots
 #' @keywords internal
-make_ac_plot <- function(x, propensity, strat, strata_lines, 
-                         jitter_prognosis, jitter_propensity){
-  if (!is.auto_strata(x)){
+make_ac_plot <- function(x, propensity, strat, strata_lines,
+                         jitter_prognosis, jitter_propensity) {
+  if (!is.auto_strata(x)) {
     stop("Cannot make Assignment-Control plots on manually stratified data.")
   }
 
   a_set <- x$analysis_set
-  
-  prop_scores = get_prop_scores(propensity, a_set, x$treat)
-  
+
+  prop_scores <- get_prop_scores(propensity, a_set, x$treat)
+
   plt_data <- a_set %>%
-    dplyr::mutate(prop_score = prop_scores,
-                  prog_score = x$prognostic_scores)
-  
-  if (strat == "all"){
+    dplyr::mutate(
+      prop_score = prop_scores,
+      prog_score = x$prognostic_scores
+    )
+
+  if (strat == "all") {
     title <- "Assignment-Control plot for all strata"
-  } else{
-    if (!is.element(strat, unique(a_set$stratum))){
+  } else {
+    if (!is.element(strat, unique(a_set$stratum))) {
       stop("Stratum number does not exist in analysis set")
-    } 
+    }
     plt_data <- plt_data %>%
       dplyr::filter(.data$stratum == strat)
     title <- paste("Assignment-Control plot for stratum", strat)
   }
-  
+
   # if jitter arguments supplied, add jitter.
-  if(!missing(jitter_propensity)){ 
+  if (!missing(jitter_propensity)) {
     plt_data <- dplyr::mutate(plt_data,
-                              prop_score = jitter(.data$prop_score,
-                                                  amount = jitter_propensity))
-  } 
-  if(!missing(jitter_prognosis)){ 
+      prop_score = jitter(.data$prop_score,
+        amount = jitter_propensity
+      )
+    )
+  }
+  if (!missing(jitter_prognosis)) {
     plt_data <- dplyr::mutate(plt_data,
-                              prog_score = jitter(.data$prog_score,
-                                                  amount = jitter_prognosis))
-  } 
+      prog_score = jitter(.data$prog_score,
+        amount = jitter_prognosis
+      )
+    )
+  }
 
   plt_data$color <- ifelse(plt_data[[x$treat]] == 1, "red", "blue")
-  
-  propscore_span = max(plt_data$prop_score) - min(plt_data$prop_score)
-  progscore_span = max(plt_data$prog_score) - min(plt_data$prog_score)
 
-  plot(plt_data$prop_score, plt_data$prog_score, col = plt_data$color,
-       main = title,
-       xlab = "Estimated propensity score",
-       ylab = "Estimated prognostic score",
-       xlim = range(plt_data$prop_score) + c(-0.1, 0.1) * propscore_span,
-       ylim = range(plt_data$prog_score) + c(-0.1, 0.1) * progscore_span)
-  if(strata_lines){
+  propscore_span <- max(plt_data$prop_score) - min(plt_data$prop_score)
+  progscore_span <- max(plt_data$prog_score) - min(plt_data$prog_score)
+
+  plot(plt_data$prop_score, plt_data$prog_score,
+    col = plt_data$color,
+    main = title,
+    xlab = "Estimated propensity score",
+    ylab = "Estimated prognostic score",
+    xlim = range(plt_data$prop_score) + c(-0.1, 0.1) * propscore_span,
+    ylim = range(plt_data$prog_score) + c(-0.1, 0.1) * progscore_span
+  )
+  if (strata_lines) {
     abline(h = extract_cut_points(x), col = "grey")
-    legend("topright", legend = "strata cut points", col = "grey", lty = 1,
-           box.lty = 0, bg="transparent") 
-    }
-  legend("topleft", legend = c("treated", "control"), fill = c("red", "blue"),
-         box.lty = 0)
+    legend("topright",
+      legend = "strata cut points", col = "grey", lty = 1,
+      box.lty = 0, bg = "transparent"
+    )
+  }
+  legend("topleft",
+    legend = c("treated", "control"), fill = c("red", "blue"),
+    box.lty = 0
+  )
 }
 
 #' Make Residual Plot
@@ -371,13 +401,13 @@ make_ac_plot <- function(x, propensity, strat, strata_lines,
 #'
 #' @inheritParams plot.strata
 #' @keywords internal
-make_resid_plot <- function(x){
-  if (!is.auto_strata(x)){
+make_resid_plot <- function(x) {
+  if (!is.auto_strata(x)) {
     stop("Prognostic score residual plots are only valid for auto-stratified data.")
   } else {
-    if (is.null(x$prognostic_model)){
+    if (is.null(x$prognostic_model)) {
       stop("Cannot make prognostic model residual plots since prognostic scores were provided.")
-    } else{
+    } else {
       return(plot(x$prognostic_model))
     }
   }
@@ -398,29 +428,31 @@ make_resid_plot <- function(x){
 #'
 #' @return vector of propensity scores
 #' @keywords internal
-get_prop_scores <- function(propensity, data, treat){
+get_prop_scores <- function(propensity, data, treat) {
   # if it is a vector of propensity scores, check and return it
-  if (is.numeric(propensity)){
-    if (length(propensity) != dim(data)[1]){
+  if (is.numeric(propensity)) {
+    if (length(propensity) != dim(data)[1]) {
       stop("propensity scores must be the same length as the data")
     }
     return(propensity)
   }
 
   # if it is a formula
-  if (inherits(propensity, "formula")){
+  if (inherits(propensity, "formula")) {
     check_prop_formula(propensity, data, treat)
     prop_model <- glm(propensity, data, family = "binomial")
     return(predict(prop_model, type = "response"))
   }
 
   # if it is a model for propensity, predict on data
-  prop_scores <- tryCatch(predict(propensity, 
-                                  newdata = data,
-                                  type = "response"),
-                          error = function(c) {
-                            stop("propensity type not recognized")
-                            })
+  prop_scores <- tryCatch(predict(propensity,
+    newdata = data,
+    type = "response"
+  ),
+  error = function(c) {
+    stop("propensity type not recognized")
+  }
+  )
   return(prop_scores)
 }
 
@@ -428,10 +460,10 @@ get_prop_scores <- function(propensity, data, treat){
 #'
 #' @inheritParams get_prop_scores
 #' @param prop_formula a formula
-#' 
+#'
 #' @return nothing
 #' @keywords internal
-check_prop_formula <- function(prop_formula, data, treat){
+check_prop_formula <- function(prop_formula, data, treat) {
   if (!(treat == all.vars(prop_formula)[1])) {
     stop("propensity formula must model treatment assignment")
   }
@@ -455,7 +487,9 @@ check_prop_formula <- function(prop_formula, data, treat){
 #' dat <- make_sample_data()
 #' a.strat <- auto_stratify(dat, "treat", outcome ~ X1 + X2)
 #' cutoffs <- extract_cut_points(a.strat)
-extract_cut_points <- function(x) { UseMethod("extract_cut_points") }
+extract_cut_points <- function(x) {
+  UseMethod("extract_cut_points")
+}
 
 #' Extract cutoffs between strata
 #'
@@ -463,18 +497,18 @@ extract_cut_points <- function(x) { UseMethod("extract_cut_points") }
 #'
 #' @return a vector of the score values delineating cutoffs between strata
 #' @export
-extract_cut_points.auto_strata <- function(x){
+extract_cut_points.auto_strata <- function(x) {
   bin_str <- x$strata_table$quantile_bin
-  
-  bin_str <- sub('.*,', '', bin_str)
+
+  bin_str <- sub(".*,", "", bin_str)
   bin_str <- substr(bin_str, 1, nchar(bin_str) - 1)
-  
+
   cuts <- as.numeric(bin_str)
-  
-  if(length(cuts) <= 1){
+
+  if (length(cuts) <= 1) {
     warning("Only one stratum.  Returning NA.")
     return(NA)
-  } else{
+  } else {
     return(cuts[-length(cuts)])
   }
 }

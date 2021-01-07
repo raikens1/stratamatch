@@ -1,5 +1,5 @@
 #----------------------------------------------------------
-### CONTAINS: 
+### CONTAINS:
 # Matching methods to be called on strata objects, and their helpers
 #----------------------------------------------------------
 
@@ -16,50 +16,57 @@
 #'   treated individual
 #' @return a named factor with matching assignments
 #' @export
-#' @examples 
+#' @examples
 #' # make a sample data set
 #' set.seed(1)
 #' dat <- make_sample_data(n = 75)
-#'   
+#'
 #' # stratify with auto_stratify
 #' a.strat <- auto_stratify(dat, "treat", outcome ~ X2, size = 25)
-#'   
+#'
 #' # 1:1 match based on propensity formula: treat ~ X1 + X2
 #' strata_match(a.strat, propensity = treat ~ X1 + X2, k = 1)
-strata_match <- function(object, propensity = NULL, k = 1){
-  
+strata_match <- function(object, propensity = NULL, k = 1) {
   if (!requireNamespace("optmatch", quietly = TRUE)) {
     stop("optmatch package is required.  Please install it.")
   }
-  
+
   check_inputs_matcher(object, propensity, k)
 
   message("This function makes essential use of the optmatch package, which has an academic license.")
   message("For more information, run optmatch::relaxinfo()")
 
-  if (is.null(propensity)){
+  if (is.null(propensity)) {
     # match on all variables, stratified by stratum
-    propensity <- formula(paste(object$treat, "~ . -", object$outcome,
-                                        "- stratum",
-                                        "+ strata(stratum)"))
+    propensity <- formula(paste(
+      object$treat, "~ . -", object$outcome,
+      "- stratum",
+      "+ strata(stratum)"
+    ))
   } else {
     # append phrase to stratify by stratum
     orig_form <- Reduce(paste, deparse(propensity))
-    propensity <- formula(paste(orig_form,
-                                        "+ strata(stratum)"))
+    propensity <- formula(paste(
+      orig_form,
+      "+ strata(stratum)"
+    ))
   }
-  
-  message(paste("Fitting propensity model:",
-                Reduce(paste, deparse(propensity))))
-  
+
+  message(paste(
+    "Fitting propensity model:",
+    Reduce(paste, deparse(propensity))
+  ))
+
   # build propensity model
   propensity_model <- glm(propensity,
-                          data = object$analysis_set,
-                          family = binomial())
+    data = object$analysis_set,
+    family = binomial()
+  )
 
   return(optmatch::pairmatch(propensity_model,
-                             data = object$analysis_set,
-                             controls = k))
+    data = object$analysis_set,
+    controls = k
+  ))
 }
 
 #' Match without Stratification
@@ -73,30 +80,33 @@ strata_match <- function(object, propensity = NULL, k = 1){
 #'   treated individual
 #' @return a named factor with matching assignments
 #' @keywords internal
-strata_match_nstrat <- function(object, propensity = NULL, k = 1){
-  
+strata_match_nstrat <- function(object, propensity = NULL, k = 1) {
   if (!requireNamespace("optmatch", quietly = TRUE)) {
     stop("optmatch package is required.  Please install it.")
   }
-  
+
   check_inputs_matcher(object, propensity, k)
 
-  if (is.null(propensity)){
+  if (is.null(propensity)) {
     # match on all variables, stratified by stratum
-    propensity <- formula(paste(object$treat, "~ . -", object$outcome,
-                                        "- stratum"))
+    propensity <- formula(paste(
+      object$treat, "~ . -", object$outcome,
+      "- stratum"
+    ))
   } else {
     # do not modify original formula to append "+ strata(stratum)"
   }
 
   # build propensity model
   propensity_model <- glm(propensity,
-                          data = object$analysis_set,
-                          family = binomial())
+    data = object$analysis_set,
+    family = binomial()
+  )
 
   return(optmatch::pairmatch(propensity_model,
-                             data = object$analysis_set,
-                             controls = k))
+    data = object$analysis_set,
+    controls = k
+  ))
 }
 
 #' Check inputs to any matching function
@@ -105,7 +115,7 @@ strata_match_nstrat <- function(object, propensity = NULL, k = 1){
 #'
 #' @return nothing
 #' @keywords internal
-check_inputs_matcher <- function(object, propensity, k){
+check_inputs_matcher <- function(object, propensity, k) {
   if (!is.strata(object)) {
     stop("strat must be a strata object")
   }

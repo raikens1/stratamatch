@@ -1,5 +1,5 @@
 #----------------------------------------------------------
-### CONTAINS: 
+### CONTAINS:
 # Low-level constructors for strata objects
 #----------------------------------------------------------
 
@@ -28,9 +28,7 @@ new_manual_strata <- function(treat = character(),
                               analysis_set = data.frame(),
                               call = call(),
                               issue_table = data.frame(),
-                              strata_table = data.frame()){
-
-
+                              strata_table = data.frame()) {
   stopifnot(is.character(treat))
   stopifnot(is.character(covariates))
   stopifnot(is.data.frame(analysis_set))
@@ -38,13 +36,16 @@ new_manual_strata <- function(treat = character(),
   stopifnot(is.data.frame(issue_table))
   stopifnot(is.data.frame(strata_table))
 
-  my_manualstrata <- structure(list(analysis_set = analysis_set,
-                                    treat = treat,
-                                    call = call,
-                                    issue_table = issue_table,
-                                    covariates = covariates,
-                                    strata_table = strata_table),
-                               class = c("manual_strata", "strata"))
+  my_manualstrata <- structure(list(
+    analysis_set = analysis_set,
+    treat = treat,
+    call = call,
+    issue_table = issue_table,
+    covariates = covariates,
+    strata_table = strata_table
+  ),
+  class = c("manual_strata", "strata")
+  )
 
   return(my_manualstrata)
 }
@@ -67,8 +68,8 @@ new_manual_strata <- function(treat = character(),
 #'   treat:control balance
 #' @param strata_table a table of each stratum and the prognostic score quantile
 #'   bin this corresponds to
-#' @param prognostic_scores a vector of prognostic scores.  
-#' @param prognostic_model a model for prognosis fit on a separate data set. 
+#' @param prognostic_scores a vector of prognostic scores.
+#' @param prognostic_model a model for prognosis fit on a separate data set.
 #' @param pilot_set the set of controls used to fit the prognostic model.
 #'   These are excluded from subsequent analysis so that the prognostic score is
 #'   not overfit to the data used to estimate the treatment effect.
@@ -79,14 +80,13 @@ new_manual_strata <- function(treat = character(),
 #' @return a basic \code{auto_strata} object
 #' @keywords internal
 new_auto_strata <- function(outcome, treat,
-                           analysis_set = NULL,
-                           call = NULL,
-                           issue_table = NULL,
-                           strata_table = NULL,
-                           prognostic_scores = NULL,
-                           prognostic_model = NULL,
-                           pilot_set = NULL){
-
+                            analysis_set = NULL,
+                            call = NULL,
+                            issue_table = NULL,
+                            strata_table = NULL,
+                            prognostic_scores = NULL,
+                            prognostic_model = NULL,
+                            pilot_set = NULL) {
   stopifnot(is.character(outcome))
   stopifnot(is.character(treat))
   stopifnot(is.data.frame(analysis_set))
@@ -95,15 +95,18 @@ new_auto_strata <- function(outcome, treat,
   stopifnot(is.data.frame(strata_table))
   stopifnot(is.numeric(prognostic_scores))
 
-  my_autostrata <- structure(list(analysis_set = analysis_set,
-                                 treat = treat,
-                                 call = call,
-                                 issue_table = issue_table,
-                                 strata_table = strata_table,
-                                 outcome = outcome,
-                                 prognostic_scores = prognostic_scores,
-                                 prognostic_model = prognostic_model,
-                                 pilot_set = pilot_set),
-                            class = c("auto_strata", "strata"))
+  my_autostrata <- structure(list(
+    analysis_set = analysis_set,
+    treat = treat,
+    call = call,
+    issue_table = issue_table,
+    strata_table = strata_table,
+    outcome = outcome,
+    prognostic_scores = prognostic_scores,
+    prognostic_model = prognostic_model,
+    pilot_set = pilot_set
+  ),
+  class = c("auto_strata", "strata")
+  )
   return(my_autostrata)
 }

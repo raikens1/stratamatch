@@ -17,7 +17,7 @@ NULL
 
 # Other imports from base R packages
 #' @importFrom grDevices rgb
-#' @importFrom graphics hist identify legend plot rect abline
+#' @importFrom graphics hist identify legend plot rect abline points
 #' @importFrom stats binomial formula glm predict rbinom rnorm rexp lm na.omit
 #' @importFrom rlang .data
 NULL

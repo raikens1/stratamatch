@@ -20,8 +20,10 @@ test_that("Print manual strata works", {
 
 test_that("Print auto strata works", {
   a.strat <- auto_stratify(test_dat,
-                           "treated", prognosis = 1/(1 + exp(-test_dat$X1)),
-                           outcome = "outcomes")
+    "treated",
+    prognosis = 1 / (1 + exp(-test_dat$X1)),
+    outcome = "outcomes"
+  )
 
   expect_known_output(print(a.strat), file = "ref_astrat_print", update = F)
 })
@@ -33,13 +35,15 @@ test_that("Print auto strata works", {
 
 test_that("Summary of strata works", {
   m.strat <- manual_stratify(test_dat, treated ~ C1)
-  
+
   expect_known_output(summary(m.strat), file = "ref_mstrat_summary", update = F)
-  
+
   a.strat <- auto_stratify(test_dat,
-                           "treated", prognosis = 1/(1 + exp(-test_dat$X1)),
-                           outcome = "outcomes")
-  
+    "treated",
+    prognosis = 1 / (1 + exp(-test_dat$X1)),
+    outcome = "outcomes"
+  )
+
   expect_known_output(summary(a.strat), file = "ref_astrat_summary", update = F)
 })
 
@@ -50,40 +54,70 @@ test_that("Summary of strata works", {
 test_that("Plot errors work", {
   m.strat <- manual_stratify(test_dat, treated ~ C1)
   a.strat <- auto_stratify(test_dat,
-                           "treated", prognosis = 1/(1 + exp(-test_dat$X1)),
-                           outcome = "outcomes")
+    "treated",
+    prognosis = 1 / (1 + exp(-test_dat$X1)),
+    outcome = "outcomes"
+  )
 
   # bad plot type
   expect_error(plot(m.strat, type = "qq"))
 
   # residual plots
-  expect_error(plot(m.strat, type = "residual"),
-               "Prognostic score residual plots are only valid for auto-stratified data.")
-  expect_error(plot(a.strat, type = "residual"),
-               "Cannot make prognostic model residual plots since prognostic scores were provided.")
+  expect_error(
+    plot(m.strat, type = "residual"),
+    "Prognostic score residual plots are only valid for auto-stratified data."
+  )
+  expect_error(
+    plot(a.strat, type = "residual"),
+    "Cannot make prognostic model residual plots since prognostic scores were provided."
+  )
 
   # AC plots
-  expect_error(plot(m.strat, type = "AC",
-                    propensity = treated ~ X1 + X2, stratum = 1),
-               "Cannot make Assignment-Control plots on manually stratified data.")
-  expect_error(plot(a.strat, type = "AC",
-                    propensity = treated ~ X1 + X2, stratum = 200),
-               "Stratum number does not exist in analysis set")
-  expect_error(plot(a.strat, type = "AC", propensity = "soup", stratum = 1),
-               "propensity type not recognized")
-  
+  expect_error(
+    plot(m.strat,
+      type = "AC",
+      propensity = treated ~ X1 + X2, stratum = 1
+    ),
+    "Cannot make Assignment-Control plots on manually stratified data."
+  )
+  expect_error(
+    plot(a.strat,
+      type = "AC",
+      propensity = treated ~ X1 + X2, stratum = 200
+    ),
+    "Stratum number does not exist in analysis set"
+  )
+  expect_error(
+    plot(a.strat, type = "AC", propensity = "soup", stratum = 1),
+    "propensity type not recognized"
+  )
+
   # overlap plots
-  expect_error(plot(a.strat, type = "hist",
-                    propensity = treated ~ X1 + X2, stratum = 200),
-               "Stratum number does not exist in analysis set")
-  expect_error(plot(a.strat, type = "hist",
-                    propensity = 1:3, stratum = 1),
-               "propensity scores must be the same length as the data")
-  expect_error(plot(a.strat, type = "hist",
-                    propensity = outcomes ~ X1, stratum = 1),
-               "propensity formula must model treatment assignment")
-  expect_error(plot(a.strat, type = "hist", propensity = "soup", stratum = 1),
-               "propensity type not recognized")
+  expect_error(
+    plot(a.strat,
+      type = "hist",
+      propensity = treated ~ X1 + X2, stratum = 200
+    ),
+    "Stratum number does not exist in analysis set"
+  )
+  expect_error(
+    plot(a.strat,
+      type = "hist",
+      propensity = 1:3, stratum = 1
+    ),
+    "propensity scores must be the same length as the data"
+  )
+  expect_error(
+    plot(a.strat,
+      type = "hist",
+      propensity = outcomes ~ X1, stratum = 1
+    ),
+    "propensity formula must model treatment assignment"
+  )
+  expect_error(
+    plot(a.strat, type = "hist", propensity = "soup", stratum = 1),
+    "propensity type not recognized"
+  )
 })
 
 #----------------------------------------------------------
@@ -92,14 +126,20 @@ test_that("Plot errors work", {
 
 test_that("extract_cut_points works", {
   a.strat <- auto_stratify(test_dat,
-                           "treated", prognosis = 1/(1 + exp(-test_dat$X1)),
-                           outcome = "outcomes")
-  
+    "treated",
+    prognosis = 1 / (1 + exp(-test_dat$X1)),
+    outcome = "outcomes"
+  )
+
   expect_warning(extract_cut_points(a.strat), "Only one stratum.  Returning NA.")
-  
+
   a.strat2 <- auto_stratify(test_dat,
-                           "treated", prognosis = 1/(1 + exp(-test_dat$X1)),
-                           outcome = "outcomes", size = 25)
-  expect_equal(extract_cut_points(a.strat2), 
-               c(0.380, 0.518, 0.668))
+    "treated",
+    prognosis = 1 / (1 + exp(-test_dat$X1)),
+    outcome = "outcomes", size = 25
+  )
+  expect_equal(
+    extract_cut_points(a.strat2),
+    c(0.380, 0.518, 0.668)
+  )
 })
