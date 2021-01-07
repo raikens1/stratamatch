@@ -39,7 +39,7 @@ expect_strata_table_ok <- function(x, a_set_size, n_strat){
 #----------------------------------------------------------
 
 test_that("auto_stratify errors work", {
-
+  # BASIC INPUTS -------------------------------
   # bad data
   expect_error(auto_stratify(92,
                              treat = "treated",
@@ -58,6 +58,44 @@ test_that("auto_stratify errors work", {
                              outcome = "outcomes",
                              prognosis = 1/(1 + exp(-test_dat$X1))),
                "treat must be the name of a column in data")
+  
+  # bad treat format
+  test_dat$treat_cont <- rnorm(100)
+  test_dat$treat_char <- ifelse(test_dat$treated == 0, "a", "b")
+  test_dat$treat_12 <- test_dat$treated + 1
+  expect_error(auto_stratify(test_dat,
+                             treat = "treat_cont",
+                             prognosis = outcomes ~ X1,
+                             pilot_sample = test_dat),
+               "treatment column must be binary or logical")
+  expect_error(auto_stratify(test_dat,
+                             treat = "treat_char",
+                             prognosis = outcomes ~ X1,
+                             pilot_sample = test_dat),
+               "treatment column must be binary or logical")
+  expect_error(auto_stratify(test_dat,
+                             treat = "treat_12",
+                             prognosis = outcomes ~ X1,
+                             pilot_sample = test_dat),
+               "treatment column must be binary or logical")
+  
+  # bad outcome format
+  test_dat$outcome_12 <- test_dat$outcomes + 1
+  test_dat$outcome_ab <- ifelse(test_dat$outcomes == 0, "a", "b")
+  
+  expect_warning(auto_stratify(test_dat,
+                               treat = "treated",
+                               prognosis = outcome_12 ~ X1,
+                               pilot_sample = test_dat),
+                 "outcome column has only two values. Is it binary?")
+  
+  expect_error(auto_stratify(test_dat,
+                             treat = "treated",
+                             prognosis = outcome_ab ~ X1,
+                             pilot_sample = test_dat),
+               "Outcome was not a recognized type. Must be binary, logical, or numeric")
+  
+  # PROGNOSIS ARGUMENT----------------------
   
   # bad prognostic scores
   expect_error(auto_stratify(test_dat,
@@ -85,15 +123,6 @@ test_that("auto_stratify errors work", {
                              prognosis = outcomes ~ X1 + treated),
                "prognostic formula must model the outcome in the absence of treatment; the treatment assignment may not be a predictor for the prognostic score model")
   
-  # check that this runs without throwing an error
-  smalldata <- dplyr::select(test_dat, X1, outcomes, treated)
-  expect_error(auto_stratify(smalldata,
-                             treat = "treated",
-                             prognosis = outcomes ~ . - treated, 
-                             pilot_fraction = 0.2, # way too large in practice
-                             size = 25),
-               NA)
-  
   # bad prognostic model
   expect_error(auto_stratify(test_dat,
                              treat = "treated",
@@ -107,74 +136,27 @@ test_that("auto_stratify errors work", {
                              treat = "treated",
                              prognosis = "rocks"),
                "prognosis type not recognized")
+
+  # SMALL DATA --------------------------------
+  # check that this runs without throwing an error
+  smalldata <- dplyr::select(test_dat, X1, outcomes, treated)
+  expect_error(auto_stratify(smalldata,
+                             treat = "treated",
+                             prognosis = outcomes ~ . - treated, 
+                             pilot_fraction = 0.2, # way too large in practice
+                             size = 25),
+               NA)
   
-  # bad pilot set options
-  expect_error(auto_stratify(test_dat,
-                             treat = "treated",
-                             prognosis = outcomes ~ X1,
-                             pilot_fraction = "socks"),
-               "pilot_fraction must be numeric")
-  expect_error(auto_stratify(test_dat,
-                             treat = "treated",
-                             prognosis = outcomes ~ X1,
-                             pilot_fraction = -1),
-               "pilot_fraction must be between 0 and 1")
-  expect_error(auto_stratify(test_dat,
-                             treat = "treated",
-                             prognosis = outcomes ~ X1,
-                             pilot_sample = -1),
-               "pilot_sample must be a data.frame")
-  expect_error(auto_stratify(test_dat,
-                             treat = "treated",
-                             prognosis = outcomes ~ X1,
-                             group_by_covariates = "socks"),
-               "All covariates in group_by_covariates must be columns of the data")
-  expect_error(auto_stratify(test_dat,
-                             treat = "treated",
-                             prognosis = outcomes ~ X1,
-                             group_by_covariates = 9),
-               "group_by_covariates should be a character vector")
-  
-  # bad outcome format
-  test_dat$outcome_12 <- test_dat$outcomes + 1
-  test_dat$outcome_ab <- ifelse(test_dat$outcomes == 0, "a", "b")
-  
-  expect_warning(auto_stratify(test_dat,
-                             treat = "treated",
-                             prognosis = outcome_12 ~ X1,
-                             pilot_sample = test_dat),
-                 "outcome column has only two values. Is it binary?")
-  
-  expect_error(auto_stratify(test_dat,
-                             treat = "treated",
-                             prognosis = outcome_ab ~ X1,
-                             pilot_sample = test_dat),
-               "Outcome was not a recognized type. Must be binary, logical, or numeric")
-  
-  # bad treat format
-  test_dat$treat_cont <- rnorm(100)
-  test_dat$treat_char <- ifelse(test_dat$treated == 0, "a", "b")
-  test_dat$treat_12 <- test_dat$treated + 1
-  expect_error(auto_stratify(test_dat,
-                               treat = "treat_cont",
-                               prognosis = outcomes ~ X1,
-                               pilot_sample = test_dat),
-               "treatment column must be binary or logical")
-  expect_error(auto_stratify(test_dat,
-                             treat = "treat_char",
-                             prognosis = outcomes ~ X1,
-                             pilot_sample = test_dat),
-               "treatment column must be binary or logical")
-  expect_error(auto_stratify(test_dat,
-                             treat = "treat_12",
-                             prognosis = outcomes ~ X1,
-                             pilot_sample = test_dat),
-               "treatment column must be binary or logical")
+  # PILOT SET OPTIONS ------------------------
+  # tests for errors on bad pilot set options can be found in split_pilot_set,
+  # which is called by auto_stratify.
 })
 
 #----------------------------------------------------------
 ### CORRECT INPUTS
 #----------------------------------------------------------
+
+# NO PILOT SET ------------------------
 
 test_that("auto_stratify with prognostic scores works", {
 
@@ -205,6 +187,45 @@ test_that("auto_stratify with prognostic scores works", {
   expect_null(a.strat$pilot_set)
 })
 
+test_that("auto_stratify with prognostic model works", {
+  
+  # use "." syntax in formula to check that this is allowed
+  progmod <- glm(outcomes ~ X1,
+                 test_dat, family = "binomial")
+  
+  a.strat <- auto_stratify(test_dat,
+                           treat = "treated",
+                           outcome = "outcomes",
+                           prognosis = progmod,
+                           size = 20)
+  
+  expect_is(a.strat, "auto_strata")
+  expect_is(a.strat, "strata")
+  
+  expect_equal(dplyr::select(a.strat$analysis_set, -stratum), test_dat)
+  expect_equal(sort(unique(a.strat$analysis_set$stratum)), 1:5)
+  
+  expect_equal(a.strat$treat, "treated")
+  
+  expect_equal(toString(a.strat$call),
+               "auto_stratify, test_dat, treated, progmod, outcomes, 20")
+  
+  expect_issue_table_ok(a.strat$issue_table, 100, 5)
+  expect_strata_table_ok(a.strat$strata_table, 100, 5)
+  
+  expect_equal(a.strat$outcome, "outcomes")
+  
+  exp_prognostic_scores <- predict(progmod,
+                                   test_dat, type = "response")
+  
+  expect_equal(a.strat$prognostic_scores, exp_prognostic_scores)
+  
+  expect_equal(coef(a.strat$prognostic_model), coef(progmod))
+  
+  expect_null(a.strat$pilot_set)
+})
+
+# PILOT SET --------------------------
 
 test_that("auto_stratify with prognostic formula + pilot_fraction works", {
   
@@ -250,6 +271,50 @@ test_that("auto_stratify with prognostic formula + pilot_fraction works", {
   expect_equal(coef(a.strat$prognostic_model), coef(exp_prognostic_model))
 })
 
+test_that("auto_stratify with prognostic formula + pilot_size works", {
+  
+  a.strat <- auto_stratify(test_dat,
+                           treat = "treated",
+                           outcome = "outcomes",
+                           prognosis = outcomes ~ X1,
+                           pilot_size = 25,
+                           size = 25,
+                           group_by_covariates = c("B1", "B2"))
+  
+  expect_is(a.strat, "auto_strata")
+  expect_is(a.strat, "strata")
+  
+  expect_true(dim(a.strat$analysis_set)[1] > 0)
+  expect_true(dim(a.strat$pilot_set)[1] > 0)
+  expect_true(all(a.strat$pilot_set$treated == 0))
+  
+  expect_equal(sort(unique(a.strat$analysis_set$stratum)), 1:3)
+  expect_equal(dim(a.strat$analysis_set)[1] + dim(a.strat$pilot_set)[1], 100)
+  expect_equal(dim(a.strat$analysis_set)[2], 10)
+  expect_equal(dim(a.strat$pilot_set)[2], 9)
+  
+  expect_equal(a.strat$treat, "treated")
+  
+  expect_equal(toString(a.strat$call),
+               "auto_stratify, test_dat, treated, outcomes ~ X1, outcomes, 25, 25, c(\"B1\", \"B2\")")
+  
+  expect_issue_table_ok(a.strat$issue_table, dim(a.strat$analysis_set)[1], 3)
+  expect_strata_table_ok(a.strat$strata_table, dim(a.strat$analysis_set)[1], 3)
+  
+  expect_equal(a.strat$outcome, "outcomes")
+  
+  exp_prognostic_model <- glm(a.strat$pilot_set,
+                              formula = outcomes ~ X1,
+                              family = binomial)
+  
+  exp_prognostic_scores <- predict(exp_prognostic_model,
+                                   a.strat$analysis_set, type = "response")
+  
+  expect_equal(a.strat$prognostic_scores, exp_prognostic_scores)
+  
+  expect_equal(coef(a.strat$prognostic_model), coef(exp_prognostic_model))
+})
+
 test_that("auto_stratify with prognostic formula + pilot_sample works", {
 
   a.strat <- auto_stratify(test_dat,
@@ -286,44 +351,7 @@ test_that("auto_stratify with prognostic formula + pilot_sample works", {
   expect_equal(a.strat$pilot_set, test_dat)
 })
 
-
-test_that("auto_stratify with prognostic model works", {
-
-  # use "." syntax in formula to check that this is allowed
-  progmod <- glm(outcomes ~ X1,
-                 test_dat, family = "binomial")
-
-  a.strat <- auto_stratify(test_dat,
-                           treat = "treated",
-                           outcome = "outcomes",
-                           prognosis = progmod,
-                           size = 20)
-
-  expect_is(a.strat, "auto_strata")
-  expect_is(a.strat, "strata")
-
-  expect_equal(dplyr::select(a.strat$analysis_set, -stratum), test_dat)
-  expect_equal(sort(unique(a.strat$analysis_set$stratum)), 1:5)
-
-  expect_equal(a.strat$treat, "treated")
-
-  expect_equal(toString(a.strat$call),
-               "auto_stratify, test_dat, treated, progmod, outcomes, 20")
-
-  expect_issue_table_ok(a.strat$issue_table, 100, 5)
-  expect_strata_table_ok(a.strat$strata_table, 100, 5)
-
-  expect_equal(a.strat$outcome, "outcomes")
-
-  exp_prognostic_scores <- predict(progmod,
-                             test_dat, type = "response")
-
-  expect_equal(a.strat$prognostic_scores, exp_prognostic_scores)
-
-  expect_equal(coef(a.strat$prognostic_model), coef(progmod))
-
-  expect_null(a.strat$pilot_set)
-})
+## OUTCOME AND TREATMENT FORMATS -----
 
 test_that("auto_stratify with logical outcome works", {
   test_dat_log_o <- test_dat %>%
@@ -365,7 +393,6 @@ test_that("auto_stratify with logical outcome works", {
   
   expect_equal(coef(a.strat$prognostic_model), coef(exp_prognostic_model))
 })
-
 
 test_that("auto_stratify with logical treatment works", {
   test_dat_log_t <- test_dat %>%

@@ -4,12 +4,16 @@
 \alias{check_scores}
 \title{Check Scores}
 \usage{
-check_scores(prognostic_scores, data)
+check_scores(prognostic_scores, data, outcome)
 }
 \arguments{
 \item{prognostic_scores, }{a numeric vector}
 
 \item{data}{\code{data.frame} with observations as rows, features as columns}
+
+\item{outcome}{string giving the name of column with outcome information.
+Required if prognostic_scores is specified.  Otherwise it will be inferred
+from prog_formula}
 }
 \value{
 nothing

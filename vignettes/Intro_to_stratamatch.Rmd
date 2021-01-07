@@ -107,7 +107,7 @@ Since we didn't use a pilot design for this example, our analysis set just has a
 
 In contrast to `manual_stratify`, the `auto_stratify` function automatically creates the stratified data set based on estimated prognostic scores.  In this process, we specify what model we want to use for the prognostic score (the `prognosis` argument) and what percent of the control reserve we want to use to do the fitting (the `pilot_fraction`) argument.  We also need to tell `auto_stratify` which column of our data set designates the treatment assignment (`treat`).  The final argument, `size,` specifies about how large we would like our strata to be.  I pick `size = 400` here so that we get roughly the same number of strata as when we manually stratified our data set.
 
-In practice, `pilot_fraction` and `size` have defaults, so we don't need to specify them every time.  Run `help(auto_stratify)` for more information.
+In practice, `pilot_fraction` and `size` have defaults, so we don't need to specify them every time.  Instead of `pilot_fraction`, we could specify a `pilot_size` to get a pilot set of approximately that number of observations. Run `help(auto_stratify)` for more information.
 
 ```{r}
 a.strat <- auto_stratify(dat, treat = "treat", prognosis = outcome ~ X1 + X2,
@@ -122,6 +122,10 @@ summary(a.strat)
 Our call to `auto_stratify` has created `auto_strata` object.  An `auto_strata` object is much like a `manual_strata` object, except that it contains somewhat more information, since the stratification process was done differently.  Importantly, `auto_strata` has partitioned 10% of the individuals in the control group to be in the pilot set.  These individuals were used to build the prognostic score, and were extracted from the analysis set. In order to prevent overfitting, the observations in the pilot set should not be included in later analyses, and should not be reused when making the final effect estimate.
 
 We can access the pilot set and the analysis set using `$` with `a.strat`.  The command `a.strat$analysis_set` gives the analysis set and `a.strat$pilot_set` gives the pilot set.   We can also view the prognostic score estimates for the individuals in the analysis set with `a.strat$prognostic_scores`.
+
+### A note on splitting the pilot set
+
+Suppose you're interested in partitioning your data into a pilot set and an analysis set, but you'd like to do other things with it after that - for example perhaps you'd like to fit a more complicated model for prognostic score than a logistic regression.  The `split_pilot_set` will split your pilot and analysis set for you based on specified preferences.  For more information, run `help(split_pilot_set)`.
 
 ### Alternative methods for automatic stratification.
 
@@ -145,7 +149,7 @@ The strata table for an automatically stratified data set is somewhat different:
 a.strat$strata_table
 ```
 
-The strata table for `a.strat` shows what prognostic score quantiles were used to divide the strata.  For example, individuals in stratum 1 have the lowest prognostic scores. This means that, if the individuals in stratum 1 were in the control group, we would predict them to have a very low probability of having the positive outcome, based solely on their values of `X1` and `X2`.
+The strata table for `a.strat` shows what prognostic score quantiles were used to divide the strata.  For example, individuals in stratum 1 have the lowest prognostic scores. This means that, if the individuals in stratum 1 were in the control group, we would predict them to have a very low probability of having the positive outcome, based solely on their values of `X1` and `X2`.  The a vector of the cutoff values used to divide the strata can be extracted from `a.strat` with `extract_cut_points`.
 
 ## Issue Tables
 

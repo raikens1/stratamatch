@@ -94,8 +94,14 @@
 #' @param size numeric, desired size of strata (default = 2500)
 #' @param pilot_fraction numeric between 0 and 1 giving the proportion of
 #'   controls to be allotted for building the prognostic score (default = 0.1)
+#' @param pilot_size alternative to pilot_fraction. Approximate number of
+#'   observations to be used in pilot set. Note that the actual pilot set size
+#'   returned may not be exactly \code{pilot_size} if \code{group_by_covariates}
+#'   is specified because balancing by covariates may result in deviations from
+#'   desired size. If pilot_size is specified, pilot_fraction is ignored.
 #' @param pilot_sample a data.frame of held aside samples for building
-#'   prognostic score model.
+#'   prognostic score model. If pilot_sample is specified, pilot_size and
+#'   pilot_fraction are both ignored.
 #' @param group_by_covariates character vector giving the names of covariates to
 #'   be grouped by (optional). If specified, the pilot set will be sampled in a
 #'   stratified manner, so that the composition of the pilot set reflects the
@@ -166,16 +172,16 @@
 #'   plot(a.strat_formula, type = "residual")
 auto_stratify <- function(data, treat, prognosis,
                           outcome = NULL, size = 2500,
-                          pilot_fraction = 0.1, pilot_sample = NULL,
-                          group_by_covariates = NULL) {
+                          pilot_fraction = 0.1, pilot_size = NULL,
+                          pilot_sample = NULL, group_by_covariates = NULL) {
 
   check_base_inputs_auto_stratify(data, treat, outcome)
   
   # if input data is grouped, all sorts of strange things happen
   data <- data %>% dplyr::ungroup()
 
-  build <- build_autostrata(data, treat, prognosis, outcome,
-                            pilot_fraction, pilot_sample, group_by_covariates)
+  build <- build_autostrata(data, treat, prognosis, outcome, pilot_fraction,
+                            pilot_size, pilot_sample, group_by_covariates)
 
   analysis_set <- build$analysis_set
   prognostic_scores <- build$prognostic_scores
@@ -224,25 +230,23 @@ auto_stratify <- function(data, treat, prognosis,
 #' @return a list of: analysis set, prognostic scores, pilot set, prognostic
 #'   model, and outcome string
 #' @keywords internal
-build_autostrata <- function(data, treat, prognosis, outcome,
-                             pilot_fraction, pilot_sample, group_by_covariates){
-  # prognosis is a vector of prognostic scores
+build_autostrata <- function(data, treat, prognosis, outcome, pilot_fraction,
+                             pilot_size, pilot_sample, group_by_covariates){
+  
+  # if prognosis is a vector of prognostic scores
   if (is.numeric(prognosis)){
-    check_scores(prognosis, data)
-    if (is.null(outcome)) {
-      stop("If specifying prognostic scores, outcome must be specified")
-    }
+    check_scores(prognosis, data, outcome)
     prognostic_scores <- prognosis
     analysis_set <- data
     pilot_set <- NULL
     prognostic_model <- NULL
   }
 
-  # prognosis is a formula
+  # if prognosis is a formula
   else if (inherits(prognosis, "formula")){
     check_prognostic_formula(prognosis, data, outcome, treat)
-    split <- split_pilot_set(data, treat,
-                             pilot_fraction, pilot_sample, group_by_covariates)
+    split <- split_pilot_set(data, treat, pilot_fraction, pilot_size, 
+                             pilot_sample, group_by_covariates)
     pilot_set <- split$pilot_set
     analysis_set <- split$analysis_set
     outcome <- all.vars(prognosis)[1]
@@ -251,7 +255,7 @@ build_autostrata <- function(data, treat, prognosis, outcome,
     prognostic_scores <- estimate_scores(prognostic_model, analysis_set)
   }
 
-  # prognosis is a model, or it is unrecognized
+  # if prognosis is a model, or it is unrecognized
   else {
     # try to predict.  If successful, prognosis was a model.
     # otherwise, throw an error: prognosis type not recognized
@@ -417,9 +421,12 @@ check_base_inputs_auto_stratify <- function(data, treat, outcome){
 #'
 #' @return nothing
 #' @keywords internal
-check_scores <- function(prognostic_scores, data){
+check_scores <- function(prognostic_scores, data, outcome){
   if (length(prognostic_scores) != dim(data)[1]){
     stop("prognostic scores must be the same length as the data")
+  }
+  if (is.null(outcome)) {
+    stop("If specifying prognostic scores, outcome must be specified")
   }
 }
 

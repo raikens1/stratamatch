@@ -11,6 +11,7 @@ auto_stratify(
   outcome = NULL,
   size = 2500,
   pilot_fraction = 0.1,
+  pilot_size = NULL,
   pilot_sample = NULL,
   group_by_covariates = NULL
 )
@@ -36,8 +37,15 @@ from prog_formula}
 \item{pilot_fraction}{numeric between 0 and 1 giving the proportion of
 controls to be allotted for building the prognostic score (default = 0.1)}
 
+\item{pilot_size}{alternative to pilot_fraction. Approximate number of
+observations to be used in pilot set. Note that the actual pilot set size
+returned may not be exactly \code{pilot_size} if \code{group_by_covariates}
+is specified because balancing by covariates may result in deviations from
+desired size. If pilot_size is specified, pilot_fraction is ignored.}
+
 \item{pilot_sample}{a data.frame of held aside samples for building
-prognostic score model.}
+prognostic score model. If pilot_sample is specified, pilot_size and
+pilot_fraction are both ignored.}
 
 \item{group_by_covariates}{character vector giving the names of covariates to
 be grouped by (optional). If specified, the pilot set will be sampled in a
