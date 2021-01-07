@@ -8,14 +8,14 @@
 #----------------------------------------------------------
 
 #' Checks \code{strata} class
-#' 
+#'
 #' Checks if the target object is a \code{strata} object.
-#' 
+#'
 #' @param object any R object
-#' @return Returns \code{TRUE} if its argument has \code{strata} among its classes and
-#' \code{FALSE} otherwise.
+#' @return Returns \code{TRUE} if its argument has \code{strata} among its
+#'   classes and \code{FALSE} otherwise.
 #' @export
-#' @examples 
+#' @examples
 #' dat <- make_sample_data()
 #' m.strat <- manual_stratify(dat, treat ~ C1)
 #' is.strata(m.strat) # returns TRUE
@@ -24,14 +24,14 @@ is.strata <- function(object) {
 }
 
 #' Checks \code{auto_strata} class
-#' 
+#'
 #' Checks if the target object is an \code{auto_strata} object.
-#' 
+#'
 #' @param object any R object
-#' @return Returns \code{TRUE} if its argument has \code{auto_strata} among its classes and
-#' \code{FALSE} otherwise.
+#' @return Returns \code{TRUE} if its argument has \code{auto_strata} among its
+#'   classes and \code{FALSE} otherwise.
 #' @export
-#' @examples 
+#' @examples
 #' dat <- make_sample_data()
 #' a.strat <- auto_stratify(dat, "treat", outcome ~ X1 + X2)
 #' is.auto_strata(a.strat) # returns TRUE
@@ -41,14 +41,14 @@ is.auto_strata <- function(object) {
 
 
 #' Checks \code{manual_strata} class
-#' 
+#'
 #' Checks if the target object is a \code{manual_strata} object.
-#' 
+#'
 #' @param object any R object
-#' @return Returns \code{TRUE} if its argument has \code{manual_strata} among its classes and
-#' \code{FALSE} otherwise.
+#' @return Returns \code{TRUE} if its argument has \code{manual_strata} among
+#'   its classes and \code{FALSE} otherwise.
 #' @export
-#' @examples 
+#' @examples
 #' dat <- make_sample_data()
 #' m.strat <- manual_stratify(dat, treat ~ C1)
 #' is.manual_strata(m.strat) # returns TRUE
@@ -158,10 +158,10 @@ summary.strata <- function(object, ...){
 #' three plot types: \enumerate{ \item \code{"SR"} (default) - produces a
 #' scatter plot of strata by size and treat:control ratio \item \code{"hist"} -
 #' produces a histogram of propensity scores within a stratum \item \code{"AC"}
-#' - produces a Assignment-Control plot of individuals within a stratum  (not supported
-#' for \code{manual strata} objects) \item \code{"residual"} - produces a
-#' residual plot for the prognostic model (not supported for \code{manual
-#' strata} objects)}
+#' - produces a Assignment-Control plot of individuals within a stratum  (not
+#' supported for \code{manual strata} objects) \item \code{"residual"} -
+#' produces a residual plot for the prognostic model (not supported for
+#' \code{manual strata} objects)}
 #'
 #' @param x a \code{strata} object returned by \code{\link{auto_stratify}} or
 #'   \code{\link{manual_stratify}}
@@ -174,7 +174,7 @@ summary.strata <- function(object, ...){
 #' @param stratum ignored unless \code{type = "hist"} or \code{type = "AC"}. A
 #'   number specifying which stratum to plot.
 #' @param strata_lines default = \code{TRUE}. Ignored unless \code{type = "AC"}.
-#'   If TRUE, lines on the plot indicate strata cut points. 
+#'   If TRUE, lines on the plot indicate strata cut points.
 #' @param jitter_prognosis ignored unless \code{type = "AC"}.  Amount of uniform
 #'   random noise to add to prognostic scores in plot.
 #' @param jitter_propensity ignored unless \code{type = "AC"}.  Amount of
@@ -244,11 +244,12 @@ make_SR_plot <- function(x, label) {
 #' Make histogram plot
 #'
 #' Not meant to be called externally.  Helper plot function for \code{strata}
-#' object with \code{type = "hist"}. Produces a histogram of propensity scores within a
-#' stratum
+#' object with \code{type = "hist"}. Produces a histogram of propensity scores
+#' within a stratum
 #'
 #' @inheritParams plot.strata
-#' @param strat the number code of the strata to be plotted.  If "all", plots all strata
+#' @param strat the number code of the strata to be plotted.  If "all", plots
+#'   all strata
 #' @keywords internal
 make_hist_plot <- function(x, propensity, strat){
   a_set <- x$analysis_set
@@ -296,10 +297,12 @@ make_hist_plot <- function(x, propensity, strat){
 #' Make Assignment-Control plot
 #'
 #' Not meant to be called externally.  Helper plot function for \code{strata}
-#' object with \code{type = "AC"}. Produces a Assignment-Control plot of stratum \code{s}
+#' object with \code{type = "AC"}. Produces a Assignment-Control plot of stratum
+#' \code{s}
 #'
 #' @inheritParams plot.strata
-#' @param strat the number code of the stratum to be plotted. If "all", plots all strata.
+#' @param strat the number code of the stratum to be plotted. If "all", plots
+#'   all strata.
 #' @seealso Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
 #'   Section 3.2 for an explaination of Assignment-Control plots
 #' @keywords internal
@@ -363,8 +366,8 @@ make_ac_plot <- function(x, propensity, strat, strata_lines,
 #' Make Residual Plot
 #'
 #' Not yet implemented.  Not meant to be called externally. Helper plot function
-#' for \code{strata} object with \code{type = "residual"}. Produces the diagnostic
-#' plots for the prognostic score model
+#' for \code{strata} object with \code{type = "residual"}. Produces the
+#' diagnostic plots for the prognostic score model
 #'
 #' @inheritParams plot.strata
 #' @keywords internal
@@ -439,8 +442,9 @@ check_prop_formula <- function(prop_formula, data, treat){
 #----------------------------------------------------------
 
 #' Extract cutoffs between strata
-#' 
-#' By default, returns only the internal cut points.  Cutoffs at 0 and 1 are implied.
+#'
+#' By default, returns only the internal cut points.  Cutoffs at 0 and 1 are
+#' implied.
 #'
 #' @param x an autostrata object
 #'
