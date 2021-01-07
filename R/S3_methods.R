@@ -225,13 +225,15 @@ make_SR_plot <- function(x, label) {
 
   xmax <- max(issue_table$Total, SIZE_MAX * 1.05)
 
-  plot(x = issue_table$Total, y = issue_table$Control_Proportion, pch = 16,
-       xlim = c(0, xmax), ylim = c(0, 1),
-       xlab = "Stratum Size", ylab = "Fraction Control Observations")
-  rect(0, 0, xmax, CONTROL_MIN, col = rgb(1, 1, 0, 0.25), border = NA)
-  rect(0, CONTROL_MAX, xmax, 1, col = rgb(1, 1, 0, 0.25), border = NA)
-  rect(0, 0, SIZE_MIN, 1, col = rgb(1, 0, 0, 0.25), border = NA)
-  rect(SIZE_MAX, 0, xmax, 1, col = rgb(1, 0, 0, 0.25), border = NA)
+  plot(c(0, xmax), c(0, 1), type = "n", xlab = "Stratum Size", ylab = "Fraction Control Observations")
+  rect(0, 0, xmax, CONTROL_MIN, col = rgb(1, 1, 0, 0.35), border = NA)
+  rect(0, CONTROL_MAX, xmax, 1, col = rgb(1, 1, 0, 0.35), border = NA)
+  rect(0, 0, SIZE_MIN, 1, col = rgb(1, 0, 0, 0.35), border = NA)
+  rect(SIZE_MAX, 0, xmax, 1, col = rgb(1, 0.6, 0, 0.35), border = NA)
+  points(x = issue_table$Total, y = issue_table$Control_Proportion, pch = 16)
+  legend("bottomright", legend = c("too few samples", "too many samples", "treat:control imbalance"), fill = c(rgb(1, 0, 0, 0.35), rgb(1, 0.6, 0, 0.35), rgb(1, 1, 0, 0.35)),
+         box.lty = 0)
+  
 
   if (label == TRUE){
     identify(x = issue_table$Total, y = issue_table$Control_Proportion,
@@ -349,13 +351,13 @@ make_ac_plot <- function(x, propensity, strat, strata_lines,
        ylab = "Estimated prognostic score",
        xlim = range(plt_data$prop_score) + c(-0.1, 0.1) * propscore_span,
        ylim = range(plt_data$prog_score) + c(-0.1, 0.1) * progscore_span)
-  legend("topleft", legend = c("treated", "control"), fill = c("red", "blue"),
-         box.lty = 0, bg="transparent")
   if(strata_lines){
     abline(h = extract_cut_points(x), col = "grey")
     legend("topright", legend = "strata cut points", col = "grey", lty = 1,
            box.lty = 0, bg="transparent") 
-  }
+    }
+  legend("topleft", legend = c("treated", "control"), fill = c("red", "blue"),
+         box.lty = 0)
 }
 
 #' Make Residual Plot

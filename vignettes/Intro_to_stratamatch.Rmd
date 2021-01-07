@@ -11,7 +11,7 @@ vignette: >
 
 
 ```{r, warning=FALSE, message = FALSE, include = FALSE}
-knitr::opts_chunk$set(warning = TRUE, message = TRUE, fig.align = "center", fig.height = 4, fig.width = 4)
+knitr::opts_chunk$set(warning = TRUE, message = TRUE, fig.align = "center", fig.height = 5, fig.width = 6)
 ```
 
 
@@ -214,14 +214,14 @@ plot(a.strat, type = "hist", propensity = treat ~ X2 + X1 + B1 + B2, stratum = 3
 
 In addition to the two plot types above, there are some plots that can be used to visualize `auto_strata` objects only: `"residual"` and `"AC"` plots.
 
-Setting `type = "AC"` in the plot command produces a Assignment-Control plot for a given stratum.  This shows each individual in the stratum in terms of their estimated propensity score and their estimated prognostic score (for more details, see [Aikens et al (2019)](https://arxiv.org/abs/1908.09077)).  This allows us to check how well the treated and control samples overlap not only in their probability for treatment but in their expected outcome under the control assignment. Just as with the overlap histograms, we need to provide a stratum number and information on the propensity score.  Below, I use the same propensity formula as in the histogram above.  Below, we see relatively good overlap.  Prognostic score has a hard upper limit because we are looking at the first stratum, which means these are the lowest prognostic scores in our data set.
+Setting `type = "AC"` in the plot command produces a Assignment-Control plot.  This shows each individual in terms of their estimated propensity score and their estimated prognostic score (for more details, see [Aikens et al (2019)](https://arxiv.org/abs/1908.09077)).  This allows us to check how well the treated and control samples overlap not only in their probability for treatment but in their expected outcome under the control assignment. Just as with the overlap histograms, we need to provide information on the propensity score.  Below, I use the same propensity formula as in the histogram above.  The first plot shows all of the strata, with lines indicating the barriers between strata, while the second plot looks specifically at stratum 3 by specifying the `stratum` argument.  Apparent striations or groupings in assignment control plots like the ones below are common; they appear when some binary or categorical covariate has a strong association with either the outcome or the treatment assignment.
 
-```{r}
+```{r fig.height= 5.5, fig.width=7}
 # make a Assignment-Control plot
-plot(a.strat, type = "AC", propensity = treat ~ X1 + X2)
+plot(a.strat, type = "AC", propensity = treat ~ X1 + X2 + B1 + B2)
 
 # make a Assignment-Control plot
-plot(a.strat, type = "AC", propensity = treat ~ X1 + X2, stratum = 3)
+plot(a.strat, type = "AC", propensity = treat ~ X1 + X2 + B1 + B2, stratum = 3)
 ```
 
 
