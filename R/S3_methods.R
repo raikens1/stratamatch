@@ -247,10 +247,10 @@ make_SR_plot <- function(x, label) {
   rect(SIZE_MAX, 0, xmax, 1, col = rgb(1, 0.6, 0, 0.35), border = NA)
   points(x = issue_table$Total, y = issue_table$Control_Proportion, pch = 16)
   legend("bottomright",
-         title="Potential Issues",
-         legend = c("too few samples", "too many samples", "treat:control imbalance"),
-         fill = c(rgb(1, 0, 0, 0.35), rgb(1, 0.6, 0, 0.35), rgb(1, 1, 0, 0.35)),
-         box.lty = 0
+    title = "Potential Issues",
+    legend = c("too few samples", "too many samples", "treat:control imbalance"),
+    fill = c(rgb(1, 0, 0, 0.35), rgb(1, 0.6, 0, 0.35), rgb(1, 1, 0, 0.35)),
+    box.lty = 0
   )
 
 
