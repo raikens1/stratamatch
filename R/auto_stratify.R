@@ -279,10 +279,10 @@ build_autostrata <- function(data, treat, prognosis, outcome, pilot_fraction,
   else {
     # try to predict.  If successful, prognosis was a model.
     # otherwise, throw an error: prognosis type not recognized
-    prognostic_scores <- tryCatch(predict(prognosis,
+    withCallingHandlers({prognostic_scores <- predict(prognosis,
       newdata = data,
       type = "response"
-    ),
+    )},
     error = function(c) {
       stop("prognosis type not recognized")
     }

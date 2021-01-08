@@ -445,10 +445,10 @@ get_prop_scores <- function(propensity, data, treat) {
   }
 
   # if it is a model for propensity, predict on data
-  prop_scores <- tryCatch(predict(propensity,
+  withCallingHandlers({prop_scores <- predict(propensity,
     newdata = data,
     type = "response"
-  ),
+  )},
   error = function(c) {
     stop("propensity type not recognized")
   }

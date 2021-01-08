@@ -132,10 +132,10 @@ check_pilot_set_options <- function(pilot_fraction, pilot_size,
 
     # Check that all covariates are discrete
     for (i in 1:length(group_by_covariates)) {
-      tryCatch(warn_if_continuous(
+      withCallingHandlers({warn_if_continuous(
         data[[group_by_covariates[i]]],
         group_by_covariates[i], TRUE, n
-      ),
+      )},
       warning = function(w) {
         message("All covariates in group_by_covariates should be discrete")
         warning(w)
