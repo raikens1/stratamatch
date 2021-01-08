@@ -5,5 +5,6 @@
 ^testing$
 ^R/archive$
 ^R/parallel_match_functions.R$
+^R/split_and_fit.R$
 ^doc$
 ^Meta$
