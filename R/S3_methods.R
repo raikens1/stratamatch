@@ -62,13 +62,13 @@ is.manual_strata <- function(object) {
 #----------------------------------------------------------
 
 #' Print Auto Strata
-#' 
+#'
 #' Print method for \code{auto_strata} object
-#' 
+#'
 #' @param x, an \code{auto_strata} object
 #' @param ... other arguments
 #' @export
-#' @examples 
+#' @examples
 #' dat <- make_sample_data()
 #' a.strat <- auto_stratify(dat, "treat", outcome ~ X1 + X2)
 #' print(a.strat) # prints information about a.strat
@@ -78,32 +78,35 @@ print.auto_strata <- function(x, ...) {
   writeLines("Function call:")
   print(x$call)
 
-  writeLines(paste("\nAnalysis set dimensions:",
-                   dim(x$analysis_set)[1], "X",
-                   dim(x$analysis_set)[2]))
+  writeLines(paste(
+    "\nAnalysis set dimensions:",
+    dim(x$analysis_set)[1], "X",
+    dim(x$analysis_set)[2]
+  ))
 
   if (!is.null(x$pilot_set)) {
-    writeLines(paste("\nPilot set dimensions:",
-                     dim(x$pilot_set)[1], "X",
-                     dim(x$pilot_set)[2]))
+    writeLines(paste(
+      "\nPilot set dimensions:",
+      dim(x$pilot_set)[1], "X",
+      dim(x$pilot_set)[2]
+    ))
   }
-  if (!is.null(x$prognostic_model)){
+  if (!is.null(x$prognostic_model)) {
     writeLines("\nPrognostic Score Formula:")
     print(formula(x$prognostic_model))
-    
   } else {
     writeLines("\nPrognostic Scores prespecified.")
   }
 }
 
 #' Print Manual Strata
-#' 
+#'
 #' Print method for \code{manual_strata} object
-#' 
+#'
 #' @param x, a \code{manual_strata} object
 #' @param ... other arguments
 #' @export
-#' @examples 
+#' @examples
 #' dat <- make_sample_data()
 #' m.strat <- manual_stratify(dat, treat ~ C1)
 #' print(m.strat) # prints information about m.strat
@@ -113,9 +116,11 @@ print.manual_strata <- function(x, ...) {
   writeLines("Function call:")
   print(x$call)
 
-  writeLines(paste("\nAnalysis set dimensions:",
-                   dim(x$analysis_set)[1], "X",
-                   dim(x$analysis_set)[2]))
+  writeLines(paste(
+    "\nAnalysis set dimensions:",
+    dim(x$analysis_set)[1], "X",
+    dim(x$analysis_set)[2]
+  ))
 }
 
 #----------------------------------------------------------
@@ -445,13 +450,16 @@ get_prop_scores <- function(propensity, data, treat) {
   }
 
   # if it is a model for propensity, predict on data
-  withCallingHandlers({prop_scores <- predict(propensity,
-    newdata = data,
-    type = "response"
-  )},
-  error = function(c) {
-    stop("propensity type not recognized")
-  }
+  withCallingHandlers(
+    {
+      prop_scores <- predict(propensity,
+        newdata = data,
+        type = "response"
+      )
+    },
+    error = function(c) {
+      stop("propensity type not recognized")
+    }
   )
   return(prop_scores)
 }

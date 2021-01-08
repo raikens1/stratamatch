@@ -15,28 +15,28 @@
 #'
 #' @examples
 split_and_fit <- function(data, treat, prognosis, propensity,
-                          outcome = NULL, 
+                          outcome = NULL,
                           pilot_fraction = 0.1, pilot_size = NULL,
                           pilot_sample = NULL, group_by_covariates = NULL) {
   # check base inputs
   check_base_inputs_auto_stratify(data, treat, outcome)
-  
+
   # if input data is grouped, all sorts of strange things happen
   data <- data %>% dplyr::ungroup()
-  
+
   propensity_scores <- get_prop_scores(propensity, data, treat)
-  
+
   build <- build_autostrata(
     data, treat, prognosis, outcome, pilot_fraction,
     pilot_size, pilot_sample, group_by_covariates
   )
-  
+
   analysis_set <- build$analysis_set
   prognostic_scores <- build$prognostic_scores
   pilot_set <- build$pilot_set
   prognostic_model <- build$prognostic_model
   outcome <- build$outcome
-  
+
   # package and return result
   result <- list(
     analysis_set = analysis_set,
@@ -48,7 +48,7 @@ split_and_fit <- function(data, treat, prognosis, propensity,
     propensity_scores = propensity_scores,
     pilot_set = pilot_set
   )
-  
+
   return(result)
 }
 
@@ -78,13 +78,13 @@ split_and_fit <- function(data, treat, prognosis, propensity,
 #' @return a basic \code{split_fit} object
 #' @keywords internal
 new_split_fit <- function(outcome, treat,
-                            analysis_set = NULL,
-                            call = NULL,
-                            prognostic_scores = NULL,
-                            prognostic_model = NULL,
-                            propensity_scores = NULL,
-                            propensity_model = NULL,
-                            pilot_set = NULL) {
+                          analysis_set = NULL,
+                          call = NULL,
+                          prognostic_scores = NULL,
+                          prognostic_model = NULL,
+                          propensity_scores = NULL,
+                          propensity_model = NULL,
+                          pilot_set = NULL) {
   stopifnot(is.character(outcome))
   stopifnot(is.character(treat))
   stopifnot(is.data.frame(analysis_set))
@@ -92,7 +92,7 @@ new_split_fit <- function(outcome, treat,
   stopifnot(is.data.frame(issue_table))
   stopifnot(is.data.frame(strata_table))
   stopifnot(is.numeric(prognostic_scores))
-  
+
   my_split_fit <- structure(list(
     analysis_set = analysis_set,
     treat = treat,

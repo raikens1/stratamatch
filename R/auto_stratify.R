@@ -279,13 +279,16 @@ build_autostrata <- function(data, treat, prognosis, outcome, pilot_fraction,
   else {
     # try to predict.  If successful, prognosis was a model.
     # otherwise, throw an error: prognosis type not recognized
-    withCallingHandlers({prognostic_scores <- predict(prognosis,
-      newdata = data,
-      type = "response"
-    )},
-    error = function(c) {
-      stop("prognosis type not recognized")
-    }
+    withCallingHandlers(
+      {
+        prognostic_scores <- predict(prognosis,
+          newdata = data,
+          type = "response"
+        )
+      },
+      error = function(c) {
+        stop("prognosis type not recognized")
+      }
     )
     if (is.null(outcome)) {
       stop("If specifying a prognostic score model, outcome must be specified")
@@ -324,20 +327,23 @@ fit_prognostic_model <- function(dat, prognostic_formula, outcome) {
       "Fitting prognostic model via logistic regression:",
       Reduce(paste, deparse(prognostic_formula))
     ))
-    withCallingHandlers({prognostic_model <- glm(prognostic_formula,
-      data = dat,
-      family = "binomial"
-    )},
-    error = function(e) {
-      message("Error while fitting the prognostic model.")
-      message("For troubleshooting help, run help(\"auto_stratify\")")
-      stop(e)
-    },
-    warning = function(w) {
-      message("Warning while fitting the prognostic model.")
-      message("For troubleshooting help, run help(\"auto_stratify\")")
-      warning(w)
-    }
+    withCallingHandlers(
+      {
+        prognostic_model <- glm(prognostic_formula,
+          data = dat,
+          family = "binomial"
+        )
+      },
+      error = function(e) {
+        message("Error while fitting the prognostic model.")
+        message("For troubleshooting help, run help(\"auto_stratify\")")
+        stop(e)
+      },
+      warning = function(w) {
+        message("Warning while fitting the prognostic model.")
+        message("For troubleshooting help, run help(\"auto_stratify\")")
+        warning(w)
+      }
     )
   }
 
@@ -351,7 +357,10 @@ fit_prognostic_model <- function(dat, prognostic_formula, outcome) {
       "Fitting prognostic model via linear regression:",
       Reduce(paste, deparse(prognostic_formula))
     ))
-    withCallingHandlers({prognostic_model <- lm(prognostic_formula, data = dat)},
+    withCallingHandlers(
+      {
+        prognostic_model <- lm(prognostic_formula, data = dat)
+      },
       error = function(e) {
         message("Error while fitting the prognostic model.")
         message("For troubleshooting help, run help(\"auto_stratify\")")
@@ -386,7 +395,10 @@ fit_prognostic_model <- function(dat, prognostic_formula, outcome) {
 #' @return vector of prognostic scores
 #' @keywords internal
 estimate_scores <- function(prognostic_model, analysis_set) {
-  withCallingHandlers({scores <- predict(prognostic_model, analysis_set, type = "response")},
+  withCallingHandlers(
+    {
+      scores <- predict(prognostic_model, analysis_set, type = "response")
+    },
     error = function(e) {
       message("Error while estimating prognostic scores from the prognostic model.")
       message("For troubleshooting help, run help(\"auto_stratify\")")
@@ -398,7 +410,7 @@ estimate_scores <- function(prognostic_model, analysis_set) {
       warning(w)
     }
   )
-  
+
   return(scores)
 }
 
