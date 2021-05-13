@@ -257,7 +257,7 @@ plot.manual_strata <- function(x, type = "SR", label = FALSE, stratum = "all",
   } else if (type == "AC") {
     stop("Cannot make Assignment-Control plots on manually stratified data.")
   } else if (type == "residual") {
-    stop("Cannot make prognostic score residual on manually stratified data.")
+    stop("Cannot make prognostic score residual plot on manually stratified data.")
   } else {
     stop("Not a recognized plot type.")
   }
