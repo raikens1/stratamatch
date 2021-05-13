@@ -7,14 +7,20 @@
 make_issue_table(a_set, treat)
 }
 \arguments{
-\item{a_set}{\code{data.frame} with observations as rows, features as columns.  This should be the analysis set from the recently stratified data.}
+\item{a_set}{\code{data.frame} with observations as rows, features as
+columns.  This should be the analysis set from the recently stratified
+data.}
 
 \item{treat}{string name of treatment column}
 }
 \value{
-Returns a 3 by [number of strata] dataframe with Treat, Control, Total, Control Proportion, and Potential Issues
+Returns a 3 by [number of strata] dataframe with Treat, Control,
+  Total, Control Proportion, and Potential Issues
 }
 \description{
-Not meant to be called externally. Produce table of the number of treated and control individuals in each stratum. Also checks for potential problems with treat/control ratio or stratum size which might result in slow or poor quality matching.
+Not meant to be called externally. Produce table of the number of treated and
+control individuals in each stratum. Also checks for potential problems with
+treat/control ratio or stratum size which might result in slow or poor
+quality matching.
 }
 \keyword{internal}

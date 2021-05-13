@@ -160,20 +160,17 @@ summary.strata <- function(object, ...) {
 ### PLOT METHODS
 #----------------------------------------------------------
 
-#' Plot method for \code{strata} object
+#' Plot method for \code{auto_strata} object
 #'
 #' Generates diagnostic plots for the product of a stratification by
-#' \code{\link{auto_stratify}} or \code{\link{manual_stratify}}.  There are
-#' three plot types: \enumerate{ \item \code{"SR"} (default) - produces a
-#' scatter plot of strata by size and treat:control ratio \item \code{"hist"} -
-#' produces a histogram of propensity scores within a stratum \item \code{"AC"}
-#' - produces a Assignment-Control plot of individuals within a stratum  (not
-#' supported for \code{manual strata} objects) \item \code{"residual"} -
-#' produces a residual plot for the prognostic model (not supported for
-#' \code{manual strata} objects)}
+#' \code{\link{auto_stratify}}.  There are four plot types: \enumerate{ \item
+#' \code{"SR"} (default) - produces a scatter plot of strata by size and
+#' treat:control ratio \item \code{"hist"} - produces a histogram of propensity
+#' scores within a stratum \item \code{"AC"} - produces a Assignment-Control
+#' plot of individuals within a stratum \item \code{"residual"} - produces a
+#' residual plot for the prognostic model}
 #'
-#' @param x a \code{strata} object returned by \code{\link{auto_stratify}} or
-#'   \code{\link{manual_stratify}}
+#' @param x an \code{auto_strata} object returned by \code{\link{auto_stratify}}
 #' @param type string giving the plot type (default = \code{"SR"}).  Other
 #'   options are \code{"hist"}, \code{"AC"} and \code{"residual"}
 #' @param label ignored unless \code{type = "SR"}. If \code{TRUE}, a clickable
@@ -193,8 +190,10 @@ summary.strata <- function(object, ...) {
 #'   Accepts either a vector of propensity scores, a \code{glm} model for
 #'   propensity scores, or a formula for fitting a propensity score model.
 #' @param ... other arguments
-#' @seealso Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
-#'   Section 3.2 for an explaination of Assignment-Control plots
+#' @seealso Aikens, Greaves, and Baiocchi (2020) in Statistics in Medicine,
+#'   Section 3.2 for an explaination of Assignment-Control plots (formerly
+#'   "Fisher-Mill" plots).
+#' @seealso \code{\link{plot.manual_strata}}
 #' @export
 #' @examples
 #' dat <- make_sample_data()
@@ -203,7 +202,7 @@ summary.strata <- function(object, ...) {
 #' plot(a.strat, type = "hist", propensity = treat ~ X1, stratum = 1)
 #' plot(a.strat, type = "AC", propensity = treat ~ X1, stratum = 1)
 #' plot(a.strat, type = "residual")
-plot.strata <- function(x, type = "SR", label = FALSE, stratum = "all",
+plot.auto_strata <- function(x, type = "SR", label = FALSE, stratum = "all",
                         strata_lines = TRUE, jitter_prognosis,
                         jitter_propensity, propensity, ...) {
   if (type == "SR") {
@@ -222,12 +221,55 @@ plot.strata <- function(x, type = "SR", label = FALSE, stratum = "all",
   }
 }
 
+#' Plot method for \code{manual_strata} object
+#'
+#' Generates diagnostic plots for the product of a stratification by
+#' \code{\link{manual_stratify}}.  There are two plot types: \enumerate{ \item
+#' \code{"SR"} (default) - produces a scatter plot of strata by size and
+#' treat:control ratio \item \code{"hist"} - produces a histogram of propensity
+#' scores within a stratum.} Note that residual plots and AC plots are not
+#' supported for \code{manual_strata} objects because no prognostic model is
+#' fit.
+#'
+#' @inheritParams plot.auto_strata
+#' @param x a \code{manual_strata} object returned by
+#'   \code{\link{manual_stratify}}
+#' @param type string giving the plot type (default = \code{"SR"}).  Other
+#'   option is \code{"hist"}
+#' @param stratum ignored unless \code{type = "hist"}. A number specifying which
+#'   stratum to plot.
+#' @param propensity ignored unless \code{type = "hist"}. Specifies propensity
+#'   score information for plots where this is required. Accepts either a vector
+#'   of propensity scores, a \code{glm} model for propensity scores, or a
+#'   formula for fitting a propensity score model.
+#' @export
+#' @examples
+#' dat <- make_sample_data()
+#' m.strat <- manual_stratify(dat, treat ~ C1)
+#' plot(m.strat) # makes size-ratio scatter plot
+#' plot(m.strat, type = "hist", propensity = treat ~ X1, stratum = 1)
+plot.manual_strata <- function(x, type = "SR", label = FALSE, stratum = "all",
+                        propensity, ...) {
+  if (type == "SR") {
+    make_SR_plot(x, label)
+  } else if (type == "hist") {
+    make_hist_plot(x, propensity, stratum)
+  } else if (type == "AC") {
+    stop("Cannot make Assignment-Control plots on manually stratified data.")
+  } else if (type == "residual") {
+    stop("Cannot make prognostic score residual on manually stratified data.")
+  } else {
+    stop("Not a recognized plot type.")
+  }
+}
+
 #' Make Size-Ratio plot
 #'
 #' Not meant to be called externally.  Helper plot function for \code{strata}.
 #' Produces a scatter plot of strata by size and control proportion.
 #'
-#' @inheritParams plot.strata
+#' @inheritParams plot.auto_strata
+#' @param x a \code{strata} object returned by \code{\link{auto_stratify}} or \code{\link{manual_stratify}}
 #' @keywords internal
 make_SR_plot <- function(x, label) {
   issue_table <- x$issue_table
@@ -268,7 +310,9 @@ make_SR_plot <- function(x, label) {
 #' object with \code{type = "hist"}. Produces a histogram of propensity scores
 #' within a stratum
 #'
-#' @inheritParams plot.strata
+#' @inheritParams plot.auto_strata
+#' @param x a \code{strata} object returned by \code{\link{auto_stratify}} or
+#'   \code{\link{manual_stratify}}
 #' @param strat the number code of the strata to be plotted.  If "all", plots
 #'   all strata
 #' @keywords internal
@@ -325,7 +369,7 @@ make_hist_plot <- function(x, propensity, strat) {
 #' object with \code{type = "AC"}. Produces a Assignment-Control plot of stratum
 #' \code{s}
 #'
-#' @inheritParams plot.strata
+#' @inheritParams plot.auto_strata
 #' @param strat the number code of the stratum to be plotted. If "all", plots
 #'   all strata.
 #' @seealso Aikens et al. (preprint) \url{https://arxiv.org/abs/1908.09077} .
@@ -333,10 +377,7 @@ make_hist_plot <- function(x, propensity, strat) {
 #' @keywords internal
 make_ac_plot <- function(x, propensity, strat, strata_lines,
                          jitter_prognosis, jitter_propensity) {
-  if (!is.auto_strata(x)) {
-    stop("Cannot make Assignment-Control plots on manually stratified data.")
-  }
-
+  
   a_set <- x$analysis_set
 
   prop_scores <- get_prop_scores(propensity, a_set, x$treat)
@@ -406,27 +447,24 @@ make_ac_plot <- function(x, propensity, strat, strata_lines,
 #' for \code{strata} object with \code{type = "residual"}. Produces the
 #' diagnostic plots for the prognostic score model
 #'
-#' @inheritParams plot.strata
+#' @inheritParams plot.auto_strata
 #' @keywords internal
 make_resid_plot <- function(x) {
-  if (!is.auto_strata(x)) {
-    stop("Prognostic score residual plots are only valid for auto-stratified data.")
+  if (is.null(x$prognostic_model)) {
+    stop("Cannot make prognostic model residual plots since prognostic scores were provided.")
   } else {
-    if (is.null(x$prognostic_model)) {
-      stop("Cannot make prognostic model residual plots since prognostic scores were provided.")
-    } else {
-      return(plot(x$prognostic_model))
-    }
+    return(plot(x$prognostic_model))
   }
 }
 
 #' Parse \code{propensity} input to obtain propensity scores
 #'
-#' the \code{propensity} input to \code{plot.strata} can be propensity scores, a
-#' propensity model, or a formula for propensity score.  This function figures
-#' out which type \code{propensity} is and returns the propensity scores.
-#' Returns the propensity score on the response scale (rather than the linear
-#' predictor), so the scores are the predited probabilities of treatment.
+#' the \code{propensity} input to \code{plot.auto_strata} or
+#' \code{plot.manual_strata} can be propensity scores, a propensity model, or a
+#' formula for propensity score.  This function figures out which type
+#' \code{propensity} is and returns the propensity scores. Returns the
+#' propensity score on the response scale (rather than the linear predictor), so
+#' the scores are the predited probabilities of treatment.
 #'
 #' @param propensity either a vector of propensity scores, a model for
 #'   propensity, or a formula for propensity scores

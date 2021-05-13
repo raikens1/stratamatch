@@ -7,8 +7,7 @@
 make_SR_plot(x, label)
 }
 \arguments{
-\item{x}{a \code{strata} object returned by \code{\link{auto_stratify}} or
-\code{\link{manual_stratify}}}
+\item{x}{a \code{strata} object returned by \code{\link{auto_stratify}} or \code{\link{manual_stratify}}}
 
 \item{label}{ignored unless \code{type = "SR"}. If \code{TRUE}, a clickable
 plot is produced. The user may click on any number of strata and press

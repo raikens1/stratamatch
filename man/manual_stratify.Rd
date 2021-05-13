@@ -32,7 +32,9 @@ Returns a \code{manual_strata} object.  This contains: \itemize{
   object
 
   \item \code{issue_table} - a table of each stratum and potential issues of
-  size and treat:control balance
+  size and treat:control balance. In small or imbalanced strata, it may be
+  difficult or infeasible to find high-quality matches, while very large
+  strata may be computationally intensive to match.
 
   \item \code{strata_table} - a table of each stratum and the covariate bin
   to which it corresponds

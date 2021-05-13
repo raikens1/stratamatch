@@ -7,8 +7,7 @@
 make_resid_plot(x)
 }
 \arguments{
-\item{x}{a \code{strata} object returned by \code{\link{auto_stratify}} or
-\code{\link{manual_stratify}}}
+\item{x}{an \code{auto_strata} object returned by \code{\link{auto_stratify}}}
 }
 \description{
 Not yet implemented.  Not meant to be called externally. Helper plot function

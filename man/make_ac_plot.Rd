@@ -14,8 +14,7 @@ make_ac_plot(
 )
 }
 \arguments{
-\item{x}{a \code{strata} object returned by \code{\link{auto_stratify}} or
-\code{\link{manual_stratify}}}
+\item{x}{an \code{auto_strata} object returned by \code{\link{auto_stratify}}}
 
 \item{propensity}{ignored unless \code{type = "hist"} or \code{type = "AC"}.
 Specifies propensity score information for plots where this is required.

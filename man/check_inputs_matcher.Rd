@@ -9,9 +9,9 @@ check_inputs_matcher(object, propensity, k)
 \arguments{
 \item{object}{a strata object}
 
-\item{propensity}{(optional) formula for propensity score.  If left
-blank, all columns of the dataset will be used as covariates (except
-outcome, treatment and stratum)}
+\item{propensity}{(optional) formula for propensity score.  If left blank,
+\emph{all} columns of the analysis set in \code{object} will be used as
+covariates in the propensity model (except outcome, treatment and stratum)}
 
 \item{k}{numeric, the number of control individuals to be matched to each
 treated individual}

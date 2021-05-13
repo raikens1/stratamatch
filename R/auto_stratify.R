@@ -98,10 +98,11 @@
 #'   observations to be used in pilot set. Note that the actual pilot set size
 #'   returned may not be exactly \code{pilot_size} if \code{group_by_covariates}
 #'   is specified because balancing by covariates may result in deviations from
-#'   desired size. If \code{pilot_size} is specified, \code{pilot_fraction} is ignored.
+#'   desired size. If \code{pilot_size} is specified, \code{pilot_fraction} is
+#'   ignored.
 #' @param pilot_sample a data.frame of held aside samples for building
-#'   prognostic score model. If \code{pilot_sample} is specified, \code{pilot_size} and
-#'   \code{pilot_fraction} are both ignored.
+#'   prognostic score model. If \code{pilot_sample} is specified,
+#'   \code{pilot_size} and \code{pilot_fraction} are both ignored.
 #' @param group_by_covariates character vector giving the names of covariates to
 #'   be grouped by (optional). If specified, the pilot set will be sampled in a
 #'   stratified manner, so that the composition of the pilot set reflects the
@@ -121,7 +122,9 @@
 #'   object
 #'
 #'   \item \code{issue_table} - a table of each stratum and potential issues of
-#'   size and treat:control balance
+#'   size and treat:control balance. In small or imbalanced strata, it may be
+#'   difficult or infeasible to find high-quality matches, while very large
+#'   strata may be computationally intensive to match.
 #'
 #'   \item \code{strata_table} - a table of each stratum and the prognostic
 #'   score quantile bin to which it corresponds
@@ -196,7 +199,15 @@ auto_stratify <- function(data, treat, prognosis,
 
   # Create strata from prognostic score quantiles
   n_bins <- ceiling(dim(analysis_set)[1] / size)
-  qcut <- Hmisc::cut2(prognostic_scores, g = n_bins)
+  
+  withCallingHandlers(
+    {
+      qcut <- Hmisc::cut2(prognostic_scores, g = n_bins)
+    },
+    error = function(c) {
+      stop("Error defining quantile bins: (Sometimes this happens when \"size\" << analysis set size.)")
+    }
+  )
 
   # make strata table
   strata_table <- make_autostrata_table(qcut)

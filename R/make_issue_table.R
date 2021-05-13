@@ -5,11 +5,17 @@
 
 #' Make Issue Table
 #'
-#' Not meant to be called externally. Produce table of the number of treated and control individuals in each stratum. Also checks for potential problems with treat/control ratio or stratum size which might result in slow or poor quality matching.
+#' Not meant to be called externally. Produce table of the number of treated and
+#' control individuals in each stratum. Also checks for potential problems with
+#' treat/control ratio or stratum size which might result in slow or poor
+#' quality matching.
 #'
-#' @param a_set \code{data.frame} with observations as rows, features as columns.  This should be the analysis set from the recently stratified data.
+#' @param a_set \code{data.frame} with observations as rows, features as
+#'   columns.  This should be the analysis set from the recently stratified
+#'   data.
 #' @param treat string name of treatment column
-#' @return Returns a 3 by [number of strata] dataframe with Treat, Control, Total, Control Proportion, and Potential Issues
+#' @return Returns a 3 by [number of strata] dataframe with Treat, Control,
+#'   Total, Control Proportion, and Potential Issues
 #' @keywords internal
 make_issue_table <- function(a_set, treat) {
   df <- data.frame(
@@ -56,8 +62,8 @@ get_issues <- function(row) {
   issues <- c(
     if (row[1] > SIZE_MAX) "Too many samples",
     if (row[1] < SIZE_MIN) "Too few samples",
-    if (row[2] > CONTROL_MAX) "Not enough treated samples",
-    if (row[2] < CONTROL_MIN) "Not enough control samples"
+    if (row[2] > CONTROL_MAX) "Small treat:control ratio",
+    if (row[2] < CONTROL_MIN) "Small control:treat ratio"
   )
 
   if (is.null(issues)) {
