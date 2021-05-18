@@ -4,17 +4,19 @@
 \alias{check_inputs_matcher}
 \title{Check inputs to any matching function}
 \usage{
-check_inputs_matcher(object, propensity, k)
+check_inputs_matcher(object, model, k)
 }
 \arguments{
 \item{object}{a strata object}
 
-\item{propensity}{(optional) formula for propensity score.  If left blank,
-\emph{all} columns of the analysis set in \code{object} will be used as
-covariates in the propensity model (except outcome, treatment and stratum)}
+\item{model}{(optional) formula for matching.  If left blank, \emph{all}
+columns of the analysis set in \code{object} will be used as covariates in
+the propensity model or mahalanobis match (except outcome, treatment and
+stratum)}
 
-\item{k}{numeric, the number of control individuals to be matched to each
-treated individual}
+\item{k}{the number of control individuals to be matched to each treated
+individual.  If \code{"k = full"} is used, fullmatching is done instead of
+pairmatching}
 }
 \value{
 nothing

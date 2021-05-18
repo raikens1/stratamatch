@@ -112,7 +112,8 @@ test_that("Plot errors work", {
       type = "hist",
       propensity = outcomes ~ X1, stratum = 1
     ),
-    "propensity formula must model treatment assignment"
+    "Model formula must have the format: treated ~ [covariates]",
+    fixed = TRUE
   )
   expect_error(
     plot(a.strat, type = "hist", propensity = "soup", stratum = 1),

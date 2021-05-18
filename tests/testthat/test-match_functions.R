@@ -34,19 +34,20 @@ test_that("matching errors work", {
 
   expect_error(
     strata_match(m.strat, "soup", k = 1),
-    "propensity must be a formula"
+    "model must be a formula"
   )
   expect_error(
     strata_match(m.strat, C1 ~ treated + X1, k = 1),
-    "propensity formula must model treatment assignment"
+    "Model formula must have the format: treated ~ [covariates]",
+    fixed = TRUE
   )
   expect_error(
     strata_match(m.strat, treated ~ C1 + X1, k = "socks"),
-    "k must be an integer"
+    "k must be an integer for pair matching, or \"full\" for full matching"
   )
   expect_error(
     strata_match(m.strat, treated ~ C1 + X1, k = 0),
-    "k must be 1 or greater"
+    "When pair matching, k must be 1 or greater"
   )
   expect_error(
     strata_match("soup", treated ~ C1 + X1, k = 1),

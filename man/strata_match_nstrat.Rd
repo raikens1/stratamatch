@@ -4,15 +4,19 @@
 \alias{strata_match_nstrat}
 \title{Match without Stratification}
 \usage{
-strata_match_nstrat(object, propensity = NULL, k = 1)
+strata_match_nstrat(object, model = NULL, k = 1)
 }
 \arguments{
 \item{object}{a strata object}
 
-\item{propensity}{(optional) formula for propensity score}
+\item{model}{(optional) formula for matching.  If left blank, \emph{all}
+columns of the analysis set in \code{object} will be used as covariates in
+the propensity model or mahalanobis match (except outcome, treatment and
+stratum)}
 
-\item{k}{numeric, the number of control individuals to be matched to each
-treated individual}
+\item{k}{the number of control individuals to be matched to each treated
+individual.  If \code{"k = full"} is used, fullmatching is done instead of
+pairmatching}
 }
 \value{
 a named factor with matching assignments

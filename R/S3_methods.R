@@ -513,7 +513,8 @@ get_prop_scores <- function(propensity, data, treat) {
 #' @keywords internal
 check_prop_formula <- function(prop_formula, data, treat) {
   if (!(treat == all.vars(prop_formula)[1])) {
-    stop("propensity formula must model treatment assignment")
+    stop(paste("Model formula must have the format: ", treat, " ~ [covariates]",
+               sep = ""))
   }
 }
 
