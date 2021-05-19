@@ -63,7 +63,7 @@ split_pilot_set <- function(data, treat,
   # while stratifying for group_by_covariates
   if (!is.null(group_by_covariates)) {
     message("Subsampling while balancing on:")
-    message(group_by_covariates)
+    message(paste(group_by_covariates, collapse = ", "))
     data <- dplyr::group_by_at(data, group_by_covariates)
   }
 
