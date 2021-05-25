@@ -203,8 +203,8 @@ summary.strata <- function(object, ...) {
 #' plot(a.strat, type = "AC", propensity = treat ~ X1, stratum = 1)
 #' plot(a.strat, type = "residual")
 plot.auto_strata <- function(x, type = "SR", label = FALSE, stratum = "all",
-                        strata_lines = TRUE, jitter_prognosis,
-                        jitter_propensity, propensity, ...) {
+                             strata_lines = TRUE, jitter_prognosis,
+                             jitter_propensity, propensity, ...) {
   if (type == "SR") {
     make_SR_plot(x, label)
   } else if (type == "hist") {
@@ -249,7 +249,7 @@ plot.auto_strata <- function(x, type = "SR", label = FALSE, stratum = "all",
 #' plot(m.strat) # makes size-ratio scatter plot
 #' plot(m.strat, type = "hist", propensity = treat ~ X1, stratum = 1)
 plot.manual_strata <- function(x, type = "SR", label = FALSE, stratum = "all",
-                        propensity, ...) {
+                               propensity, ...) {
   if (type == "SR") {
     make_SR_plot(x, label)
   } else if (type == "hist") {
@@ -377,7 +377,6 @@ make_hist_plot <- function(x, propensity, strat) {
 #' @keywords internal
 make_ac_plot <- function(x, propensity, strat, strata_lines,
                          jitter_prognosis, jitter_propensity) {
-  
   a_set <- x$analysis_set
 
   prop_scores <- get_prop_scores(propensity, a_set, x$treat)
@@ -514,7 +513,8 @@ get_prop_scores <- function(propensity, data, treat) {
 check_prop_formula <- function(prop_formula, data, treat) {
   if (!(treat == all.vars(prop_formula)[1])) {
     stop(paste("Model formula must have the format: ", treat, " ~ [covariates]",
-               sep = ""))
+      sep = ""
+    ))
   }
 }
 

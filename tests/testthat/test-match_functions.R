@@ -9,19 +9,33 @@ context("Matching with Stratification")
 test_dat <- read.csv("test_data.csv")
 
 test_that("matching works", {
+  set.seed(123)
   if (!requireNamespace("optmatch", quietly = TRUE)) {
     skip("optmatch not installed")
   }
   m.strat <- manual_stratify(test_dat, treated ~ C1)
 
   m.match1 <- strata_match(m.strat, treated ~ X1, k = 1)
+  m.match2 <- strata_match(m.strat, treated ~ X1, k = "full")
+  m.match3 <- strata_match(m.strat, treated ~ X1, method = "mahal", k = "full")
 
   expect_is(m.match1, "optmatch")
-
-  m.strat2 <- manual_stratify(test_dat, treated ~ C1)
-  m.match2 <- strata_match(m.strat2, treated ~ X1, k = 2)
-
   expect_is(m.match2, "optmatch")
+  expect_is(m.match3, "optmatch")
+
+  a.strat <- auto_stratify(test_dat,
+    treat = "treated",
+    prognosis = outcomes ~ X1,
+    size = 20
+  )
+
+  a.match1 <- strata_match(a.strat, treated ~ X1, k = 1)
+  a.match2 <- strata_match(a.strat, treated ~ X1, k = "full")
+  a.match3 <- strata_match(a.strat, treated ~ X1, method = "mahal", k = "full")
+
+  expect_is(a.match1, "optmatch")
+  expect_is(a.match2, "optmatch")
+  expect_is(a.match3, "optmatch")
 })
 
 
@@ -51,6 +65,11 @@ test_that("matching errors work", {
   )
   expect_error(
     strata_match("soup", treated ~ C1 + X1, k = 1),
-    "strat must be a strata object"
+    "object must be a strata object"
+  )
+  expect_error(
+    strata_match(m.strat, treated ~ C1 + X1, method = "CEM"),
+    "Method CEM not suppported.",
+    fixed = TRUE
   )
 })

@@ -37,12 +37,12 @@ strata_match <- function(object, model = NULL, method = "prop", k = 1) {
   if (!requireNamespace("optmatch", quietly = TRUE)) {
     stop("optmatch package is required.  Please install it.")
   }
-  
+
   check_inputs_matcher(object, model, k)
-  
+
   message("This function makes essential use of the optmatch package, which has an academic license.")
   message("For more information, run optmatch::relaxinfo()")
-  
+
   if (is.null(model)) {
     # match on all variables, stratified by stratum
     model <- formula(paste(
@@ -50,16 +50,16 @@ strata_match <- function(object, model = NULL, method = "prop", k = 1) {
       "- stratum"
     ))
   }
-  
+
   matchdist <- make_match_distances(object, model, method)
-  
-  if (k == "full"){
-    return(optmatch::fullmatch(matchdist), data = object$analysis_set)
-  } else{
+
+  if (k == "full") {
+    return(optmatch::fullmatch(matchdist, data = object$analysis_set))
+  } else {
     return(optmatch::pairmatch(matchdist,
-                               data = object$analysis_set,
-                               controls = k
-    )) 
+      data = object$analysis_set,
+      controls = k
+    ))
   }
 }
 
@@ -69,9 +69,9 @@ strata_match <- function(object, model = NULL, method = "prop", k = 1) {
 #' Used to compare performance with and without stratification.
 #'
 #' @inheritParams strata_match
-#' 
+#'
 #' @return a named factor with matching assignments
-#' 
+#'
 #' @keywords internal
 strata_match_nstrat <- function(object, model = NULL, k = 1) {
   if (!requireNamespace("optmatch", quietly = TRUE)) {
@@ -80,15 +80,23 @@ strata_match_nstrat <- function(object, model = NULL, k = 1) {
 
   check_inputs_matcher(object, model, k)
 
+  message("This function makes essential use of the optmatch package, which has an academic license.")
+  message("For more information, run optmatch::relaxinfo()")
+
   if (is.null(model)) {
     # match on all variables, stratified by stratum
     model <- formula(paste(
       object$treat, "~ . -", object$outcome,
       "- stratum"
     ))
-  } else {
-    # do not modify original formula to append "+ strata(stratum)"
   }
+
+  strata_formula <- formula(paste(object$treat, "~ stratum"))
+
+  message(paste(
+    "Fitting propensity model:",
+    Reduce(paste, deparse(model))
+  ))
 
   # build propensity model
   propensity_model <- glm(model,
@@ -96,7 +104,19 @@ strata_match_nstrat <- function(object, model = NULL, k = 1) {
     family = binomial()
   )
 
-  return(optmatch::pairmatch(propensity_model,
+  # optmatch issues incorrect warning.  Catch this and suppress it.
+  withCallingHandlers(matchdist <- optmatch::match_on(propensity_model,
+    data = object$analysis_set
+  ),
+  warning = function(w) {
+    if (grepl("Error gathering complete data", w$message)) {
+      message(w$type)
+      invokeRestart("muffleWarning")
+    }
+  }
+  )
+
+  return(optmatch::pairmatch(matchdist,
     data = object$analysis_set,
     controls = k
   ))
@@ -110,7 +130,7 @@ strata_match_nstrat <- function(object, model = NULL, k = 1) {
 #' @keywords internal
 check_inputs_matcher <- function(object, model, k) {
   if (!is.strata(object)) {
-    stop("strat must be a strata object")
+    stop("object must be a strata object")
   }
   if (!is.null(model)) {
     if (!inherits(model, "formula")) {
@@ -118,9 +138,9 @@ check_inputs_matcher <- function(object, model, k) {
     }
     check_prop_formula(model, object$analysis_set, object$treat)
   }
-  if (!k == "full"){
+  if (!k == "full") {
     if (is.na(suppressWarnings(as.integer(k)))) stop("k must be an integer for pair matching, or \"full\" for full matching")
-    if (k < 1) stop("When pair matching, k must be 1 or greater") 
+    if (k < 1) stop("When pair matching, k must be 1 or greater")
   }
 }
 
@@ -136,49 +156,54 @@ check_inputs_matcher <- function(object, model, k) {
 #' @export
 #'
 #' @examples
-#' 
+#'
 #' dat <- make_sample_data(n = 75)
 #'
 #' # stratify with auto_stratify
 #' a.strat <- auto_stratify(dat, "treat", outcome ~ X2, size = 25)
 #' md <- make_match_distances(a.strat, treat ~ X1 + X2, method = "mahal")
-make_match_distances <- function(object, model, method){
-  
+make_match_distances <- function(object, model, method) {
   strata_formula <- formula(paste(object$treat, "~ stratum"))
-  
-  if (method == "prop"){
+
+  if (method == "prop") {
     message(paste(
       "Fitting propensity model:",
       Reduce(paste, deparse(model))
     ))
-    
+
     # build propensity model
     propensity_model <- glm(model,
-                            data = object$analysis_set,
-                            family = binomial()
+      data = object$analysis_set,
+      family = binomial()
     )
-    
+
     # optmatch issues incorrect warning.  Catch this and suppress it.
     withCallingHandlers(matchdist <- optmatch::match_on(propensity_model,
-                                              within = optmatch::exactMatch(strata_formula,
-                                                                  data = object$analysis_set)), 
-                        warning = function(w) {
-                          if(grepl("Error gathering complete data", w$message)){
-                            message(w$type)
-                            invokeRestart("muffleWarning")
-                          } 
-                        })
-  } else if (method == "mahal"){
+      within = optmatch::exactMatch(strata_formula,
+        data = object$analysis_set
+      )
+    ),
+    warning = function(w) {
+      if (grepl("Error gathering complete data", w$message)) {
+        message(w$type)
+        invokeRestart("muffleWarning")
+      }
+    }
+    )
+  } else if (method == "mahal") {
     message(paste(
       "Using Mahalanobis distance:",
       Reduce(paste, deparse(model))
     ))
-    
-    matchdist <- optmatch::match_on(model, data = object$analysis_set,
-                          within = optmatch::exactMatch(strata_formula,
-                                              data = object$analysis_set))
-  } else{
-    stop(paste("Method ", method, " not suppported."))
+
+    matchdist <- optmatch::match_on(model,
+      data = object$analysis_set,
+      within = optmatch::exactMatch(strata_formula,
+        data = object$analysis_set
+      )
+    )
+  } else {
+    stop(paste("Method", method, "not suppported."))
   }
   return(matchdist)
 }

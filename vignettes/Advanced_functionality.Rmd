@@ -1,8 +1,8 @@
 ---
-title: "prognostic_score_modeling"
+title: "Advanced Functionality"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{prognostic_score_modeling}
+  %\VignetteIndexEntry{Advanced_functionality}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 bibliography: citations.bib
@@ -36,16 +36,10 @@ We'll start with some sample data:
 
 ```{r}
 library(stratamatch)
+library(dplyr)
+set.seed(123)
 mydata <- make_sample_data(n = 5000)
 ```
-
-We'll also assume stratamatch, dplyr, and ggplot2 are loaded:
-
-```{r}
-library(dplyr)
-library(ggplot2)
-```
-
 
 # Splitting the pilot set
 
@@ -83,13 +77,19 @@ A word of caution is advisable: Logistic regression is generally the norm when f
 
 To an extent, any prognostic score stratification -- even on a poor quality model -- will increase the speed of matching for large datasets.  In addition, if the strata are sufficiently large, the subsequent within-strata matching step may compensate for a poor-quality prognostic model.  To one view, the diagnostic check that matters most is the quality of the final matching result, whereas specific prognostic modeling concerns are perhaps secondary.  Nonetheless, simulation and theory results suggest that incorporating a prognostic score into a study design (in combination, generally, with a propensity score) can have favorable statistical properties, such as decreasing variance, increasing power in gamma sensitivity analyses, and decreasing dependence on the propensity score (@stuart2010matching, @aikens2020pilot, @antonelli2018doubly, @hansen2008prognostic).  To that end, prognostic models which produce high-quality prognostic score estimates are expected to ultimately produce higher quality designs by improving the prognostic balance of the matched set.
 
+This section contains a few examples to introduce users who may be new to the modeling space. By no means does it begin to cover all of the modeling possibilities, or even all of the nuances of any one model. This is not a tutorial on predictive modeling. Users looking to become more familiar with modeling in R more broadly may be interested in the [`caret`](https://CRAN.R-project.org/package=caret) package (@caret2021), which implements support for a wide variety of predictive models.
+
 ## Outcomes: Binary or Continuous
 
 It's important to select a model which is appropriate to the nature of the outcome of interest.  In this tutorial, our sample data has a binary outcome, so we use models appropriate to that outcome.  Users with continuous outcomes should use regression models appropriate to continuous outcomes.  Other types of outcomes -- such as categorical -- have not yet been characterized in the prognostic score literature.
 
 ## A lasso
 
-The code below uses the `glmnet` package (@friedman2010regularization) to fit a cross-validated lasso on the pilot set based on all the measured covariates.  In this example, since the outcome is binary, we will run a logistic lasso.  This is done by specifying the `family = "binomial"` argument to `cv.lasso` (although other modeling steps are simular for continuous outcomes.)
+The lasso is a sparsifying linear model -- it  is a mathematical cousin to linear regression, but it functions well when a substaintial number of the measured covariates are actually uninformative to the outcome. This may be a particularly useful and intuitive approach when there are many measured covariates which may be redundant or uninformative.
+
+The code below uses the `glmnet` package (@friedman2010regularization) to fit a cross-validated lasso on the pilot set based on all the measured covariates.  In this example, since the outcome is binary, we will run a logistic lasso.  This is done by specifying the `family = "binomial"` argument to `cv.glmnet` (although other modeling steps are simular for continuous outcomes.)
+
+The code below does some preprocessing to convert the pilot set data to the right format before passing it to `cv.glmnet`. `glmnet` expects the input data to be a model matrix rather than a data frame, and it expects outcomes (`y_pilot`) to be separated from the covariate data (`x_pilot`).
 
 ```{r}
 library(glmnet)
@@ -105,7 +105,13 @@ y_pilot <- mysplit$pilot_set %>%
 cvlasso <- cv.glmnet(x_pilot, y_pilot, family = "binomial")
 ```
 
-At this point, we can run diagnostics on `cvlasso`.  The [Introduction to glmnet](https://glmnet.stanford.edu/articles/glmnet.html) vignette contains an accessible starting point.  When we are satisfied with our prognostic model, we can estimate the scores on the analysis set with `predict` and pass the result to `auto_stratify`.
+At this point, we can run diagnostics on `cvlasso`.  The [Introduction to glmnet](https://glmnet.stanford.edu/articles/glmnet.html) vignette contains an accessible starting point.  In this simulated data, we happen to know that the only variable that actually affects the outcome is `X1`.  The sparsifying model often does a great job of picking out `X1` as the most important variable.  We can see this by printing the coefficients:
+
+```{r}
+coef(cvlasso)
+```
+
+When we are satisfied with our prognostic model, we can estimate the scores on the analysis set with `predict` and pass the result to `auto_stratify`.
 
 ```{r}
 # estimate scores on analysis set
@@ -125,7 +131,7 @@ a.strat_lasso <- auto_stratify(data = mysplit$analysis_set,
 
 ## An elastic net
 
-An elastic net is a fairly straightforward extension of the code above.  An additional task is to select the `alpha` "mixing" parameter determining the amount of L2-regularization (1 for lasso, 0 for ridge regression). Here, I set `alpha = 0.2`.  The tutorial for `glmnet` also contains some advice for selecting the alpha parameter via cross-validation.  As above, we specify a logistic elastic net with `family = "binomial"`, since in this case our outcome is binary.
+An elastic net is a fairly straightforward extension of the code above -- we can use the same form of the pilot set data that we used above.  An additional task is to select the `alpha` "mixing" parameter determining the amount of L2-regularization (1 for lasso, 0 for ridge regression). Here, I set `alpha = 0.2`.  The tutorial for `glmnet` also contains some advice for selecting the alpha parameter via cross-validation.  As above, we specify a logistic elastic net with `family = "binomial"`, since in this case our outcome is binary.
 
 ```{r}
 cvenet <- cv.glmnet(x_pilot, y_pilot, family = "binomial", alpha = 0.2)
@@ -143,14 +149,80 @@ a.strat_enet <- auto_stratify(data = mysplit$analysis_set,
 
 ## A random forest
 
-Random forests are a popular option for both classification and regression modeling.  Below is an example which fits a random forest for our binary outcome using `randomForest`
+Random forests are a popular option for both classification and regression modeling, particularly because of their strengths in modeling nonlinear relationships in the data.  Below is an example which fits a random forest for our binary outcome using `randomForest`. A note for users with binary outcomes: `randomForest` will run regression by default if the outcome column is numeric.  To circumvent this (e.g. for 0/1 coded data), the outcome can be cast as a factor.
 
 ```{r}
-
+library(randomForest)
+forest <- randomForest(as.factor(outcome) ~ X1 + X2 + B1 + B2, data = mysplit$pilot_set)
 ```
 
-# Alternative matching schemes.
+Random forests can be somewhat more opaque than linear models in terms of understanding how predictions are made.  A good starting point is running `importance(forest)` to check on which features are weighted heavily in the model.
 
+Below, we extract a "prognostic score" from the random forest. Another note for users with binary outcomes: The `predict` method for random forest classifiers outputs 0/1 predictions by default. These will be useless for stratification. Instead, we need to specify `type = "prob"` in the call to predict and extract the probabilities for the "positive" outcome class.
+
+```{r}
+forest_scores <- predict(forest,
+                         newdata = mysplit$analysis_set,
+                         type = "prob")[,1]
+
+a.strat_forest <- auto_stratify(data = mysplit$analysis_set,
+                             treat = "treat",
+                             outcome = "outcome",
+                             prognosis = forest_scores,
+                             pilot_sample = mysplit$pilot_set,
+                             size = 500)
+```
+
+# Alternative matching schemes
+
+"Intro to Stratamatch" covers only the default functionality of `stratamatch`, which is a fixed 1:k propensity score match within strata.  This tutorial covers some alternative options.
+
+## Distance measure: Mahalanobis Distance
+
+Users can opt to use Mahalanobis distance rather then propensity score for the within-strata matching step by specifying the "method" to `strata_match`.  We set `k = 2`, so that precisely 2 control observations are matched to each treated observation.
+
+```{r}
+mahalmatch <- strata_match(a.strat2, model = treat ~ X1 + X2 + B1 + B2,
+                           method = "mahal", k = 2)
+
+summary(mahalmatch)
+```
+
+## Matching procedure: Full Matching
+
+Full matching may be a particularly useful approach when the ratio of treated to control individuals varies within strata, but the researcher still would prefer to use as much of the data as possible.  To do full matching, set `k = "full"`.  This can be used in combination with mahalanobis distance matching, as shown below:
+
+```{r}
+fullmahalmatch <- strata_match(a.strat2, model = treat ~ X1 + X2 + B1 + B2,
+                           method = "mahal", k = "full")
+
+summary(fullmahalmatch)
+```
+
+## Matching with other software
+
+`stratamatch` doesn't natively support all possible matching schemes.  Luckily, it can be fairly straightforward to stratify a data set with `auto_stratify` and match the results with other software.  As an example, the code below uses the `optmatch` package (@hansen2006optmatch) to match within-strata using Mahalanobis distance with a propensity score caliper.
+
+```{r}
+library(optmatch)
+
+# mahalanobis distance matrix for within-strata matching
+mahaldist <- match_on(treat ~ X1 + X2 + B1 + B2, 
+                      within = exactMatch(treat ~ stratum,
+                                          data = a.strat2$analysis_set),
+                      data = a.strat2$analysis_set)
+
+# add propensity score caliper
+propdist <- match_on(glm(treat ~ X1 + X2 + B1 + B2,
+                         family = "binomial",
+                         data = a.strat2$analysis_set))
+
+mahalcaliper <- mahaldist + caliper(propdist, width = 1)
+
+mahalcaliper_match <- pairmatch(mahalcaliper, data = a.strat2$analysis_set)
+
+summary(mahalcaliper_match)
+```
 
 
 # References
